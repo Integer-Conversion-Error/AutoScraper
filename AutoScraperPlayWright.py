@@ -1,7 +1,7 @@
 import requests, random
+from playwright.sync_api import sync_playwright
 import json
-import csv,time
-
+import csv,time,os
 
 def get_user_responses():
     """
@@ -185,8 +185,11 @@ def extract_ng_vdp_model(url, proxies=None):
 
     Args:
         url (str): The URL to fetch data from.
-        proxies (dict): Optional. A dictionary of proxies to use for the request.
-            Example: {"http": "http://proxy_url", "https": "https://proxy_url"}
+        proxies (list): Optional. A list of proxy servers to use for the request.
+            Example: ["http://proxy_url:port"]
+
+    Returns:
+        dict: Parsed JSON data or an error message.
     """
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -194,51 +197,39 @@ def extract_ng_vdp_model(url, proxies=None):
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
         "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:110.0) Gecko/20100101 Firefox/110.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
-        "Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.66 Mobile Safari/537.36",
-        "Mozilla/5.0 (iPad; CPU OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1"
+        "Mozilla/5.0 (Linux; Android 10; SM-A505F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.127 Mobile Safari/537.36"
     ]
 
-    headers = {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept-Language": "en-US,en;q=0.9",
-    }
-
-    
+    # Use a proxy if provided
+    proxy = None
+    if proxies:
+        proxy = random.choice(proxies)
 
     try:
-        response = requests.get(url, headers=headers)
-        
-        # Check for rate limiting
-        if response.status_code == 429:
-            raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
-        
-        response.raise_for_status()
+        with sync_playwright() as p:
+            # Launch a headless browser with optional proxy
+            browser = p.chromium.launch(headless=True, proxy={"server": proxy} if proxy else None)
+            context = browser.new_context(user_agent=random.choice(USER_AGENTS))
+            page = context.new_page()
 
-        for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line:
-                raw_data = line.split("=", 1)[1].strip()
-                break
-        else:
+            # Go to the specified URL
+            page.goto(url, timeout=30000)
+            content = page.content()
+            browser.close()
+
+            # Extract the ngVdpModel variable from the page source
+            for line in content.splitlines():
+                if "window['ngVdpModel'] =" in line:
+                    raw_data = line.split("=", 1)[1].strip().rstrip(";")
+                    cleaned_data = raw_data.replace("undefined", "null")
+                    return json.loads(cleaned_data)
+
             return "window['ngVdpModel'] not found in the HTML."
 
-        if raw_data.endswith(";"):
-            raw_data = raw_data[:-1]
-
-        cleaned_data = (
-            raw_data
-            .replace("undefined", "null")
-            .replace("\n", "")
-            .replace("\t", "")
-        )
-
-        ng_vdp_model = json.loads(cleaned_data)
-        return ng_vdp_model
-
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 
 
@@ -275,7 +266,7 @@ def save_to_csv(data, filename="results.csv"):
         writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
         for link in data:
             car_info = get_info_from_json(url=link)
-            time.sleep(1)
+            time.sleep(3)
             #print(car_info)
             if car_info:
                 # Write the row with additional columns
@@ -295,6 +286,7 @@ def save_to_csv(data, filename="results.csv"):
                 ])
             else: 
                 print(f"No valid data found for {link}")
+                os.abort()
                 #print(link)
     print(f"Results saved to {filename}")
 
