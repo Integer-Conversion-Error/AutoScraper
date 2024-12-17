@@ -1,7 +1,7 @@
-import requests
+import requests, random
 import json
-import csv
-from AutotraderXHRTest import process_csv
+import csv,time
+
 
 def get_user_responses():
     """
@@ -103,6 +103,7 @@ def fetch_autotrader_data(params):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
     }
 
     all_results = []
@@ -177,17 +178,41 @@ def remove_duplicates(arr):
             seen.add(item)
     return result
 
-def extract_ng_vdp_model(url):
+def extract_ng_vdp_model(url, proxies=None):
     """
     Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.
+    Detects rate limiting and raises an error if encountered. Supports proxy usage.
+
+    Args:
+        url (str): The URL to fetch data from.
+        proxies (dict): Optional. A dictionary of proxies to use for the request.
+            Example: {"http": "http://proxy_url", "https": "https://proxy_url"}
     """
+    USER_AGENTS = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:110.0) Gecko/20100101 Firefox/110.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
+        "Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.66 Mobile Safari/537.36",
+        "Mozilla/5.0 (iPad; CPU OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1"
+    ]
+
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+        "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "en-US,en;q=0.9",
     }
 
+    
+
     try:
         response = requests.get(url, headers=headers)
+        
+        # Check for rate limiting
+        if response.status_code == 429:
+            raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
+        
         response.raise_for_status()
 
         for line in response.text.splitlines():
@@ -215,6 +240,8 @@ def extract_ng_vdp_model(url):
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
 
+
+
 def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.ca/a/ford/fusion/orangeville/ontario/5_64604589_on20070704162913228/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=3&urm=8&sprx=-1"):
     """
     Extracts car info from the JSON data on the AutoTrader page.
@@ -232,6 +259,7 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
         return carinfodict
     else:
         print(f"Error fetching data from URL: {url}")
+        print(result)
         return None
 
 def save_to_csv(data, filename="results.csv"):
@@ -247,8 +275,11 @@ def save_to_csv(data, filename="results.csv"):
         writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
         for link in data:
             car_info = get_info_from_json(url=link)
+            time.sleep(1)
+            #print(car_info)
             if car_info:
                 # Write the row with additional columns
+                print(car_info)
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
@@ -262,10 +293,13 @@ def save_to_csv(data, filename="results.csv"):
                     car_info.get("Drivetrain", ""),
                     car_info.get("Fuel Type", ""),
                 ])
+            else: 
+                print(f"No valid data found for {link}")
+                #print(link)
     print(f"Results saved to {filename}")
 
-    print("Processing CSV to fetch car details...")
-    process_csv(input_csv=filename, output_csv=filename)
+    #print("Processing CSV to fetch car details...")
+    #process_csv(input_csv=filename, output_csv=filename)
 
 def main():
     """
