@@ -245,11 +245,14 @@ def extract_ng_vdp_model(url, proxies=None):
         response.raise_for_status()
 
         for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line:
+            if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
                 raw_data = line.split("=", 1)[1].strip()
                 break
         else:
-            return "window['ngVdpModel'] not found in the HTML."
+            save_html_to_file(response.text)
+            respjson = parse_html_to_json("output.html") ##ANOTHER WAY IS THIS WAY
+            print(respjson)
+            return respjson#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
 
         if raw_data.endswith(";"):
             raw_data = raw_data[:-1]
@@ -292,6 +295,67 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
         print(result)
         return None
 
+def parse_html_to_json(file_path):
+    """
+    Parses the JSON-like content embedded within an HTML file.
+
+    Args:
+        file_path (str): The path to the HTML file.
+
+    Returns:
+        dict: Extracted JSON content or an error message.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        # Extract JSON-like content between braces assuming it's embedded
+        json_start = html_content.find("{")
+        json_end = html_content.rfind("}")
+
+        if json_start == -1 or json_end == -1:
+            raise ValueError("No JSON-like content found in the HTML file.")
+
+        # Convert the extracted content into JSON
+        json_content = json.loads(html_content[json_start:json_end + 1])
+        print("Successfully parsed JSON content from the HTML.")
+        return json_content
+
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON: {e}")
+    except Exception as e:
+        print(f"An error occurred while parsing HTML to JSON: {e}")
+
+def save_json_to_file(json_content, file_name="output.json"):
+    """
+    Saves the provided JSON content to a file.
+
+    Args:
+        json_content (dict): The JSON content to save.
+        file_name (str): The name of the JSON file. Default is "output.json".
+    """
+    try:
+        with open(file_name, "w", encoding="utf-8") as file:
+            json.dump(json_content, file, indent=4)
+        print(f"JSON content saved to {file_name}")
+    except Exception as e:
+        print(f"An error occurred while saving JSON to file: {e}")
+
+def save_html_to_file(html_content, file_name="output.html"):
+    """
+    Saves the provided HTML content to a file.
+
+    Args:
+        html_content (str): The HTML content to save.
+        file_name (str): The name of the HTML file. Default is "output.html".
+    """
+    try:
+        with open(file_name, "w", encoding="utf-8") as file:
+            file.write(html_content)
+        print(f"HTML content saved to {file_name}")
+    except Exception as e:
+        print(f"An error occurred while saving HTML to file: {e}")
+
 def save_to_csv(data, filename="results.csv"):
     """
     Saves fetched data by processing it using external CSV handling function.
@@ -300,6 +364,7 @@ def save_to_csv(data, filename="results.csv"):
         data (list): List of links to save.
         filename (str): Name of the CSV file.
     """
+    countofcars = 0
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
@@ -309,7 +374,8 @@ def save_to_csv(data, filename="results.csv"):
             #print(car_info)
             if car_info:
                 # Write the row with additional columns
-                print(car_info)
+                countofcars+=1
+                print(countofcars)
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
@@ -375,3 +441,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+    # file_path = "output.html"  # Replace with the correct path to your file
+    # parsed_json = parse_html_to_json(file_path)
+    # if parsed_json:
+    #     save_json_to_file(parsed_json, "parsed_output.json")
