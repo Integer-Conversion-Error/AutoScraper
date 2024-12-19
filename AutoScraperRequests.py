@@ -1,75 +1,21 @@
-import requests, random
+from datetime import datetime, timedelta
+import requests, random,ast
 import json
 import csv,time,os
 
+from GetUserSelection import get_user_responses, read_payload_from_file, save_payload_to_file
 from ProxyGen import getRandomProxy
+from SaveToFile import save_html_to_file, save_json_to_file
 
-
-def get_user_responses():
+def cls():
     """
-    Prompt the user for responses to populate the payload items.
-
-    Returns:
-        dict: A dictionary containing user inputs for the payload.
+    Clears the console screen for a cleaner display.
     """
-    payload = {
-        "Address": input("Enter Address (default: null): ") or "Kanata, ON",
-        "Make": input("Enter Make (default: null): ") or None,
-        "Model": input("Enter Model (default: null): ") or None,
-        "PriceMin": input("Enter Minimum Price (default: null): ") or None,
-        "PriceMax": input("Enter Maximum Price (default: null): ") or None,
-        "Skip": 0,
-        "Top": 15,
-        "IsNew": "True",
-        "IsUsed": "True",
-        "WithPhotos": "True",
-        "YearMax": input("Enter Maximum Year (default: null): ") or None,
-        "YearMin": input("Enter Minimum Year (default: null): ") or None,
-        "micrositeType": 1,  # This field is fixed
-    }
-
-    # Convert numerical inputs or booleans
-    for key in ["PriceMin", "PriceMax", "Skip", "Top", "YearMax", "YearMin"]:
-        if payload[key] is not None:
-            try:
-                payload[key] = int(payload[key])
-            except ValueError:
-                payload[key] = None
-
-    for key in ["IsNew", "IsUsed", "WithPhotos"]:
-        if payload[key] is not None:
-            payload[key] = payload[key].strip().lower() == "true"
-
-    return payload
-
-def save_payload_to_file(payload):
-    """
-    Save the payload to a file in JSON format.
-
-    Args:
-        payload (dict): The payload to save.
-    """
-    filename = input("Enter the name of the file to save (with .txt extension): ")
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(payload, file, indent=4)
-    print(f"Payload saved to {filename}")
-
-def read_payload_from_file():
-    """
-    Read a payload from a file in JSON format.
-
-    Returns:
-        dict: The payload read from the file.
-    """
-    filename = input("Enter the name of the file to read (with .txt extension): ")
-    try:
-        with open(filename, "r", encoding="utf-8") as file:
-            payload = json.load(file)
-            print(f"Payload successfully loaded from {filename}")
-            return payload
-    except FileNotFoundError:
-        print(f"File {filename} not found.")
-        return None
+    # Check the operating system and execute the appropriate clear command
+    if os.name == 'nt':  # For Windows
+        os.system('cls')
+    else:  # For Linux and MacOS
+        os.system('clear')
 
 def fetch_autotrader_data(params):
     """
@@ -190,10 +136,9 @@ def extract_ng_vdp_model(url, proxies=None):
         proxies (dict): Optional. A dictionary of proxies to use for the request.
             Example: {"http": "http://proxy_url", "https": "https://proxy_url"}
     """
-    import requests
-    import json
-    import random
 
+    normalreturn = False
+    waitlength = 10
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
@@ -229,12 +174,6 @@ def extract_ng_vdp_model(url, proxies=None):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    # Define the proxies dictionary with actual proxy information
-    # proxies = proxies or {
-    #     "http": "http://"+str(getRandomProxy()),
-    #     "https": "http://"+str(getRandomProxy()),
-    # }
-
     try:
         response = requests.get(url, headers=headers, proxies=proxies)
         
@@ -243,16 +182,36 @@ def extract_ng_vdp_model(url, proxies=None):
             raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
         
         response.raise_for_status()
+        while "Request unsuccessful." in response.text:
+            #print("Original Block")
+            save_html_to_file(response.text)
+            #print(response.text)
+            print("Rate limited: Incapsula says Too Many Requests. Waiting for 10 seconds")
+            for x in reversed(range(waitlength)):
+                time.sleep(1)
+                print(f"Retrying in {x} seconds")
+            response = requests.get(url, headers=headers, proxies=proxies)
 
         for line in response.text.splitlines():
             if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
                 raw_data = line.split("=", 1)[1].strip()
+                normalreturn = True
                 break
+            elif "Request unsuccessful. Incapsula incident ID:" in line:
+                save_html_to_file(response.text)
+                print(response.text)
+                raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")
+                
         else:
             save_html_to_file(response.text)
-            respjson = parse_html_to_json("output.html") ##ANOTHER WAY IS THIS WAY
-            print(respjson)
-            return respjson#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
+            respprejson = parse_html_to_json("output.html") ##ANOTHER WAY IS THIS WAY
+            save_json_to_file(respprejson)
+            respjson = read_json_file("output.json")
+            #print(type(respjson))
+            # for item in respjson:
+            #     print(item)
+            #respjson = parse_string_to_json(respprejson)
+            return respjson,normalreturn#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
 
         if raw_data.endswith(";"):
             raw_data = raw_data[:-1]
@@ -265,7 +224,8 @@ def extract_ng_vdp_model(url, proxies=None):
         )
 
         ng_vdp_model = json.loads(cleaned_data)
-        return ng_vdp_model
+        normalreturn = True
+        return ng_vdp_model,normalreturn
 
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
@@ -279,16 +239,27 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
     """
     Extracts car info from the JSON data on the AutoTrader page.
     """
-    result = extract_ng_vdp_model(url)
+    result,goodreturn = extract_ng_vdp_model(url)
     carinfodict = {"Make": make, "Model": model}
 
-    if isinstance(result, dict):
+    if isinstance(result, dict) and goodreturn:
         allofspecs = result.get("specifications")
+        
         allspecs = allofspecs.get("specs", [])
         for spec in allspecs:
             carinfodict.update({spec["key"]: spec["value"]})
-
-        #print(carinfodict)
+        #print("Normal GetInfoFromJson Block! ")
+        return carinfodict
+    elif not goodreturn:
+        #print(type(result))
+        # for key in result.keys():
+        #     print(f"Key: {key}")
+        allofspecs = dict(result["Specifications"])
+        allofspecs = allofspecs.get("Specs",[])
+        #print(allofspecs, type(result))
+        for spec in allofspecs:
+            tempdict = dict(spec)
+            carinfodict.update({tempdict["Key"]: tempdict["Value"]})
         return carinfodict
     else:
         print(f"Error fetching data from URL: {url}")
@@ -318,7 +289,7 @@ def parse_html_to_json(file_path):
 
         # Convert the extracted content into JSON
         json_content = json.loads(html_content[json_start:json_end + 1])
-        print("Successfully parsed JSON content from the HTML.")
+        #print("Successfully parsed JSON content from the HTML.")
         return json_content
 
     except json.JSONDecodeError as e:
@@ -326,35 +297,7 @@ def parse_html_to_json(file_path):
     except Exception as e:
         print(f"An error occurred while parsing HTML to JSON: {e}")
 
-def save_json_to_file(json_content, file_name="output.json"):
-    """
-    Saves the provided JSON content to a file.
 
-    Args:
-        json_content (dict): The JSON content to save.
-        file_name (str): The name of the JSON file. Default is "output.json".
-    """
-    try:
-        with open(file_name, "w", encoding="utf-8") as file:
-            json.dump(json_content, file, indent=4)
-        print(f"JSON content saved to {file_name}")
-    except Exception as e:
-        print(f"An error occurred while saving JSON to file: {e}")
-
-def save_html_to_file(html_content, file_name="output.html"):
-    """
-    Saves the provided HTML content to a file.
-
-    Args:
-        html_content (str): The HTML content to save.
-        file_name (str): The name of the HTML file. Default is "output.html".
-    """
-    try:
-        with open(file_name, "w", encoding="utf-8") as file:
-            file.write(html_content)
-        print(f"HTML content saved to {file_name}")
-    except Exception as e:
-        print(f"An error occurred while saving HTML to file: {e}")
 
 def save_to_csv(data, filename="results.csv"):
     """
@@ -365,17 +308,20 @@ def save_to_csv(data, filename="results.csv"):
         filename (str): Name of the CSV file.
     """
     countofcars = 0
+    cartimes = []
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
         for link in data:
+            startTime = time.time()
             car_info = get_info_from_json(url=link)
-            time.sleep(3)
+            
+            time.sleep(2)
             #print(car_info)
             if car_info:
                 # Write the row with additional columns
                 countofcars+=1
-                print(countofcars)
+                
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
@@ -393,10 +339,70 @@ def save_to_csv(data, filename="results.csv"):
                 print(f"No valid data found for {link}")
                 os.abort()
                 #print(link)
+            opTime = time.time() - startTime
+            averagetime = 0
+            cartimes.append(opTime)
+            for cartime in cartimes:
+                averagetime += cartime
+            averagetime /= float(len(cartimes))
+            cls()
+            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}\tWithout Pause: {opTime-2:.2f}\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
 
     #print("Processing CSV to fetch car details...")
     #process_csv(input_csv=filename, output_csv=filename)
+
+def read_json_file(file_path):
+    """
+    Reads the contents of a JSON file and returns it as a Python dictionary.
+
+    :param file_path: str, the path to the JSON file
+    :return: dict, the parsed JSON content
+    """
+    try:
+        with open(file_path, 'r') as file:
+            # Load the JSON content from the file
+            data = json.load(file)
+            return data
+    except FileNotFoundError:
+        print(f"Error: The file '{file_path}' was not found.")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to decode JSON - {e}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return None
+
+def format_time(seconds):
+    """
+    Formats time given in seconds into hours, minutes, and seconds.
+
+    :param seconds: int, time in seconds
+    :return: str, formatted time as "h m s"
+    """
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{hours}h {minutes}m {seconds:.2f}s"
+
+def parse_string_to_json(input_string):
+    """
+    Parses a string representing a dictionary into a JSON object and returns it as a Python dictionary.
+
+    :param input_string: str, the string representation of a dictionary
+    :return: dict, the parsed JSON object
+    """
+    try:
+        # Convert the string to a dictionary using ast.literal_eval for safe evaluation
+        parsed_dict = ast.literal_eval(input_string)
+        # Convert the dictionary to JSON to ensure valid format
+        json_data = json.dumps(parsed_dict)
+        # Parse the JSON back to a Python dictionary
+        return json.loads(json_data)
+    except Exception as e:
+        print(f"Error parsing the string: {e}")
+        return None
 
 def main():
     """
@@ -429,7 +435,8 @@ def main():
             if 'payload' in locals() and payload:
                 results = fetch_autotrader_data(payload)
                 results = remove_duplicates(results)
-                save_to_csv(results)
+                filenamestr = f"{payload["Make"]}_{payload["Model"]}_{format_time_ymd_hms()}"
+                save_to_csv(results, )
                 print(f"Total Results Fetched: {len(results)}")
             else:
                 print("No payload found. Please create or load one first.")
@@ -439,8 +446,33 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
+def format_time_ymd_hms(seconds = time.time()):
+    """
+    Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss".
+
+    :param seconds: int, time in seconds
+    :return: str, formatted time
+    """
+    base_time = datetime(1970, 1, 1) + timedelta(seconds=seconds)
+    return base_time.strftime("%Y-%m-%d_%H-%M-%S")
+
+def testmain():
+    """
+    Main function to interact with the user.
+    """
+
+    loaded_payload = read_payload_from_file()
+    if loaded_payload:
+        payload = loaded_payload
+    if 'payload' in locals() and payload:
+        results = fetch_autotrader_data(payload)
+        results = remove_duplicates(results)
+        save_to_csv(results)
+        print(f"Total Results Fetched: {len(results)}")
+
+
 if __name__ == "__main__":
-    main()
+    testmain()
 
 
     # file_path = "output.html"  # Replace with the correct path to your file
