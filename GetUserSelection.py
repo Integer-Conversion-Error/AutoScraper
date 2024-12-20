@@ -1,41 +1,63 @@
 import json
 
+
+def cleaned_input(itemTitle, defaultval, expectedtype):
+    """
+    Prompts the user for input, validates it, and ensures it matches the expected type.
+
+    :param itemTitle: str, title of the item being requested
+    :param defaultval: default value to use if input is empty
+    :param expectedtype: type, the expected type of the input
+    :return: value of the correct type
+    """
+    while True:
+        try:
+            user_input = input(f"Enter {itemTitle} (default: {defaultval}): ")
+            if not user_input.strip():
+                return defaultval
+            value = expectedtype(user_input)
+            return value
+        except ValueError:
+            print(f"Invalid input. Please enter a value of type {expectedtype.__name__}.")
+
 def get_user_responses():
     """
-    Prompt the user for responses to populate the payload items.
+    Prompt the user for responses to populate the payload items and validate logical consistency.
 
     Returns:
         dict: A dictionary containing user inputs for the payload.
     """
+    exclusions = []
     payload = {
-        "Address": input("Enter Address (default: null): ") or "Kanata, ON",
-        "Make": input("Enter Make (default: null): ") or None,
-        "Model": input("Enter Model (default: null): ") or None,
-        "PriceMin": input("Enter Minimum Price (default: null): ") or None,
-        "PriceMax": input("Enter Maximum Price (default: null): ") or None,
-        "Skip": 0,
-        "Top": 15,
-        "IsNew": "True",
-        "IsUsed": "True",
-        "WithPhotos": "True",
-        "YearMax": input("Enter Maximum Year (default: null): ") or None,
-        "YearMin": input("Enter Minimum Year (default: null): ") or None,
+        "Address": cleaned_input("Address", "Kanata, ON", str),
+        "Make": cleaned_input("Make", None, str),
+        "Model": cleaned_input("Model", None, str),
+        "PriceMin": cleaned_input("Minimum Price", None, int),
+        "PriceMax": cleaned_input("Maximum Price", None, int),
+        "Skip": cleaned_input("Skip", 0, int),
+        "Top": cleaned_input("Top", 15, int),
+        "IsNew": cleaned_input("Is the car new? (True/False)", True, bool),
+        "IsUsed": cleaned_input("Is the car used? (True/False)", True, bool),
+        "WithPhotos": cleaned_input("With photos only? (True/False)", True, bool),
+        "YearMax": cleaned_input("Maximum Year", None, int),
+        "YearMin": cleaned_input("Minimum Year", None, int),
         "micrositeType": 1,  # This field is fixed
     }
 
-    # Convert numerical inputs or booleans
-    for key in ["PriceMin", "PriceMax", "Skip", "Top", "YearMax", "YearMin"]:
-        if payload[key] is not None:
-            try:
-                payload[key] = int(payload[key])
-            except ValueError:
-                payload[key] = None
+    # Validate logical consistency of inputs
+    if payload["PriceMin"] is not None and payload["PriceMax"] is not None:
+        if payload["PriceMin"] > payload["PriceMax"]:
+            print("Error: Minimum Price cannot be greater than Maximum Price. Please re-enter.")
+            payload["PriceMin"] = cleaned_input("Minimum Price", None, int)
+            payload["PriceMax"] = cleaned_input("Maximum Price", None, int)
 
-    for key in ["IsNew", "IsUsed", "WithPhotos"]:
-        if payload[key] is not None:
-            payload[key] = payload[key].strip().lower() == "true"
+    if payload["YearMin"] is not None and payload["YearMax"] is not None:
+        if payload["YearMin"] > payload["YearMax"]:
+            print("Error: Minimum Year cannot be greater than Maximum Year. Please re-enter.")
+            payload["YearMin"] = cleaned_input("Minimum Year", None, int)
+            payload["YearMax"] = cleaned_input("Maximum Year", None, int)
 
-    return payload
+    return payload, exclusions
 
 def save_payload_to_file(payload):
     """

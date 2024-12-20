@@ -3,7 +3,7 @@ import requests
 from SaveToFile import save_html_to_file
 from bs4 import BeautifulSoup
 
-def fetch_autotrader_data(params):
+def fetch_autotrader_data(params, exclusions = []):
     """
     Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
 
@@ -73,7 +73,7 @@ def fetch_autotrader_data(params):
                 print("No more data available.")
                 break
             save_html_to_file(ad_results_json,"html_test_output.html")
-            parsed_html_page = parse_html_file("html_test_output.html")
+            parsed_html_page = parse_html_file("html_test_output.html",exclusions)
             parsed_html_ad_info.extend(parsed_html_page)
             search_results = json.loads(search_results_json)
             all_results.extend(search_results.get("compositeIdUrls", []))
@@ -105,7 +105,7 @@ def fetch_autotrader_data(params):
 
 
 
-def parse_html_file(file_path):
+def parse_html_file(file_path,exclusions = []):
     """
     Parses the HTML file and extracts links and their corresponding listing details.
 
@@ -120,7 +120,7 @@ def parse_html_file(file_path):
     # Find all listing containers
     for result_item in soup.find_all('div', class_='result-item'):
         listing = {}
-
+        excluded = False
         # Extract link
         link_tag = result_item.find('a', class_='inner-link')
         if link_tag and link_tag.get('href'):
@@ -129,6 +129,8 @@ def parse_html_file(file_path):
         # Extract title
         title_tag = result_item.find('span', class_='title-with-trim')
         if title_tag:
+            if any(exclusion in title_tag.get_text(strip=True) for exclusion in exclusions):
+                excluded = True
             listing['title'] = title_tag.get_text(strip=True)
 
         # Extract price
@@ -147,7 +149,7 @@ def parse_html_file(file_path):
             listing['location'] = location_tag.get_text(strip=True)
 
         # Add the listing if it has a link
-        if 'link' in listing:
+        if 'link' in listing and not excluded:
             listings.append(listing)
     
     return listings
@@ -168,10 +170,11 @@ def sendTestPayload():
         "YearMin": "2017",
         "micrositeType": 1,  # This field is fixed
     }
-    links,all_ads = fetch_autotrader_data(params=payload)
+    excl = ["SE","Titanium", "2.0"]
+    links,all_ads = fetch_autotrader_data(params=payload,exclusions=excl)
 
-    for link in links:
-        print(link)
+    # for link in links:
+    #     print(link)
     print(f"Link amount = {len(links)}")
     print(f"Ad amount = {len(all_ads)}")
 
