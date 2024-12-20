@@ -1,6 +1,6 @@
 import json
 import requests
-from SaveToFile import parse_html_file, save_html_to_file
+from AutoScraperUtil import parse_html_file, save_html_to_file
 from bs4 import BeautifulSoup
 from GetUserSelection import get_user_responses
 

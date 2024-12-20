@@ -1,24 +1,4 @@
-import json
-
-
-def cleaned_input(itemTitle, defaultval, expectedtype):
-    """
-    Prompts the user for input, validates it, and ensures it matches the expected type.
-
-    :param itemTitle: str, title of the item being requested
-    :param defaultval: default value to use if input is empty
-    :param expectedtype: type, the expected type of the input
-    :return: value of the correct type
-    """
-    while True:
-        try:
-            user_input = input(f"Enter {itemTitle} (default: {defaultval}): ")
-            if not user_input.strip():
-                return defaultval
-            value = expectedtype(user_input)
-            return value
-        except ValueError:
-            print(f"Invalid input. Please enter a value of type {expectedtype.__name__}.")
+from AutoScraperUtil import cleaned_input,transform_strings
 
 def get_keywords_from_user():
     """
@@ -58,7 +38,7 @@ def get_keywords_from_user():
         else:
             print("Invalid choice. Please try again.")
 
-    return keywords
+    return transform_strings(keywords)
 
 def get_user_responses():
     """
@@ -102,32 +82,5 @@ def get_user_responses():
 
     return payload
 
-def save_payload_to_file(payload):
-    """
-    Save the payload to a file in JSON format.
 
-    Args:
-        payload (dict): The payload to save.
-    """
-    filename = input("Enter the name of the file to save (with .txt extension): ")
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(payload, file, indent=4)
-    print(f"Payload saved to {filename}")
 
-def read_payload_from_file(filename = "ff2019.txt"):
-    """
-    Read a payload from a file in JSON format.
-
-    Returns:
-        dict: The payload read from the file.
-    """
-    #filename = input("Enter the name of the file to read (with .txt extension): ")
-    print("TEST PAYLOAD: FORD FUSION 2017-19")
-    try:
-        with open(filename, "r", encoding="utf-8") as file:
-            payload = json.load(file)
-            print(f"Payload successfully loaded from {filename}")
-            return payload
-    except FileNotFoundError:
-        print(f"File {filename} not found.")
-        return None

@@ -3,19 +3,102 @@ import requests, random,ast
 import json
 import csv,time,os
 
-from GetUserSelection import get_user_responses, read_payload_from_file, save_payload_to_file
+from GetUserSelection import get_user_responses
 from ProxyGen import getRandomProxy
-from SaveToFile import save_html_to_file, save_json_to_file
+from AutoScraperUtil import cleaned_input, format_time, format_time_ymd_hms, parse_html_to_json, read_json_file, remove_duplicates, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
 
-def cls():
-    """
-    Clears the console screen for a cleaner display.
-    """
-    # Check the operating system and execute the appropriate clear command
-    if os.name == 'nt':  # For Windows
-        os.system('cls')
-    else:  # For Linux and MacOS
-        os.system('clear')
+
+
+# def fetch_autotrader_data(params):
+#     """
+#     Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
+
+#     Args:
+#         params (dict): Dictionary containing search parameters with default values.
+
+#     Returns:
+#         list: Combined list of all results from all pages.
+#     """
+#     # Set default values for parameters
+#     default_params = {
+#         "Make": "",
+#         "Model": "",
+#         "PriceMin": 0,
+#         "PriceMax": 99999,
+#         "YearMin": "1950",
+#         "YearMax": "2025",
+#         "Top": 15,
+#         "Address": "Kanata, ON",
+#         "IsNew": True,
+#         "IsUsed": True,
+#         "WithPhotos": True,
+#     }
+
+#     # Update default values with provided parameters
+#     params = {**default_params, **params}
+
+#     url = "https://www.autotrader.ca/Refinement/Search"
+
+#     headers = {
+#         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+#         "Content-Type": "application/json",
+#         "Accept": "application/json",
+#         "Accept-Language": "en-US,en;q=0.9",
+#     }
+
+#     all_results = []
+#     current_page = 1
+#     max_page = None
+#     skip = 0
+
+#     while True:
+#         payload = {
+#             "Address": params["Address"],
+#             "Make": params["Make"],
+#             "Model": params["Model"],
+#             "PriceMin": params["PriceMin"],
+#             "PriceMax": params["PriceMax"],
+#             "Skip": skip,
+#             "Top": params["Top"],
+#             "IsNew": params["IsNew"],
+#             "IsUsed": params["IsUsed"],
+#             "WithPhotos": params["WithPhotos"],
+#             "YearMax": params["YearMax"],
+#             "YearMin": params["YearMin"],
+#             "micrositeType": 1,
+#         }
+
+#         try:
+#             response = requests.post(url, headers=headers, json=payload)
+#             response.raise_for_status()
+#             json_response = response.json()
+#             search_results_json = json_response.get("SearchResultsDataJson", "")
+#             if not search_results_json:
+#                 print("No more data available.")
+#                 break
+
+#             search_results = json.loads(search_results_json)
+#             all_results.extend(search_results.get("compositeIdUrls", []))
+
+#             current_page = search_results.get("currentPage", 0)
+#             max_page = search_results.get("maxPage", current_page)
+
+#             print(f"Fetched page {current_page} of {max_page}...")
+
+#             if current_page >= max_page:
+#                 print("Reached the last page.")
+#                 break
+
+#             skip += params["Top"]
+
+#         except requests.exceptions.RequestException as e:
+#             print(f"An error occurred: {e}")
+#             break
+#         except json.JSONDecodeError as e:
+#             print(f"Failed to decode SearchResultsDataJson: {e}")
+#             break
+
+#     return all_results
 
 def fetch_autotrader_data(params):
     """
@@ -40,11 +123,13 @@ def fetch_autotrader_data(params):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
+        "Exclusions" : []
     }
+    
 
     # Update default values with provided parameters
     params = {**default_params, **params}
-
+    exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
 
     headers = {
@@ -58,6 +143,7 @@ def fetch_autotrader_data(params):
     current_page = 1
     max_page = None
     skip = 0
+    parsed_html_ad_info = []
 
     while True:
         payload = {
@@ -81,10 +167,13 @@ def fetch_autotrader_data(params):
             response.raise_for_status()
             json_response = response.json()
             search_results_json = json_response.get("SearchResultsDataJson", "")
+            ad_results_json = json_response.get("AdsHtml","")
             if not search_results_json:
                 print("No more data available.")
                 break
-
+            save_html_to_file(ad_results_json,"html_test_output.html")
+            parsed_html_page = parse_html_file("html_test_output.html",exclusions)
+            parsed_html_ad_info.extend(parsed_html_page)
             search_results = json.loads(search_results_json)
             all_results.extend(search_results.get("compositeIdUrls", []))
 
@@ -106,25 +195,8 @@ def fetch_autotrader_data(params):
             print(f"Failed to decode SearchResultsDataJson: {e}")
             break
 
-    return all_results
+    return all_results#,parsed_html_ad_info
 
-def remove_duplicates(arr):
-    """
-    Removes duplicates from an array while maintaining the order of elements.
-
-    Args:
-        arr (list): The input array.
-
-    Returns:
-        list: A new array with duplicates removed.
-    """
-    seen = set()
-    result = []
-    for item in arr:
-        if item not in seen:
-            result.append("https://www.autotrader.ca" + item)
-            seen.add(item)
-    return result
 
 def extract_ng_vdp_model(url, proxies=None):
     """
@@ -204,9 +276,9 @@ def extract_ng_vdp_model(url, proxies=None):
                 
         else:
             save_html_to_file(response.text)
-            respprejson = parse_html_to_json("output.html") ##ANOTHER WAY IS THIS WAY
+            respprejson = parse_html_to_json() ##ANOTHER WAY IS THIS WAY
             save_json_to_file(respprejson)
-            respjson = read_json_file("output.json")
+            respjson = read_json_file()
             #print(type(respjson))
             # for item in respjson:
             #     print(item)
@@ -266,40 +338,11 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
         print(result)
         return None
 
-def parse_html_to_json(file_path):
-    """
-    Parses the JSON-like content embedded within an HTML file.
-
-    Args:
-        file_path (str): The path to the HTML file.
-
-    Returns:
-        dict: Extracted JSON content or an error message.
-    """
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            html_content = file.read()
-
-        # Extract JSON-like content between braces assuming it's embedded
-        json_start = html_content.find("{")
-        json_end = html_content.rfind("}")
-
-        if json_start == -1 or json_end == -1:
-            raise ValueError("No JSON-like content found in the HTML file.")
-
-        # Convert the extracted content into JSON
-        json_content = json.loads(html_content[json_start:json_end + 1])
-        #print("Successfully parsed JSON content from the HTML.")
-        return json_content
-
-    except json.JSONDecodeError as e:
-        print(f"Failed to decode JSON: {e}")
-    except Exception as e:
-        print(f"An error occurred while parsing HTML to JSON: {e}")
 
 
 
-def save_to_csv(data, filename="results.csv"):
+
+def save_results_to_csv(data, filename="results.csv"):
     """
     Saves fetched data by processing it using external CSV handling function.
 
@@ -352,57 +395,10 @@ def save_to_csv(data, filename="results.csv"):
     #print("Processing CSV to fetch car details...")
     #process_csv(input_csv=filename, output_csv=filename)
 
-def read_json_file(file_path):
-    """
-    Reads the contents of a JSON file and returns it as a Python dictionary.
 
-    :param file_path: str, the path to the JSON file
-    :return: dict, the parsed JSON content
-    """
-    try:
-        with open(file_path, 'r') as file:
-            # Load the JSON content from the file
-            data = json.load(file)
-            return data
-    except FileNotFoundError:
-        print(f"Error: The file '{file_path}' was not found.")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to decode JSON - {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return None
 
-def format_time(seconds):
-    """
-    Formats time given in seconds into hours, minutes, and seconds.
 
-    :param seconds: int, time in seconds
-    :return: str, formatted time as "h m s"
-    """
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours}h {minutes}m {seconds:.2f}s"
 
-def parse_string_to_json(input_string):
-    """
-    Parses a string representing a dictionary into a JSON object and returns it as a Python dictionary.
-
-    :param input_string: str, the string representation of a dictionary
-    :return: dict, the parsed JSON object
-    """
-    try:
-        # Convert the string to a dictionary using ast.literal_eval for safe evaluation
-        parsed_dict = ast.literal_eval(input_string)
-        # Convert the dictionary to JSON to ensure valid format
-        json_data = json.dumps(parsed_dict)
-        # Parse the JSON back to a Python dictionary
-        return json.loads(json_data)
-    except Exception as e:
-        print(f"Error parsing the string: {e}")
-        return None
 
 def main():
     """
@@ -410,7 +406,7 @@ def main():
     """
     print("Welcome to the Payload and AutoTrader Manager!")
     while True:
-        cls()
+        
         print("\nOptions:")
         print("1. Create a new payload")
         print("2. Save a payload to a file")
@@ -422,40 +418,40 @@ def main():
         if choice == "1":
             payload = get_user_responses()
             print("Payload created:", payload)
+            cls()
         elif choice == "2":
             if 'payload' in locals() and payload:
-                save_payload_to_file(payload)
+                pld_name = cleaned_input("Payload Name",f"payload_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.json",str)
+                save_json_to_file(payload,pld_name)
+                cls()
             else:
                 print("No payload found. Please create one first.")
+                
         elif choice == "3":
-            loaded_payload = read_payload_from_file()
+            jsonfilename = cleaned_input("Payload Name", "payload_Ford_Fusion_2024-12-20_07-47-34.json",str)
+            loaded_payload = read_json_file(jsonfilename)
             if loaded_payload:
                 payload = loaded_payload
                 print("Loaded payload:", payload)
+                
         elif choice == "4":
             if 'payload' in locals() and payload:
                 results = fetch_autotrader_data(payload)
                 results = remove_duplicates(results)
-                filenamestr = f"{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}"
-                save_to_csv(results, filename=filenamestr)
+                filenamestr = f"results_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.csv"
+                save_results_to_csv(results, filename=filenamestr)
                 print(f"Total Results Fetched: {len(results)}")
+                
             else:
                 print("No payload found. Please create or load one first.")
+                
         elif choice == "5":
             print("Exiting the Payload Manager. Goodbye!")
             break
         else:
             print("Invalid choice. Please try again.")
 
-def format_time_ymd_hms(seconds = time.time()):
-    """
-    Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss".
 
-    :param seconds: int, time in seconds
-    :return: str, formatted time
-    """
-    base_time = datetime(1970, 1, 1) + timedelta(seconds=seconds)
-    return base_time.strftime("%Y-%m-%d_%H-%M-%S")
 
 def testmain():
     """
@@ -468,12 +464,12 @@ def testmain():
     if 'payload' in locals() and payload:
         results = fetch_autotrader_data(payload)
         results = remove_duplicates(results)
-        save_to_csv(results)
+        save_results_to_csv(results)
         print(f"Total Results Fetched: {len(results)}")
 
 
 if __name__ == "__main__":
-    testmain()
+    main()
 
 
     # file_path = "output.html"  # Replace with the correct path to your file

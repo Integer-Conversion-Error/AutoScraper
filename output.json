@@ -1,16 +1,18 @@
 {
-    "NegotiatedContentScript": "{\"currentCulture\":\"en\",\"deepLinkSavedSearch\":{\"savedSearch\":{\"id\":\"a498b395-1fb8-49e7-9d60-dbe6df55c128\",\"query\":\"/cars/ford/fusion/2017/sk/regina/?rcp=0&rcs=0&srt=0&prx=100&prv=Saskatchewan&hprc=False&wcp=False&sts=New-Used\",\"title\":\" new & used Ford Fusion vehicles 2017 for sale within 100km of REGINA, SK\",\"isMre\":false,\"type\":0,\"sourceId\":0},\"savedSearchCriteria\":{\"micrositeType\":1,\"micrositeCulture\":\"en-CA\",\"location\":{\"latitude\":50.489639,\"longitude\":-104.666397},\"provinceAbbreviation\":\"SK\",\"city\":\"REGINA\",\"proximity\":100,\"adStatus\":[1,2],\"adType\":[1,2],\"makes\":[\"Ford\"],\"models\":[\"Fusion\"],\"cpoStatus\":0,\"sortBy\":0,\"yearRange\":{\"start\":2017,\"end\":2017},\"cashDown\":0.0,\"tradeIn\":0.0,\"skip\":0,\"top\":0,\"searchCriteriaType\":0,\"showQaAd\":false}},\"highlights\":{\"mileage\":\"190,000 km\",\"transmission\":\"Automatic\",\"drivetrain\":\"AWD\"},\"gallery\":{\"items\":[{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/ad088e52-9242-4710-a654-696e495abbeb.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/ad088e52-9242-4710-a654-696e495abbeb.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/dbda9d22-2360-4799-8228-33d680a6b21c.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/dbda9d22-2360-4799-8228-33d680a6b21c.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/f638b994-ea64-445a-8a1e-b1f1a00cc28e.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/f638b994-ea64-445a-8a1e-b1f1a00cc28e.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/0d5aa147-cd61-4c5e-a53b-ff0de0585aee.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/0d5aa147-cd61-4c5e-a53b-ff0de0585aee.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/eba09725-da03-43e7-b13b-2c9ac38b6603.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/eba09725-da03-43e7-b13b-2c9ac38b6603.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/da907f03-74d7-4d7e-a035-77f5a8c6d30d.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/da907f03-74d7-4d7e-a035-77f5a8c6d30d.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/d1a05ad5-8dd9-40c0-b2b9-7af257d82159.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/d1a05ad5-8dd9-40c0-b2b9-7af257d82159.jpg\"}],\"foreignId\":\"12993249\",\"count\":8},\"hero\":{\"make\":\"Ford\",\"model\":\"Fusion\",\"year\":\"2017\",\"trim\":\"4dr Sdn Titanium AWD\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"price\":\"13,600\",\"location\":\"Regina\",\"mileage\":\"190,000 km\",\"priceAnalysis\":\"IsPrivate\",\"vehicleAge\":\"Posted 6 weeks ago\",\"priceAnalysisDescription\":\"POSTED 6 WEEKS AGO\",\"status\":\"Used\",\"carfax\":\"BuyCarFax\",\"ssoUserInfo\":{\"isAuthenticated\":false,\"isLocalAccount\":false}},\"adBasicInfo\":{\"adId\":\"19_12993249\",\"adIdUnique\":\"19_12993249_organic\",\"sourceId\":\"19\",\"foreignId\":\"12993249\",\"isPrivate\":true,\"isNew\":false,\"isNpv\":false,\"isCommercial\":false,\"make\":\"Ford\",\"model\":\"Fusion\",\"year\":\"2017\",\"trim\":\"4dr Sdn Titanium AWD\",\"price\":\"$13,600\",\"category\":\"PassengerVehicles\",\"pathBodyType\":\"3837038\",\"splashBodyType\":\"sedan\",\"microSite\":\"cars\",\"showSplashPlus\":false,\"isMobielRequest\":false,\"isAmvic\":false,\"dealerCoId\":\"\",\"dealerCoForeignId\":\"\",\"dealerCoName\":\"\",\"status\":\"Used\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"odometer\":\"190000\",\"hasUpsellDigitalRetailListing\":false,\"isFinancePrequalAvailable\":false},\"ngIcoModel\":{\"enable\":true,\"application\":\"Ico\",\"adId\":\"19-12993249\",\"language\":\"en-CA\",\"platform\":\"Desktop\",\"funnel\":\"TradeIn\",\"icoDemo\":false},\"conditionAnalysis\":{\"odometerCondition\":\"\",\"carfax\":\"BuyCarFax\"},\"similarVehicles\":{\"vehicles\":[{\"title\":\"2015 Hyundai Veloster\",\"price\":\"$14,998\",\"odometer\":\"92,161\",\"detailPageUrl\":\"/a/hyundai/veloster/regina/saskatchewan/5_64701979_ct2004826104728706/\",\"imageUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/0704/0909/0a613c70-90e1-421d-90be-9e3dbeb0b44e.jpg-133x100\",\"category\":\"PassengerVehicles\"},{\"title\":\"2018 Kia Forte\",\"price\":\"$14,999\",\"odometer\":\"79,903\",\"detailPageUrl\":\"/a/kia/forte/regina/saskatchewan/5_64813099_ct200521113348533/\",\"imageUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1718/3019/54201dde-0426-4ad1-a9bb-af75f7b82e8b_overlay.jpg-133x100\",\"category\":\"PassengerVehicles\"},{\"title\":\"2019 Chevrolet Spark\",\"price\":\"$11,940\",\"odometer\":\"117,656\",\"detailPageUrl\":\"/a/chevrolet/spark/regina/saskatchewan/5_63915850_ct2004105115640706/\",\"imageUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1408/0823/b0fe2881-c26d-41e7-8250-09d4227b7c4d_overlay.jpg-133x100\",\"category\":\"PassengerVehicles\"},{\"title\":\"2017 Nissan Altima\",\"price\":\"$12,995\",\"odometer\":\"150,569\",\"detailPageUrl\":\"/a/nissan/altima/moose%20jaw/saskatchewan/5_64559393_ct200456103358801/\",\"imageUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/0918/3659/a1870380-5be4-4526-95d8-a6f7ef86822f.jpg-133x100\",\"category\":\"PassengerVehicles\"}],\"totalCount\":4,\"title\":\"People Also Viewed\",\"viewAllText\":\"\",\"showModule\":true},\"securePayment\":{\"isSecurePaymentAvailable\":false,\"securePaymentApiUrl\":\"https://sellmycar.autotrader.ca/SecurePayment/GetBuyNowLink\",\"securePaymentLandingUrl\":\"https://sellmycar.autotrader.ca/securepayment/index\"},\"fuelEconomy\":{\"showModule\":false,\"tankSize\":0,\"yearlyMileage\":0,\"yearlyFuelCost\":0,\"showFuelEconomyDisclaimer\":false,\"dataLayerSectionName\":\"fuel economy\",\"order\":160,\"navigationAnchorName\":\"vdp-fueleconomy-widget\",\"navigationTitle\":\"Fuel Economy\"},\"carfax\":{\"carProofReportUrl\":\"&ref=autotrader\",\"carProofMessage\":\"history report - buy\",\"carFaxMode\":2,\"showReportedNoAccidents\":false,\"showOneOwner\":false,\"showCarProofWidget\":false,\"buyCarProofUrl\":\"https://www.carfax.ca/order?vin=XXXXXXXXXXXXXXXXX&report=verified&ref=trader&refID=19_12993249_&refdomain=2\"},\"ico\":{\"showIcoVdp\":false,\"icoThirdPartyProvider\":0,\"icoFunnel\":0,\"dataLayerSectionName\":\"ico\",\"order\":40,\"navigationAnchorName\":\"ico\",\"navigationTitle\":\"Instant Cash Offer\",\"icoDemo\":false,\"showIcoModal\":false},\"salesLeadForm\":{\"testDriveSchedulerVisible\":false,\"makeAnOfferVisible\":false,\"tradeInAppraisalVisible\":false,\"showCannedMsg\":false},\"featureHighlights\":{\"showModule\":false,\"showAllOptions\":false,\"dataLayerSectionName\":\"features\",\"order\":150,\"navigationAnchorName\":\"vdp-options-widget\",\"navigationTitle\":\"Features &\"},\"specifications\":{\"specs\":[{\"key\":\"Kilometres\",\"value\":\"190,000 km\"},{\"key\":\"Status\",\"value\":\"Used\"},{\"key\":\"Trim\",\"value\":\"4dr Sdn Titanium AWD\"},{\"key\":\"Body Type\",\"value\":\"Sedan\"},{\"key\":\"Transmission\",\"value\":\"Automatic\"},{\"key\":\"Drivetrain\",\"value\":\"AWD\"},{\"key\":\"Exterior Colour\",\"value\":\"Red\"},{\"key\":\"Doors\",\"value\":\"4 doors\"},{\"key\":\"Fuel Type\",\"value\":\"Gasoline\"}],\"showMadeIn\":false,\"dataLayerSectionName\":\"specs\",\"order\":110,\"navigationAnchorName\":\"vdp-specs-widget\",\"navigationTitle\":\"Specs\"},\"description\":{\"dataLayerSectionName\":\"additionalInfo\",\"description\":[{\"description\":\"Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different.\"}],\"isNpv\":false,\"isPv\":true,\"isDealer\":false,\"isPrivate\":true,\"order\":100,\"navigationAnchorName\":\"vdp-additionalInfo-widget\",\"navigationTitle\":\"Description\"},\"privateSellerTrust\":{\"sellerName\":\"Private Seller\",\"phoneNumber\":\"306-526\",\"isPhoneMask\":true,\"city\":\"Regina\",\"province\":\"SK\"},\"privateWarrantyLink\":\"\",\"sellFunnelURLHost\":\"sellmycar.autotrader.ca\",\"hasDealerEvent\":false,\"privateFinanceLink\":\"?year=2017&make=Ford&model=Fusion&trim=4dr+Sdn+Titanium+AWD&mileage=190000&vin=XXXXXXXXXXXXXXXXX&price=13600&vehicleImg=https%3a%2f%2fmkt-vehicleimages-prd.autotradercdn.ca%2fprivate%2f2024%2f11%2f6%2f29887df8-c98e-414a-96d0-8c35d1fb4996.jpg&adid=19-12993249&category=Cars%2c+Trucks+%26+SUVs&language=en\",\"spinDataModel\":{\"isEnabled\":false,\"provider\":\"\",\"cdnUrl\":\"\"},\"preQualViewModel\":{\"language\":\"en-ca\",\"ssoUserInfo\":{\"isAuthenticated\":false,\"isLocalAccount\":false},\"isMobile\":false}}",
-    "NegotiatedGtmContentScript": "{\"vehicle\":{\"adID\":\"19-12993249\",\"adType\":\"private\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Ford\",\"model\":\"Fusion\",\"price\":\"13600\",\"priceAnalysis\":\"not used\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"testingDimension\":\"pageload\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2017\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"buy\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"8\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"no\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"no\",\"mediaTypes\":\"photo\"},\"lists\":[{\"key\":\"toastrWidget\",\"vehicles\":[{\"adID\":\"5-64701979\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-CT2004826104728706\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Hyundai\",\"model\":\"Veloster\",\"price\":\"14998\",\"priceAnalysis\":\"no guidance\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2015\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"no\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"0\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"\"},{\"adID\":\"5-64813099\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-CT200521113348533\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Kia\",\"model\":\"Forte\",\"price\":\"14999\",\"priceAnalysis\":\"no guidance\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2018\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"no\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"0\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"\"},{\"adID\":\"5-63915850\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-CT2004105115640706\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Chevrolet\",\"model\":\"Spark\",\"price\":\"11940\",\"priceAnalysis\":\"no guidance\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2019\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"no\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"0\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"\"},{\"adID\":\"5-64559393\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-CT200456103358801\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Nissan\",\"model\":\"Altima\",\"price\":\"12995\",\"priceAnalysis\":\"no guidance\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2017\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"no\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"0\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"\"}]}],\"pageType\":\"ad-details\",\"loginStatus\":\"not logged in\",\"userID\":\"\",\"detailViewType\":\"dv\",\"showRemarketing\":true,\"build\":\"20241125.2\",\"clientType\":\"none\",\"clientId\":\"-1\",\"clientIp\":\"none\",\"requestId\":\"none\",\"googleRemarketingParams\":{\"pagetype\":\"Listings\",\"prodid\":\"19_12993249\",\"source\":\"Private\",\"make\":\"Ford\",\"model\":\"Fusion\",\"minyear\":2017,\"maxyear\":2017,\"minprice\":\"13600\",\"maxprice\":\"13600\",\"condition\":\"Used\",\"city\":\"Regina\"},\"optimizely\":{\"expId\":\"none\",\"varId\":\"none\"}}",
+    "NegotiatedContentScript": "{\"currentCulture\":\"en\",\"deepLinkSavedSearch\":{\"savedSearch\":{\"id\":\"beb29128-f2e4-4e67-9636-120be0a56ada\",\"query\":\"/cars/ford/fusion/2017/on/sundridge/?rcp=0&rcs=0&srt=0&prx=100&prv=Ontario&hprc=False&wcp=False&sts=New-Used\",\"title\":\" new & used Ford Fusion vehicles 2017 for sale within 100km of Sundridge, ON\",\"isMre\":false,\"type\":0,\"sourceId\":0},\"savedSearchCriteria\":{\"micrositeType\":1,\"micrositeCulture\":\"en-CA\",\"location\":{\"latitude\":45.7612,\"longitude\":-79.406342},\"provinceAbbreviation\":\"ON\",\"city\":\"Sundridge\",\"proximity\":100,\"adStatus\":[1,2],\"adType\":[1,2],\"makes\":[\"Ford\"],\"models\":[\"Fusion\"],\"cpoStatus\":0,\"sortBy\":0,\"yearRange\":{\"start\":2017,\"end\":2017},\"cashDown\":0.0,\"tradeIn\":0.0,\"skip\":0,\"top\":0,\"searchCriteriaType\":0,\"showQaAd\":false}},\"highlights\":{\"mileage\":\"194,574 km\",\"transmission\":\"Automatic\",\"drivetrain\":\"FWD\",\"items\":[\"Intermittent Wipers\",\"Keyless Entry\",\"CD Player\",\"Heated Seats\"]},\"gallery\":{\"items\":[{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/10ca5a71-65d2-4c1d-99c9-1c20b4d5c06c.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/10ca5a71-65d2-4c1d-99c9-1c20b4d5c06c.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/842d00b7-94fd-4391-9081-3346cbafd255.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/842d00b7-94fd-4391-9081-3346cbafd255.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/27be7a4f-032e-40ce-b64f-bd634b4d228a.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/27be7a4f-032e-40ce-b64f-bd634b4d228a.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/633b95ff-a58e-4883-a9c8-8674820712e5.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/633b95ff-a58e-4883-a9c8-8674820712e5.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/24ff364d-6042-4be1-94de-d438a1d6317d.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/24ff364d-6042-4be1-94de-d438a1d6317d.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/52b1efd1-d151-465d-a838-34e1755be640.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/52b1efd1-d151-465d-a838-34e1755be640.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/92a99e4c-fb55-4305-a792-acc4b21bf4e4.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/92a99e4c-fb55-4305-a792-acc4b21bf4e4.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/69ad795d-015d-4431-930e-40af6c01455b.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/69ad795d-015d-4431-930e-40af6c01455b.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/65073d3a-b77f-4f9c-8642-1982f59c4096.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/65073d3a-b77f-4f9c-8642-1982f59c4096.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4cdb029f-0223-4a66-8170-3a0b0b2d89e2.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4cdb029f-0223-4a66-8170-3a0b0b2d89e2.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/0092eb46-4d93-4083-842a-3b8d50338b76.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/0092eb46-4d93-4083-842a-3b8d50338b76.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/3f618757-d590-4575-8e1e-d6b993769a75.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/3f618757-d590-4575-8e1e-d6b993769a75.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/a700331f-a245-4c63-8b73-c4148d77a601.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/a700331f-a245-4c63-8b73-c4148d77a601.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/e9df353c-b618-4d63-80d6-d71dfee28b88.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/e9df353c-b618-4d63-80d6-d71dfee28b88.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/6e78f5ea-959c-407b-ba28-2ee357fe5ad3.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/6e78f5ea-959c-407b-ba28-2ee357fe5ad3.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/ef19fbae-8bbe-4974-9f74-4e2e3496b0c9.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/ef19fbae-8bbe-4974-9f74-4e2e3496b0c9.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4a2f7d3b-11e6-4f31-a342-4555353536b9.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4a2f7d3b-11e6-4f31-a342-4555353536b9.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/63eda010-7f29-4a0c-b1d0-c7e38fa1d8e0.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/63eda010-7f29-4a0c-b1d0-c7e38fa1d8e0.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/1ef88ce3-9784-4d8c-aef6-82a0c168fc88.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/1ef88ce3-9784-4d8c-aef6-82a0c168fc88.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7228dc52-d1fd-4ee3-bdad-18d4899b10f0.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7228dc52-d1fd-4ee3-bdad-18d4899b10f0.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/8a50956e-7da8-405c-a713-0dc3f46cd138.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/8a50956e-7da8-405c-a713-0dc3f46cd138.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fab15f83-7cfb-45a2-9908-84964a1c9538.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fab15f83-7cfb-45a2-9908-84964a1c9538.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7c13a10c-3aed-4eae-9179-3cf5e3ade5e2.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7c13a10c-3aed-4eae-9179-3cf5e3ade5e2.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fbc191f9-eb10-48ef-ae40-37125828796d.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fbc191f9-eb10-48ef-ae40-37125828796d.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/db5d2026-f443-42d2-b937-f6f49511b185.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/db5d2026-f443-42d2-b937-f6f49511b185.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/5394f9f7-bfab-4721-8b87-d0d663f1a05f.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/5394f9f7-bfab-4721-8b87-d0d663f1a05f.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/c1f14063-6d72-4b4b-bc21-cfa90cd8f886.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/c1f14063-6d72-4b4b-bc21-cfa90cd8f886.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d48933b8-1620-4369-9994-1bcda6a0587f.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d48933b8-1620-4369-9994-1bcda6a0587f.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d966e397-4e2c-41d2-8cfa-c7d885411a45.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d966e397-4e2c-41d2-8cfa-c7d885411a45.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/89c071c1-82f3-4644-bc64-3a95f748c450.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/89c071c1-82f3-4644-bc64-3a95f748c450.jpg\"},{\"type\":\"Photo\",\"galleryUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/20fa96c4-d468-4862-abf8-67c8bad990c4.jpg-1024x786\",\"photoViewerUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/20fa96c4-d468-4862-abf8-67c8bad990c4.jpg\"}],\"foreignId\":\"64604623\",\"count\":32},\"hero\":{\"make\":\"Ford\",\"model\":\"Fusion\",\"year\":\"2017\",\"trim\":\"SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"price\":\"12,912\",\"location\":\"Sundridge\",\"mileage\":\"194,574 km\",\"priceAnalysis\":\"AboveAverage\",\"vehicleAge\":\"\",\"priceAnalysisDescription\":\"$1,696 ABOVE MARKET\",\"status\":\"Used\",\"stockNumber\":\"25102A\",\"carfax\":\"BuyCarFax\",\"ssoUserInfo\":{\"isAuthenticated\":false,\"isLocalAccount\":false}},\"adBasicInfo\":{\"adId\":\"5_64604623\",\"adIdUnique\":\"5_64604623_xpl\",\"sourceId\":\"5\",\"foreignId\":\"64604623\",\"isPrivate\":false,\"isNew\":false,\"isNpv\":false,\"isCommercial\":false,\"make\":\"Ford\",\"model\":\"Fusion\",\"year\":\"2017\",\"trim\":\"SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!\",\"price\":\"$12,912\",\"category\":\"PassengerVehicles\",\"pathBodyType\":\"3837038\",\"splashBodyType\":\"sedan\",\"microSite\":\"cars\",\"showSplashPlus\":false,\"isMobielRequest\":false,\"isAmvic\":false,\"dealerCoId\":\"5-20211013171415578\",\"dealerCoForeignId\":\"20211013171415578\",\"dealerCoName\":\"Bray Motors Ltd\",\"status\":\"Used\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"stockNumber\":\"25102A\",\"odometer\":\"194574\",\"hasUpsellDigitalRetailListing\":true,\"isFinancePrequalAvailable\":false},\"paymentInformation\":{\"application\":\"Payment\",\"province\":\"ON\",\"adId\":\"5_64604623\",\"language\":\"en-CA\",\"isStandAlone\":\"false\",\"paymentOptionsSettingsUrl\":\"https://payments.autotrader.ca/Payment/PaymentOptionsSettings/\",\"platform\":\"Desktop\",\"fbpPrice\":\"12912\",\"fbpSellerTypeAndVehicleStatus\":\"dealer_used\"},\"ngIcoModel\":{\"enable\":true,\"application\":\"Ico\",\"adId\":\"5-64604623\",\"language\":\"en-CA\",\"webApiUrl\":\"//ico.autotrader.ca/Ico/\",\"platform\":\"Desktop\",\"postalCode\":\"\",\"funnel\":\"TradeIn\",\"dealerForeignId\":\"20211013171415578\",\"dealerName\":\"Bray Motors Ltd\",\"icoDemo\":false},\"conditionAnalysis\":{\"options\":[],\"odometerCondition\":\"Average\",\"odometer\":\"194,574 KM\",\"carfax\":\"BuyCarFax\"},\"carInsurance\":{\"application\":\"Insurance\",\"adId\":\"5_64604623\",\"language\":\"en\",\"targetUrl\":\"\",\"isStandAlone\":false,\"platform\":\"Desktop\",\"make\":\"Ford\",\"model\":\"Fusion\",\"year\":\"2017\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"combineWithFinance\":false,\"showWidgetOnTop\":true,\"widgetClickTagUrl\":\"https://www.tdinsurance.com/products-services/auto-car-insurance?cid=DFA:32553311:3382921:404114179:222534451&dclid=CM_Tib_zqYkDFWrfGAId72A3cQ\",\"pillClickTagUrl\":\"https://www.tdinsurance.com/products-services/auto-car-insurance?cid=DFA:32553311:3382921:404114179:222534451&dclid=CM_Tib_zqYkDFWrfGAId72A3cQ\",\"widgetImpressionTagUrl\":\"https://ad.doubleclick.net/ddm/trackimp/N307601.140810AUTOTRADER.CAEN/B32553311.404114179;dc_trk_aid=596341081;dc_trk_cid=222534451;ord=1316867919;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1?\",\"pillImpressionTagUrl\":\"https://ad.doubleclick.net/ddm/trackimp/N307601.140810AUTOTRADER.CAEN/B32553311.404539611;dc_trk_aid=596367273;dc_trk_cid=223081977;ord=1293615461;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1?\",\"widgetClickTrackerUrl\":\"https://ad.doubleclick.net/ddm/trackclk/N307601.140810AUTOTRADER.CAEN/B32553311.404114179;dc_trk_aid=596341081;dc_trk_cid=222534451;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1\",\"pillClickTrackerUrl\":\"https://ad.doubleclick.net/ddm/trackclk/N307601.140810AUTOTRADER.CAEN/B32553311.404539611;dc_trk_aid=596367273;dc_trk_cid=223081977;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1\",\"micrositeText\":\"Car Insurance\",\"category\":\"PassengerVehicles\"},\"securePayment\":{\"isSecurePaymentAvailable\":false,\"securePaymentApiUrl\":\"https://sellmycar.autotrader.ca/SecurePayment/GetBuyNowLink\",\"securePaymentLandingUrl\":\"https://sellmycar.autotrader.ca/securepayment/index\"},\"fuelEconomy\":{\"showModule\":true,\"fuelCity\":\"11.3\",\"fuelHighway\":\"7.5\",\"fuelCombined\":\"9.6\",\"tankSize\":0,\"fuelCost\":\"140.9\",\"yearlyMileage\":20000,\"yearlyFuelCost\":2702,\"showFuelEconomyDisclaimer\":true,\"dataLayerSectionName\":\"fuel economy\",\"order\":160,\"navigationAnchorName\":\"vdp-fueleconomy-widget\",\"navigationTitle\":\"Fuel Economy\"},\"chatInfo\":{\"provider\":2,\"providerId\":\"\",\"chatJsonString\":\"[{\\\"type\\\":\\\"voi\\\",\\\"voi\\\":{\\\"year\\\":2017,\\\"make\\\":\\\"Ford\\\",\\\"model\\\":\\\"Fusion\\\",\\\"vin\\\":\\\"XXXXXXXXXXXXXXXXX\\\",\\\"stockType\\\":\\\"Used\\\",\\\"stockNumber\\\":\\\"25102A\\\",\\\"trim\\\":\\\"SESE_LUXURY_ROOF_HTD_LEATHER_CERTIFIED!\\\"}},{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"message\\\":\\\"AdId=>5_64604623||GoogleClientID=>||ActiveUpsells=>xpl\\\"}}]\",\"platform\":\"Desktop\",\"adId\":\"5_64604623\",\"referenceId\":\"20211013171415578\",\"year\":\"2017\",\"make\":\"Ford\",\"model\":\"Fusion\",\"trim\":\"SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!\",\"status\":\"Used\",\"stockNumber\":\"25102A\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"odometer\":\"194574\",\"ipAddress\":\"174.113.4.11\",\"activeUpsells\":\"xpl\"},\"carfax\":{\"carProofReportUrl\":\"\",\"carProofMessage\":\"history report - buy\",\"carFaxMode\":2,\"showReportedNoAccidents\":false,\"showOneOwner\":false,\"showCarProofWidget\":false,\"buyCarProofUrl\":\"https://www.carfax.ca/order?vin=XXXXXXXXXXXXXXXXX&report=verified&ref=trader&refID=5_64604623_20211013171415578&refdomain=2\"},\"ico\":{\"showIcoVdp\":true,\"icoConsumer\":{\"consumerId\":\"86adb94f-b0d3-4ef0-abf2-2e2c1fa9eaf5\",\"firstName\":null,\"lastName\":null,\"emailAddress\":null,\"postalCode\":\"\"},\"dealerId\":\"20211013171415578\",\"dealerName\":\"Bray Motors Ltd\",\"icoThirdPartyProviderIFrameBaseUrl\":\"https://trader.accu-trade.com/\",\"icoThirdPartyProvider\":0,\"dealerKey\":\"efb423a08ce5529d87580c04e9d0b383b8573c61\",\"icoThirdPartyProviderApiBaseUrl\":\"https://perseus-api-production.accu-trade.com/api/\",\"icoApiBaseUrl\":\"//ico.autotrader.ca/Ico/\",\"adId\":\"5_64604623\",\"icoFunnel\":1,\"dataLayerSectionName\":\"ico\",\"order\":40,\"navigationAnchorName\":\"ico\",\"navigationTitle\":\"Instant Cash Offer\",\"icoDemo\":false,\"showIcoModal\":false},\"salesLeadForm\":{\"testDriveSchedulerVisible\":true,\"makeAnOfferVisible\":true,\"tradeInAppraisalVisible\":false,\"showCannedMsg\":true},\"featureHighlights\":{\"showModule\":true,\"showAllOptions\":true,\"highlights\":[\"Intermittent Wipers\",\"Keyless Entry\",\"CD Player\",\"Heated Seats\",\"Power Locks\",\"Air Conditioning\"],\"options\":[\"Power Steering\",\"Traction Control\",\"AM/FM Stereo\",\"Illuminated Visor Mirror\",\"Child-Safety Locks\",\"Bluetooth\",\"Remote Start\",\"Power Seat\",\"6 Speed\",\"Daytime Running Lights\",\"Anti-Lock Brakes (ABS)\",\"Front Wheel Drive\",\"Rear View Camera\",\"Tilt Steering\",\"Rear Defroster\",\"Cruise Control\",\"Security System\",\"Power Windows\",\"Cloth Interior\",\"Passenger Airbag\",\"Stability Control\",\"Trip Computer\",\"Satellite Radio\",\"Alloy Wheels\",\"Auto On/Off Headlamps\",\"Bucket Seats\",\"Driver Side Airbag\",\"Steering Wheel Audio Controls\"],\"extraOption\":\"ENGINE: 2.5L IVCT (STD),ABS,4-Wheel Disc Brakes,Brake Assist,Brake Actuated Limited Slip Differential,Aluminum Wheels,Tires - Front Performance,Tires - Rear Performance,Temporary Spare Tire,Power Mirror(s),MP3 Capability,Requires Subscription,Bluetooth Connection,Telematics,Auxiliary Audio Input,Smart Device Integration,Pass-Through Rear Seat,Rear Bench Seat,Keyless Start,Driver Adjustable Lumbar,Driver Vanity Mirror,Passenger Vanity Mirror,Floor Mats,Immobilizer,Front Side Air Bag,Tire Pressure Monitor,Front Head Air Bag,Rear Head Air Bag,Passenger Air Bag Sensor,Knee Air Bag,Driver Restriction Features,Back-Up Camera\",\"dataLayerSectionName\":\"features\",\"order\":150,\"navigationAnchorName\":\"vdp-options-widget\",\"navigationTitle\":\"Features &\"},\"specifications\":{\"specs\":[{\"key\":\"Kilometres\",\"value\":\"194,574 km\"},{\"key\":\"Status\",\"value\":\"Used\"},{\"key\":\"Trim\",\"value\":\"SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!\"},{\"key\":\"Body Type\",\"value\":\"Sedan\"},{\"key\":\"Engine\",\"value\":\"Regular Unleaded I-4 2.5 L/152\"},{\"key\":\"Cylinder\",\"value\":\"4\"},{\"key\":\"Transmission\",\"value\":\"Automatic\"},{\"key\":\"Drivetrain\",\"value\":\"FWD\"},{\"key\":\"Stock Number\",\"value\":\"25102A\"},{\"key\":\"Exterior Colour\",\"value\":\"Magnetic Metallic\"},{\"key\":\"Interior Colour\",\"value\":\"Black\"},{\"key\":\"Passengers\",\"value\":\"5\"},{\"key\":\"Doors\",\"value\":\"4\"},{\"key\":\"Fuel Type\",\"value\":\"Gas\"},{\"key\":\"City Fuel Economy\",\"value\":\"11.3L/100km\"},{\"key\":\"Hwy Fuel Economy\",\"value\":\"7.5L/100km\"}],\"showMadeIn\":false,\"dataLayerSectionName\":\"specs\",\"order\":110,\"navigationAnchorName\":\"vdp-specs-widget\",\"navigationTitle\":\"Specs\"},\"dealerTrust\":{\"requestIsFromMobile\":false,\"dealerCompanyName\":\"Bray Motors Ltd\",\"dealerCompanyFormattedName\":\"Bray+Motors+Ltd\",\"logoUrl\":\"https://mkt-vehicleimages-prd.autotradercdn.ca/photos/202302/2723/1543/60fcf8cb-358f-40a4-a9ef-6652479b5c91.jpg\",\"logoResourceLocation\":53,\"phoneNumber\":\"877-804-5501\",\"isPhoneMask\":false,\"dealerCompleteAddress\":\"10508 Hwy 124, Sundridge, ON\",\"dealerAddress\":\"10508 Hwy 124\",\"cityProvinceName\":\"Sundridge, ON\",\"provinceName\":\"ON\",\"enableAnnouncementMessageProvList\":[\"\"],\"showAnnouncementMessage\":false,\"dealerReviewId\":-1,\"bulletPoints\":[\"Over 250 Certified Pre-Owned \",\"4 Locations\",\"Orangeville- Sundridge & Huntsville\",\"9 NEW Vehicle Brands to Choose From\",\"Strict Pre-Owned Reconditioning\",\"Community-Oriented Staff\"],\"otlDealerEvent\":{\"otlDealerEventTitle\":\"Dealership Event - Ends January 2, 2025\",\"otlDealerEventImageUrl\":\"\",\"enableOTLDealerBanner\":true},\"dealerLinks\":[{\"linkUrl\":\"/dealership/20211013171415578/\",\"title\":\"View all inventory\",\"sellerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerInventoryClickEvent();\",\"dealerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerInventoryClickEvent();\",\"gaEvent\":\"gtm_ad_dealer_inventory_link_click\",\"gaEventDefaultLabel\":\"vdp\"},{\"linkUrl\":\"http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral\",\"title\":\"Dealer website\",\"sellerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');\",\"dealerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');\",\"gaEvent\":\"gtm_ad_dealer_link_click\",\"gaEventDefaultLabel\":\"dealer section\",\"iconName\":\"DealerWebSite\"}],\"dealerWebsiteInfo\":{\"linkUrl\":\"http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral\",\"title\":\"Dealer website\",\"sellerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');\",\"dealerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');\",\"gaEvent\":\"gtm_ad_dealer_link_click\",\"gaEventDefaultLabel\":\"dealer section\",\"iconName\":\"DealerWebSite\"},\"dealerInventoryInfo\":{\"linkUrl\":\"/dealership/20211013171415578/\",\"title\":\"View all inventory\",\"sellerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerInventoryClickEvent();\",\"dealerSectionClientEventHandler\":\"vdpDataLayerManager.addDealerInventoryClickEvent();\",\"gaEvent\":\"gtm_ad_dealer_inventory_link_click\",\"gaEventDefaultLabel\":\"vdp\"},\"googleMapUrl\":\"https://maps.google.com/maps?q=Bray+Motors+Ltd+10508+Hwy+124+Sundridge+Ontario&ll=45.7612,-79.406342&z=16\",\"navigationAnchorName\":\"vdp-dealer-widget\",\"navigationTitle\":\"Dealer\",\"dataLayerSectionName\":\"dealer info\",\"isTextConnect\":true,\"textConnectPhone\":\"4169967734\",\"order\":180,\"googleRating\":0.0,\"googleMapsLinkURL\":\"\",\"showIco\":true,\"bestPriceAwardUrl\":\"\",\"enableSoftLeadsCTAsFromLeadFormXS\":false,\"isVirtualDealer\":false,\"isHybridDealer\":false},\"description\":{\"dataLayerSectionName\":\"additionalInfo\",\"description\":[{\"description\":\"SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! \"}],\"isNpv\":false,\"isPv\":true,\"isDealer\":true,\"isPrivate\":false,\"order\":100,\"navigationAnchorName\":\"vdp-additionalInfo-widget\",\"navigationTitle\":\"Description\"},\"priceAnalysis\":{\"priceAnalysisDescription\":\"This vehicle is <b>$1,696 ABOVE MARKET (15%)</b>. It is compared to similar vehicles in the <b>Sundridge</b> and adjacent area. It\u2019s based on kilometres, year, make, model, trim, manufacturer certification, manufacturer packages, options, and much more.\",\"averageMarketPrice\":\"$11,216\",\"currentAskingPrice\":\"$12,912\",\"currentAskingPricePosition\":\"AbovePricePosition1\",\"priceEvaluation\":\"AboveAverage\",\"dataLayerSectionName\":\"price analysis\",\"order\":120,\"navigationAnchorName\":\"vdp-price-Analisys\",\"navigationTitle\":\"Price Analysis\"},\"brandedInventory\":{\"hasLocalBrandedInventory\":true,\"fullSizeWidth\":1531,\"lowestWidth\":1366,\"isDynamic\":false},\"privateWarrantyLink\":\"\",\"sellFunnelURLHost\":\"\",\"remoteServices\":{\"hasUpsellDealerDelivery\":false,\"hasUpsellHomeTestDrive\":false,\"hasUpsellDigitalRetail\":true,\"digitalRetailUrl\":\"https://braymotorsltd.shop.autotrader.ca/details/4914883?platform=Desktop&activeUpsells=xpl&dealerId=20211013171415578&adid=5_64604623\",\"digitalRetailVehicleId\":\"4914883\",\"showDigitalRetailModal\":false,\"hasLiveChat\":true,\"hasVirtualAppraisal\":true,\"hasOnlineReservation\":false,\"hasBookAnAppointment\":true,\"hasTryBeforeYouBuy\":false,\"hasMoneyBackGuarantee\":false,\"isOnlineSellerPlus\":false,\"hasGetInsuranceQuote\":true},\"dealerId\":\"20211013171415578\",\"hasDealerEvent\":false,\"spinDataModel\":{\"isEnabled\":false,\"provider\":\"\",\"cdnUrl\":\"\"},\"preQualViewModel\":{\"language\":\"en-ca\",\"ssoUserInfo\":{\"isAuthenticated\":false,\"isLocalAccount\":false},\"isMobile\":false}}",
+    "NegotiatedGtmContentScript": "{\"vehicle\":{\"adID\":\"5-64604623\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-20211013171415578\",\"financingPrice\":\"no\",\"listingPosition\":\"xpl\",\"make\":\"Ford\",\"model\":\"Fusion\",\"price\":\"12912\",\"priceAnalysis\":\"above average\",\"priceHistory\":\"not used\",\"province\":\"ON\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"testingDimension\":\"pageload\",\"transparency\":\"yes\",\"upgradeHL\":\"yes\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"yes\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2017\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"yes\",\"chatProvider\":\"liveperson\",\"latlong\":\"\",\"carfax\":\"buy\",\"showInsuranceWidgetOnTop\":\"yes\",\"totalPictures\":\"32\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"xpl\",\"digitalRetail\":\"yes\",\"serviceBadges\":\"book an appointment|buy online|live chat|virtual appraisal|insurance\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"photo\"},\"pageType\":\"ad-details\",\"loginStatus\":\"not logged in\",\"userID\":\"\",\"detailViewType\":\"dv\",\"showRemarketing\":true,\"build\":\"20241125.2\",\"clientType\":\"none\",\"clientId\":\"-1\",\"clientIp\":\"none\",\"requestId\":\"none\",\"googleRemarketingParams\":{\"pagetype\":\"Listings\",\"prodid\":\"5_64604623\",\"source\":\"Dealer\",\"make\":\"Ford\",\"model\":\"Fusion\",\"minyear\":2017,\"maxyear\":2017,\"minprice\":\"12912\",\"maxprice\":\"12912\",\"condition\":\"Used\",\"city\":\"Sundridge\"},\"optimizely\":{\"expId\":\"none\",\"varId\":\"none\"}}",
     "VinForSearchBot": "XXXXXXXXXXXXXXXXX",
     "AdViewModel": {
-        "AdId": 12993249,
+        "AdId": 84604623,
         "AnalyticsOrdinalPosition": 0,
         "CarFaxMode": 2,
-        "DealerId": "-1",
-        "Description": "Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different.",
-        "DetailPageUrl": "/a/ford/fusion/regina/saskatchewan/19_12993249_/",
+        "CompanyForeignId": "20211013171415578",
+        "DealerId": "30285",
+        "Description": "SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! ",
+        "DetailPageUrl": "/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/",
+        "DealerPageUrl": "/dealership/20211013171415578/",
         "EnableHighlightListings": false,
-        "ForeignId": "12993249",
+        "ForeignId": "64604623",
         "HasCar360": false,
         "HasVideoEdge": false,
         "HasDealershipVideo": false,
@@ -19,38 +21,62 @@
         "HasYouTubeVideo": false,
         "HasOemFeatureVideo": false,
         "ImageGalleryUrlList": [
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/ad088e52-9242-4710-a654-696e495abbeb.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/dbda9d22-2360-4799-8228-33d680a6b21c.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/f638b994-ea64-445a-8a1e-b1f1a00cc28e.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/0d5aa147-cd61-4c5e-a53b-ff0de0585aee.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/eba09725-da03-43e7-b13b-2c9ac38b6603.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/da907f03-74d7-4d7e-a035-77f5a8c6d30d.jpg?w=156&h=117",
-            "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/d1a05ad5-8dd9-40c0-b2b9-7af257d82159.jpg?w=156&h=117"
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/10ca5a71-65d2-4c1d-99c9-1c20b4d5c06c.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/842d00b7-94fd-4391-9081-3346cbafd255.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/27be7a4f-032e-40ce-b64f-bd634b4d228a.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/633b95ff-a58e-4883-a9c8-8674820712e5.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/24ff364d-6042-4be1-94de-d438a1d6317d.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/52b1efd1-d151-465d-a838-34e1755be640.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/92a99e4c-fb55-4305-a792-acc4b21bf4e4.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/69ad795d-015d-4431-930e-40af6c01455b.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/65073d3a-b77f-4f9c-8642-1982f59c4096.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4cdb029f-0223-4a66-8170-3a0b0b2d89e2.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/0092eb46-4d93-4083-842a-3b8d50338b76.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/3f618757-d590-4575-8e1e-d6b993769a75.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/a700331f-a245-4c63-8b73-c4148d77a601.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/e9df353c-b618-4d63-80d6-d71dfee28b88.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/6e78f5ea-959c-407b-ba28-2ee357fe5ad3.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/ef19fbae-8bbe-4974-9f74-4e2e3496b0c9.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4a2f7d3b-11e6-4f31-a342-4555353536b9.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/63eda010-7f29-4a0c-b1d0-c7e38fa1d8e0.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/1ef88ce3-9784-4d8c-aef6-82a0c168fc88.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7228dc52-d1fd-4ee3-bdad-18d4899b10f0.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/8a50956e-7da8-405c-a713-0dc3f46cd138.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fab15f83-7cfb-45a2-9908-84964a1c9538.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7c13a10c-3aed-4eae-9179-3cf5e3ade5e2.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fbc191f9-eb10-48ef-ae40-37125828796d.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/db5d2026-f443-42d2-b937-f6f49511b185.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/5394f9f7-bfab-4721-8b87-d0d663f1a05f.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/c1f14063-6d72-4b4b-bc21-cfa90cd8f886.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d48933b8-1620-4369-9994-1bcda6a0587f.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d966e397-4e2c-41d2-8cfa-c7d885411a45.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/89c071c1-82f3-4644-bc64-3a95f748c450.jpg?w=156&h=117",
+            "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/20fa96c4-d468-4862-abf8-67c8bad990c4.jpg?w=156&h=117"
         ],
         "ImageGalleryResourceLocation": 53,
-        "ImageCount": 8,
+        "ImageCount": 32,
         "CarMediaImageCount": 0,
         "IsAmvoq": false,
         "IsCpo": false,
-        "IsDealer": false,
+        "IsDealer": true,
         "IsFeaturedListing": false,
         "IsGoldSeries": false,
-        "IsHighlightListing": false,
-        "IsHighlightListingMobile": false,
+        "IsHighlightListing": true,
+        "IsHighlightListingMobile": true,
         "IsMobileBoost": false,
         "IsBoost": false,
         "IsNewVehicle": false,
         "IsOrganicListings": false,
         "IsPassenger": true,
         "IsPriorityListing": false,
-        "IsPrivate": true,
+        "IsPrivate": false,
         "IsProvincialPriorityListing": false,
         "IsTopAd": false,
         "IsTopSpotListing": false,
-        "IsXplListing": false,
-        "IsDigitalRetailListing": false,
-        "HasUpsellDigitalRetailListing": false,
+        "IsXplListing": true,
+        "IsDigitalRetailListing": true,
+        "HasUpsellDigitalRetailListing": true,
         "HasTryBeforeYouBuy": false,
         "HasMoneyBackGuarantee": false,
         "IsOnlineSellerPlus": false,
@@ -58,27 +84,29 @@
         "IsSwipeProListing": false,
         "IsHomeDeliveryEnabled": false,
         "HasOnlineReservation": false,
-        "IsTransparencyEnabled": false,
+        "IsTransparencyEnabled": true,
         "IsValidSpsPriceVisiblePlus": false,
         "MsrpDealerOptOut": false,
-        "ListingType": 2,
+        "ListingType": 1,
         "Make": "Ford",
         "Model": "Fusion",
-        "Odometer": 190000,
-        "Position": 0,
-        "Price": 13600.0,
-        "PriceGraphType": -1,
-        "ProvinceAbbr": "SK",
-        "SellerCity": "Regina",
-        "SellerLogoResourceLocation": 0,
-        "SellerName": "",
-        "SellerProvinceAbbr": "SK",
-        "SourceId": 19,
+        "Msrp": 12912.0,
+        "Odometer": 194574,
+        "Position": 12,
+        "Price": 12912.0,
+        "PriceGraphType": 3,
+        "ProvinceAbbr": "ON",
+        "SellerCity": "Sundridge",
+        "SellerLogoUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/202302/2723/1543/60fcf8cb-358f-40a4-a9ef-6652479b5c91.jpg",
+        "SellerLogoResourceLocation": 53,
+        "SellerName": "Bray Motors Ltd",
+        "SellerProvinceAbbr": "ON",
+        "SourceId": 5,
         "Status": 2,
         "IsCreditConnectAvailable": false,
         "IsFinancePrequalAvailable": false,
         "Title": "2017 Ford Fusion",
-        "TitleWithTrim": "2017 Ford Fusion 4dr Sdn Titanium AWD",
+        "TitleWithTrim": "2017 Ford Fusion SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!",
         "Year": 2017,
         "IsNpv": false,
         "IsRvCare": false,
@@ -88,17 +116,51 @@
         "FieldBodyType": "Sedan",
         "PathBodyType": "3837038",
         "GoogleRating": 0.0,
-        "DeltaPrice": "",
+        "DeltaPrice": "$1,696 Above Market",
         "EnableSrpListingsV2": true,
         "Olympus": false,
         "ShowCityOnSrpListing": true,
         "WithShoppingExperience": "no",
         "OemCertification": 0,
-        "Trim": "4dr Sdn Titanium AWD",
-        "PostedDate": "2024-11-06 2:10:46 AM",
+        "Trim": "SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!",
+        "ChatViewModel": {
+            "Provider": 2,
+            "ProviderId": "",
+            "ChatJsonString": "[{\"type\":\"voi\",\"voi\":{\"year\":2017,\"make\":\"Ford\",\"model\":\"Fusion\",\"vin\":\"XXXXXXXXXXXXXXXXX\",\"stockType\":\"Used\",\"stockNumber\":\"25102A\",\"trim\":\"SESE_LUXURY_ROOF_HTD_LEATHER_CERTIFIED!\"}},{\"type\":\"error\",\"error\":{\"message\":\"AdId=>5_64604623||GoogleClientID=>||ActiveUpsells=>xpl\"}}]",
+            "Platform": "Desktop",
+            "AdId": "5_64604623",
+            "ReferenceId": "20211013171415578",
+            "Year": "2017",
+            "Make": "Ford",
+            "Model": "Fusion",
+            "Trim": "SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!",
+            "Status": "Used",
+            "StockNumber": "25102A",
+            "Vin": "XXXXXXXXXXXXXXXXX",
+            "Odometer": "194574",
+            "IpAddress": "174.113.4.11",
+            "ActiveUpsells": "xpl"
+        },
+        "PostedDate": "2024-11-28 1:08:38 PM",
         "IsEnableIcoSrp": false,
-        "ShowInsuranceWidgetOnTop": false,
+        "ShowInsuranceWidgetOnTop": true,
         "SupportsImageGallery": false,
+        "RemoteServices": {
+            "HasUpsellDealerDelivery": false,
+            "HasUpsellHomeTestDrive": false,
+            "HasUpsellDigitalRetail": true,
+            "DigitalRetailUrl": "https://braymotorsltd.shop.autotrader.ca/details/4914883?platform=Desktop&activeUpsells=xpl&dealerId=20211013171415578&adid=5_64604623",
+            "DigitalRetailVehicleId": "4914883",
+            "ShowDigitalRetailModal": false,
+            "HasLiveChat": true,
+            "HasVirtualAppraisal": true,
+            "HasOnlineReservation": false,
+            "HasBookAnAppointment": true,
+            "HasTryBeforeYouBuy": false,
+            "HasMoneyBackGuarantee": false,
+            "IsOnlineSellerPlus": false,
+            "HasGetInsuranceQuote": true
+        },
         "IsAdFromAreasHeader": false,
         "IsAdAllListingsHeader": false,
         "IsAmvic": false,
@@ -140,73 +202,248 @@
     "Breadcrumbs": [
         {
             "Text": "Cars, Trucks & SUVs",
-            "Url": "/cars/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used"
+            "Url": "/cars/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used"
         },
         {
             "Text": "Ford",
-            "Url": "/cars/ford/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used"
+            "Url": "/cars/ford/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used"
         },
         {
             "Text": "Fusion",
-            "Url": "/cars/ford/fusion/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used"
+            "Url": "/cars/ford/fusion/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-1&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used"
         },
         {
-            "Text": "Saskatchewan",
-            "Url": "/cars/ford/fusion/sk/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-2&prv=Saskatchewan&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used"
+            "Text": "Ontario",
+            "Url": "/cars/ford/fusion/on/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=-2&prv=Ontario&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used"
         },
         {
-            "Text": "Regina",
-            "Url": "/cars/ford/fusion/sk/regina/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=25&prv=Saskatchewan&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used"
+            "Text": "Sundridge",
+            "Url": "/cars/ford/fusion/on/sundridge/?rcp=25&rcs=0&srt=9&yRng=2017%2c&pRng=%2c15000&prx=25&prv=Ontario&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used"
         },
         {
             "Text": "DetailUrl",
-            "Url": "/a/ford/fusion/regina/saskatchewan/19_12993249_/"
+            "Url": "/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/"
         }
     ],
     "Carproof": {
-        "CarProofReportUrl": "&ref=autotrader",
+        "CarProofReportUrl": "",
         "CarProofMessage": "history report - buy",
         "CarFaxMode": 2,
         "ShowReportedNoAccidents": false,
         "ShowOneOwner": false,
         "ShowCarProofWidget": false,
-        "BuyCarProofUrl": "https://www.carfax.ca/order?vin=XXXXXXXXXXXXXXXXX&report=verified&ref=trader&refID=19_12993249_&refdomain=2"
+        "BuyCarProofUrl": "https://www.carfax.ca/order?vin=XXXXXXXXXXXXXXXXX&report=verified&ref=trader&refID=5_64604623_20211013171415578&refdomain=2"
     },
     "IsCpo": false,
+    "CompanyForeignId": "20211013171415578",
+    "CompanySourceId": "5",
+    "CompanyTraderSearchId": "30285",
+    "CompanyReferenceId": "100000545763",
+    "ConditionAnalysis": {
+        "ShowModule": false,
+        "ShowOdometer": true,
+        "ShowOptions": true,
+        "MileageType": "Average km",
+        "MileageConditionType": 2,
+        "Options": [],
+        "Odometer": "194,574 KM",
+        "OdometerCondition": "Average",
+        "ConditionDisclaimer": "based on 23,000 km/year",
+        "DataLayerSectionName": "condition",
+        "Order": 130,
+        "NavigationAnchorName": "vdp-condition",
+        "NavigationTitle": "Condition Analysis"
+    },
+    "DealerTrust": {
+        "RequestIsFromMobile": false,
+        "DealerCompanyName": "Bray Motors Ltd",
+        "DealerCompanyFormattedName": "Bray+Motors+Ltd",
+        "LogoUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/202302/2723/1543/60fcf8cb-358f-40a4-a9ef-6652479b5c91.jpg",
+        "LogoResourceLocation": 53,
+        "PhoneNumber": "877-804-5501",
+        "IsPhoneMask": false,
+        "DealerCompleteAddress": "10508 Hwy 124, Sundridge, ON",
+        "DealerAddress": "10508 Hwy 124",
+        "CityProvinceName": "Sundridge, ON",
+        "ProvinceName": "ON",
+        "EnableAnnouncementMessageProvList": [
+            ""
+        ],
+        "ShowAnnouncementMessage": false,
+        "DealerReviewId": -1,
+        "BulletPoints": [
+            "Over 250 Certified Pre-Owned ",
+            "4 Locations",
+            "Orangeville- Sundridge & Huntsville",
+            "9 NEW Vehicle Brands to Choose From",
+            "Strict Pre-Owned Reconditioning",
+            "Community-Oriented Staff"
+        ],
+        "OtlDealerEvent": {
+            "OtlDealerEventTitle": "Dealership Event - Ends January 2, 2025",
+            "OtlDealerEventImageUrl": "",
+            "EnableOTLDealerBanner": true
+        },
+        "DealerLinks": [
+            {
+                "LinkUrl": "/dealership/20211013171415578/",
+                "Title": "View all inventory",
+                "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                "GaEvent": "gtm_ad_dealer_inventory_link_click",
+                "GaEventDefaultLabel": "vdp"
+            },
+            {
+                "LinkUrl": "http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral",
+                "Title": "Dealer website",
+                "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');",
+                "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');",
+                "GaEvent": "gtm_ad_dealer_link_click",
+                "GaEventDefaultLabel": "dealer section",
+                "IconName": "DealerWebSite"
+            }
+        ],
+        "DealerWebsiteInfo": {
+            "LinkUrl": "http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral",
+            "Title": "Dealer website",
+            "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');",
+            "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');",
+            "GaEvent": "gtm_ad_dealer_link_click",
+            "GaEventDefaultLabel": "dealer section",
+            "IconName": "DealerWebSite"
+        },
+        "DealerInventoryInfo": {
+            "LinkUrl": "/dealership/20211013171415578/",
+            "Title": "View all inventory",
+            "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+            "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+            "GaEvent": "gtm_ad_dealer_inventory_link_click",
+            "GaEventDefaultLabel": "vdp"
+        },
+        "GoogleMapUrl": "https://maps.google.com/maps?q=Bray+Motors+Ltd+10508+Hwy+124+Sundridge+Ontario&ll=45.7612,-79.406342&z=16",
+        "NavigationAnchorName": "vdp-dealer-widget",
+        "NavigationTitle": "Dealer",
+        "DataLayerSectionName": "dealer info",
+        "IsTextConnect": true,
+        "TextConnectPhone": "4169967734",
+        "Order": 180,
+        "GoogleRating": 0.0,
+        "GoogleMapsLinkURL": "",
+        "ShowIco": true,
+        "BestPriceAwardUrl": "",
+        "EnableSoftLeadsCTAsFromLeadFormXS": false,
+        "IsVirtualDealer": false,
+        "IsHybridDealer": false
+    },
     "Description": {
         "DataLayerSectionName": "additionalInfo",
         "Description": [
             {
-                "Description": "Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different."
+                "Description": "SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! "
             }
         ],
         "IsNpv": false,
         "IsPv": true,
-        "IsDealer": false,
-        "IsPrivate": true,
+        "IsDealer": true,
+        "IsPrivate": false,
         "Order": 100,
         "NavigationAnchorName": "vdp-additionalInfo-widget",
         "NavigationTitle": "Description"
     },
-    "EnablePaymentDisplay": false,
+    "EnablePaymentDisplay": true,
     "FacebookAppId": "1670277349925666",
-    "FbpPrice": "13600",
-    "FbpSellerTypeAndVehicleStatus": "private_used",
+    "FbpPrice": "12912",
+    "FbpSellerTypeAndVehicleStatus": "dealer_used",
     "FeatureHighlights": {
-        "ShowModule": false,
-        "ShowAllOptions": false,
+        "ShowModule": true,
+        "ShowAllOptions": true,
+        "Highlights": [
+            "Intermittent Wipers",
+            "Keyless Entry",
+            "CD Player",
+            "Heated Seats",
+            "Power Locks",
+            "Air Conditioning"
+        ],
+        "Options": [
+            "Power Steering",
+            "Traction Control",
+            "AM/FM Stereo",
+            "Illuminated Visor Mirror",
+            "Child-Safety Locks",
+            "Bluetooth",
+            "Remote Start",
+            "Power Seat",
+            "6 Speed",
+            "Daytime Running Lights",
+            "Anti-Lock Brakes (ABS)",
+            "Front Wheel Drive",
+            "Rear View Camera",
+            "Tilt Steering",
+            "Rear Defroster",
+            "Cruise Control",
+            "Security System",
+            "Power Windows",
+            "Cloth Interior",
+            "Passenger Airbag",
+            "Stability Control",
+            "Trip Computer",
+            "Satellite Radio",
+            "Alloy Wheels",
+            "Auto On/Off Headlamps",
+            "Bucket Seats",
+            "Driver Side Airbag",
+            "Steering Wheel Audio Controls"
+        ],
+        "ExtraOption": "ENGINE: 2.5L IVCT (STD),ABS,4-Wheel Disc Brakes,Brake Assist,Brake Actuated Limited Slip Differential,Aluminum Wheels,Tires - Front Performance,Tires - Rear Performance,Temporary Spare Tire,Power Mirror(s),MP3 Capability,Requires Subscription,Bluetooth Connection,Telematics,Auxiliary Audio Input,Smart Device Integration,Pass-Through Rear Seat,Rear Bench Seat,Keyless Start,Driver Adjustable Lumbar,Driver Vanity Mirror,Passenger Vanity Mirror,Floor Mats,Immobilizer,Front Side Air Bag,Tire Pressure Monitor,Front Head Air Bag,Rear Head Air Bag,Passenger Air Bag Sensor,Knee Air Bag,Driver Restriction Features,Back-Up Camera",
         "DataLayerSectionName": "features",
         "Order": 150,
         "NavigationAnchorName": "vdp-options-widget",
         "NavigationTitle": "Features &"
     },
-    "ForeignId": "12993249",
+    "InsuranceModel": {
+        "WidgetClickTrackerUrl": "https://ad.doubleclick.net/ddm/trackclk/N307601.140810AUTOTRADER.CAEN/B32553311.404114179;dc_trk_aid=596341081;dc_trk_cid=222534451;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1",
+        "PillClickTrackerUrl": "https://ad.doubleclick.net/ddm/trackclk/N307601.140810AUTOTRADER.CAEN/B32553311.404539611;dc_trk_aid=596367273;dc_trk_cid=223081977;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1",
+        "WidgetClickTagUrl": "https://www.tdinsurance.com/products-services/auto-car-insurance?cid=DFA:32553311:3382921:404114179:222534451&dclid=CM_Tib_zqYkDFWrfGAId72A3cQ",
+        "PillClickTagUrl": "https://www.tdinsurance.com/products-services/auto-car-insurance?cid=DFA:32553311:3382921:404114179:222534451&dclid=CM_Tib_zqYkDFWrfGAId72A3cQ",
+        "WidgetImpressionTagUrl": "https://ad.doubleclick.net/ddm/trackimp/N307601.140810AUTOTRADER.CAEN/B32553311.404114179;dc_trk_aid=596341081;dc_trk_cid=222534451;ord=1316867919;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1?",
+        "PillImpressionTagUrl": "https://ad.doubleclick.net/ddm/trackimp/N307601.140810AUTOTRADER.CAEN/B32553311.404539611;dc_trk_aid=596367273;dc_trk_cid=223081977;ord=1293615461;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755};ltd=;dc_tdv=1?",
+        "Language": "en",
+        "TargetUrl": "",
+        "IsStandAlone": false,
+        "Application": "Insurance",
+        "AdId": "5_64604623",
+        "Platform": "Desktop",
+        "GaKey": "GTM-K7JHZJ",
+        "AutoLoad": false,
+        "Make": "Ford",
+        "Model": "Fusion",
+        "Year": "2017",
+        "Vin": "XXXXXXXXXXXXXXXXX",
+        "ShowWidgetOnTop": true,
+        "IsPrivate": false,
+        "Order": 99,
+        "CombineWithFinance": false,
+        "IsMobile": false
+    },
+    "LocalBrandedInventoryViewModel": {
+        "LeftImageUrl": "https://localbrandedinvimages.blob.core.windows.net/images/20211013171415578_Used_EN_L.jpg",
+        "RightImageUrl": "https://localbrandedinvimages.blob.core.windows.net/images/20211013171415578_Used_EN_R.jpg",
+        "isDynamic": false,
+        "LowestWidth": 1366,
+        "FullSizeWidth": 1531
+    },
+    "ForeignId": "64604623",
     "FuelEconomy": {
-        "ShowModule": false,
+        "ShowModule": true,
+        "FuelCity": "11.3",
+        "FuelHighway": "7.5",
+        "FuelCombined": "9.6",
         "TankSize": 0,
-        "YearlyMileage": 0,
-        "YearlyFuelCost": 0,
-        "ShowFuelEconomyDisclaimer": false,
+        "FuelCost": "140.9",
+        "YearlyMileage": 20000,
+        "YearlyFuelCost": 2702,
+        "ShowFuelEconomyDisclaimer": true,
         "DataLayerSectionName": "fuel economy",
         "Order": 160,
         "NavigationAnchorName": "vdp-fueleconomy-widget",
@@ -215,78 +452,207 @@
     "GalleryPhotos": [
         {
             "Type": "MainPhoto",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/ad088e52-9242-4710-a654-696e495abbeb.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/ad088e52-9242-4710-a654-696e495abbeb.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/10ca5a71-65d2-4c1d-99c9-1c20b4d5c06c.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/10ca5a71-65d2-4c1d-99c9-1c20b4d5c06c.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/dbda9d22-2360-4799-8228-33d680a6b21c.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/dbda9d22-2360-4799-8228-33d680a6b21c.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/842d00b7-94fd-4391-9081-3346cbafd255.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/842d00b7-94fd-4391-9081-3346cbafd255.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/f638b994-ea64-445a-8a1e-b1f1a00cc28e.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/f638b994-ea64-445a-8a1e-b1f1a00cc28e.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/27be7a4f-032e-40ce-b64f-bd634b4d228a.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/27be7a4f-032e-40ce-b64f-bd634b4d228a.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/0d5aa147-cd61-4c5e-a53b-ff0de0585aee.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/0d5aa147-cd61-4c5e-a53b-ff0de0585aee.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/633b95ff-a58e-4883-a9c8-8674820712e5.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/633b95ff-a58e-4883-a9c8-8674820712e5.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/eba09725-da03-43e7-b13b-2c9ac38b6603.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/eba09725-da03-43e7-b13b-2c9ac38b6603.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/24ff364d-6042-4be1-94de-d438a1d6317d.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/24ff364d-6042-4be1-94de-d438a1d6317d.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/da907f03-74d7-4d7e-a035-77f5a8c6d30d.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/da907f03-74d7-4d7e-a035-77f5a8c6d30d.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/52b1efd1-d151-465d-a838-34e1755be640.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/52b1efd1-d151-465d-a838-34e1755be640.jpg"
         },
         {
             "Type": "Photo",
-            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/d1a05ad5-8dd9-40c0-b2b9-7af257d82159.jpg",
-            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/d1a05ad5-8dd9-40c0-b2b9-7af257d82159.jpg"
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/92a99e4c-fb55-4305-a792-acc4b21bf4e4.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/92a99e4c-fb55-4305-a792-acc4b21bf4e4.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/69ad795d-015d-4431-930e-40af6c01455b.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/69ad795d-015d-4431-930e-40af6c01455b.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/65073d3a-b77f-4f9c-8642-1982f59c4096.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/65073d3a-b77f-4f9c-8642-1982f59c4096.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4cdb029f-0223-4a66-8170-3a0b0b2d89e2.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4cdb029f-0223-4a66-8170-3a0b0b2d89e2.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/0092eb46-4d93-4083-842a-3b8d50338b76.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/0092eb46-4d93-4083-842a-3b8d50338b76.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/3f618757-d590-4575-8e1e-d6b993769a75.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/3f618757-d590-4575-8e1e-d6b993769a75.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/a700331f-a245-4c63-8b73-c4148d77a601.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/a700331f-a245-4c63-8b73-c4148d77a601.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/e9df353c-b618-4d63-80d6-d71dfee28b88.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/e9df353c-b618-4d63-80d6-d71dfee28b88.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/6e78f5ea-959c-407b-ba28-2ee357fe5ad3.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/6e78f5ea-959c-407b-ba28-2ee357fe5ad3.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/ef19fbae-8bbe-4974-9f74-4e2e3496b0c9.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/ef19fbae-8bbe-4974-9f74-4e2e3496b0c9.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4a2f7d3b-11e6-4f31-a342-4555353536b9.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/4a2f7d3b-11e6-4f31-a342-4555353536b9.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/63eda010-7f29-4a0c-b1d0-c7e38fa1d8e0.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/63eda010-7f29-4a0c-b1d0-c7e38fa1d8e0.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/1ef88ce3-9784-4d8c-aef6-82a0c168fc88.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/1ef88ce3-9784-4d8c-aef6-82a0c168fc88.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7228dc52-d1fd-4ee3-bdad-18d4899b10f0.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7228dc52-d1fd-4ee3-bdad-18d4899b10f0.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/8a50956e-7da8-405c-a713-0dc3f46cd138.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/8a50956e-7da8-405c-a713-0dc3f46cd138.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fab15f83-7cfb-45a2-9908-84964a1c9538.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fab15f83-7cfb-45a2-9908-84964a1c9538.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7c13a10c-3aed-4eae-9179-3cf5e3ade5e2.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7c13a10c-3aed-4eae-9179-3cf5e3ade5e2.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fbc191f9-eb10-48ef-ae40-37125828796d.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/fbc191f9-eb10-48ef-ae40-37125828796d.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/db5d2026-f443-42d2-b937-f6f49511b185.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/db5d2026-f443-42d2-b937-f6f49511b185.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/5394f9f7-bfab-4721-8b87-d0d663f1a05f.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/5394f9f7-bfab-4721-8b87-d0d663f1a05f.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/c1f14063-6d72-4b4b-bc21-cfa90cd8f886.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/c1f14063-6d72-4b4b-bc21-cfa90cd8f886.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d48933b8-1620-4369-9994-1bcda6a0587f.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d48933b8-1620-4369-9994-1bcda6a0587f.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d966e397-4e2c-41d2-8cfa-c7d885411a45.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/d966e397-4e2c-41d2-8cfa-c7d885411a45.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/89c071c1-82f3-4644-bc64-3a95f748c450.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/89c071c1-82f3-4644-bc64-3a95f748c450.jpg"
+        },
+        {
+            "Type": "Photo",
+            "GalleryUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/20fa96c4-d468-4862-abf8-67c8bad990c4.jpg",
+            "PhotoViewerUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/20fa96c4-d468-4862-abf8-67c8bad990c4.jpg"
         }
     ],
     "GalleryPhotosLocation": 53,
-    "HasBrandedInventory": false,
+    "HasBrandedInventory": true,
     "HasCar360": false,
     "HasVideoEdge": false,
     "HasCustomVideo": false,
     "HasYouTubeVideo": false,
     "HasOemFeatureVideos": false,
-    "PostalCode": "S4X1Y9",
-    "Province": "SK",
+    "PostalCode": "P0A 1Z0",
+    "Province": "ON",
     "HeroViewModel": {
         "Year": "2017",
         "Make": "Ford",
         "Model": "Fusion",
         "DfpVdpBodyType": "Sedan",
-        "FuelType": "Gasoline",
-        "DfpVdpFuelType": "Gasoline",
+        "FuelType": "Gas",
+        "DfpVdpFuelType": "Gas",
         "Category": "PassengerVehicles",
-        "Trim": "4dr Sdn Titanium AWD",
-        "Location": "Regina",
-        "Price": 13600.0,
+        "Trim": "SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!",
+        "Location": "Sundridge",
+        "Price": 12912.0,
         "ShowStrikeThroughPrice": false,
-        "VehicleAge": "Posted 6 weeks ago",
+        "VehicleAge": "",
+        "MsrpPrice": 12912.0,
         "Vin": "XXXXXXXXXXXXXXXXX",
-        "Status": "Used"
+        "Status": "Used",
+        "StockNumber": "25102A"
     },
     "Highlights": {
         "ShowModule": true,
         "SpecsHighlights": {
-            "190,000 km": 1,
+            "194,574 km": 1,
             "Automatic": 2,
-            "AWD": 3
+            "FWD": 3
         },
-        "Features": [],
+        "Features": [
+            "Intermittent Wipers",
+            "Keyless Entry",
+            "CD Player",
+            "Heated Seats",
+            "Power Locks",
+            "Air Conditioning"
+        ],
         "Conditions": [],
         "DealerCallout": "",
         "Order": 20,
@@ -298,503 +664,49 @@
     "IsDamaged": false,
     "IsNew": false,
     "IsNewCar": false,
-    "IsOMVICCompliance": false,
+    "IsOMVICCompliance": true,
     "IsNpvFinancingAvailable": false,
     "ShowNpvFeatureHighlights": false,
-    "IsPrivate": true,
+    "IsPrivate": false,
     "IsPrivatePvAvailable": false,
-    "Odometer": "190,000 km",
+    "Odometer": "194,574 km",
+    "OemEvdpBanner": {
+        "EnabledSubscription": true,
+        "LinkUrl": "http://www.braymotors.com",
+        "ImageUrl": "https://tdrat.blob.core.windows.net/enhanced-vdp-images/FordEn.png"
+    },
     "PaymentOptionsSettingsUrl": "https://payments.autotrader.ca/Payment/PaymentOptionsSettings/",
-    "Position": "organic",
-    "PrivateSellerTrust": {
-        "SellerName": "Private Seller",
-        "PhoneNumber": "306-526",
-        "IsPhoneMask": true,
-        "City": "Regina",
-        "Province": "SK"
+    "Position": "xpl",
+    "PriceAnalysis": {
+        "PriceAnalysisDescription": "This vehicle is <b>$1,696 ABOVE MARKET (15%)</b>. It is compared to similar vehicles in the <b>Sundridge</b> and adjacent area. It\u2019s based on kilometres, year, make, model, trim, manufacturer certification, manufacturer packages, options, and much more.",
+        "AverageMarketPrice": "$11,216",
+        "CurrentAskingPrice": "$12,912",
+        "CurrentAskingPricePosition": "AbovePricePosition1",
+        "PriceEvaluation": "AboveAverage",
+        "DataLayerSectionName": "price analysis",
+        "Order": 120,
+        "NavigationAnchorName": "vdp-price-Analisys",
+        "NavigationTitle": "Price Analysis"
     },
     "SalesLeadViewModel": {
-        "TestDriveSchedulerVisible": false,
-        "MakeAnOfferVisible": false,
+        "TestDriveSchedulerVisible": true,
+        "MakeAnOfferVisible": true,
         "TradeInAppraisalVisible": false,
-        "ShowCannedMsg": false
+        "ShowCannedMsg": true
     },
     "ShowAdditionalInfo": false,
     "ShowStrikeThroughPrice": false,
     "SimilarVehicles": {
-        "SimilarVehicles": [
-            {
-                "AdId": 84701979,
-                "AnalyticsOrdinalPosition": 0,
-                "CompanyForeignId": "CT2004826104728706",
-                "Description": "Odometer is 27251 kilometers below market average! Recent Arrival!\n\n2015 Hyundai Veloster Local Trade, Bluetooth Hands Free Phone, Low KM's. Century White FWD 6-Speed Manual I4\n\nCertification Program Details: DILAWRI CERTIFIED  105-Point Quality & Safety Inspection  3-Day/300-...",
-                "DetailPageUrl": "/a/hyundai/veloster/regina/saskatchewan/5_64701979_ct2004826104728706/",
-                "DealerPageUrl": "/dealership/CT2004826104728706/",
-                "EnableHighlightListings": false,
-                "ForeignId": "64701979",
-                "HasCar360": false,
-                "HasVideoEdge": false,
-                "HasDealershipVideo": false,
-                "HasCustomVideo": false,
-                "HasStitchedVideo": false,
-                "HasYouTubeVideo": false,
-                "HasOemFeatureVideo": false,
-                "ImageGalleryResourceLocation": 0,
-                "ImageCount": 0,
-                "CarMediaImageCount": 0,
-                "ImageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/0704/0909/0a613c70-90e1-421d-90be-9e3dbeb0b44e.jpg-133x100",
-                "IsAmvoq": false,
-                "IsCpo": false,
-                "IsDealer": false,
-                "IsFeaturedListing": false,
-                "IsGoldSeries": false,
-                "IsHighlightListing": false,
-                "IsHighlightListingMobile": false,
-                "IsMobileBoost": false,
-                "IsBoost": false,
-                "IsNewVehicle": false,
-                "IsOrganicListings": false,
-                "IsPassenger": false,
-                "IsPriorityListing": false,
-                "IsPrivate": false,
-                "IsProvincialPriorityListing": false,
-                "IsTopAd": false,
-                "IsTopSpotListing": false,
-                "IsXplListing": false,
-                "IsDigitalRetailListing": false,
-                "HasUpsellDigitalRetailListing": false,
-                "HasTryBeforeYouBuy": false,
-                "HasMoneyBackGuarantee": false,
-                "IsOnlineSellerPlus": false,
-                "IsInlineListing": false,
-                "IsSwipeProListing": false,
-                "IsHomeDeliveryEnabled": false,
-                "HasOnlineReservation": false,
-                "IsTransparencyEnabled": false,
-                "IsValidSpsPriceVisiblePlus": false,
-                "MsrpDealerOptOut": false,
-                "ListingType": 0,
-                "Make": "Hyundai",
-                "Model": "Veloster",
-                "Odometer": 92161,
-                "Position": 0,
-                "Price": 14998.0,
-                "PriceGraphType": 0,
-                "ProvinceAbbr": "SK",
-                "SellerLogoResourceLocation": 0,
-                "SourceId": 5,
-                "Status": 0,
-                "IsCreditConnectAvailable": false,
-                "IsFinancePrequalAvailable": false,
-                "Title": "2015 Hyundai Veloster",
-                "TitleWithTrim": "2015 Hyundai Veloster SE 6sp LOCAL TRADE - BLUETOOTH AUDIO",
-                "Year": 2015,
-                "IsNpv": false,
-                "IsRvCare": false,
-                "IsVehicleSpecialist": false,
-                "HasMobialsReviews": false,
-                "VehicleCategory": "PassengerVehicles",
-                "FieldBodyType": "Coupe",
-                "GoogleRating": 0.0,
-                "EnableSrpListingsV2": true,
-                "Olympus": false,
-                "ShowCityOnSrpListing": true,
-                "OemCertification": 0,
-                "Trim": "SE 6sp LOCAL TRADE - BLUETOOTH AUDIO",
-                "PostedDate": "2024-12-06 8:08:28 AM",
-                "IsEnableIcoSrp": false,
-                "ShowInsuranceWidgetOnTop": false,
-                "SupportsImageGallery": false,
-                "IsAdFromAreasHeader": false,
-                "IsAdAllListingsHeader": false,
-                "IsAmvic": false,
-                "ShowBestPricedDealer": false,
-                "ShowSortPoint": false,
-                "IsVirtualDealer": false,
-                "IsHybridDealer": false,
-                "IsMobile": false,
-                "Microsite": {
-                    "SiteId": 2,
-                    "MicrositeType": 1,
-                    "Culture": "en-CA",
-                    "LandingUrlSegment": "cars",
-                    "SearchResultsUrlSegment": "cars",
-                    "DisplayText": "Cars, Trucks & SUVs",
-                    "ShortName": "Car",
-                    "ShortNameGender": "",
-                    "RequiresType": false,
-                    "RequiresSubType": false,
-                    "Category2Ids": [
-                        7,
-                        9,
-                        10,
-                        11
-                    ],
-                    "DisableSeoModel": false,
-                    "DefaultWithPrice": true,
-                    "DefaultWithPhotos": true,
-                    "IsNpv": false,
-                    "DisplayNeuvesInNpvPopularLinks": false,
-                    "TrackingName": "Car"
-                }
-            },
-            {
-                "AdId": 84813099,
-                "AnalyticsOrdinalPosition": 0,
-                "CompanyForeignId": "CT200521113348533",
-                "Description": "Recent Arrival!\n\n2018 Kia Forte LX White 2.0L I4 MPI DOHC 16V ULEV II 147hp 6-Speed Manual FWD\n\nCertification Program Details: DILAWRI CERTIFIED  105-Point Quality & Safety Inspection  3-Day/300-Km Exchange Guarantee  0.25% Rate Reduction with Dilawri Leasing  90-Day/5,000-Km ...",
-                "DetailPageUrl": "/a/kia/forte/regina/saskatchewan/5_64813099_ct200521113348533/",
-                "DealerPageUrl": "/dealership/CT200521113348533/",
-                "EnableHighlightListings": false,
-                "ForeignId": "64813099",
-                "HasCar360": false,
-                "HasVideoEdge": false,
-                "HasDealershipVideo": false,
-                "HasCustomVideo": false,
-                "HasStitchedVideo": false,
-                "HasYouTubeVideo": false,
-                "HasOemFeatureVideo": false,
-                "ImageGalleryResourceLocation": 0,
-                "ImageCount": 0,
-                "CarMediaImageCount": 0,
-                "ImageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1718/3019/54201dde-0426-4ad1-a9bb-af75f7b82e8b_overlay.jpg-133x100",
-                "IsAmvoq": false,
-                "IsCpo": false,
-                "IsDealer": false,
-                "IsFeaturedListing": false,
-                "IsGoldSeries": false,
-                "IsHighlightListing": false,
-                "IsHighlightListingMobile": false,
-                "IsMobileBoost": false,
-                "IsBoost": false,
-                "IsNewVehicle": false,
-                "IsOrganicListings": false,
-                "IsPassenger": false,
-                "IsPriorityListing": false,
-                "IsPrivate": false,
-                "IsProvincialPriorityListing": false,
-                "IsTopAd": false,
-                "IsTopSpotListing": false,
-                "IsXplListing": false,
-                "IsDigitalRetailListing": false,
-                "HasUpsellDigitalRetailListing": false,
-                "HasTryBeforeYouBuy": false,
-                "HasMoneyBackGuarantee": false,
-                "IsOnlineSellerPlus": false,
-                "IsInlineListing": false,
-                "IsSwipeProListing": false,
-                "IsHomeDeliveryEnabled": false,
-                "HasOnlineReservation": false,
-                "IsTransparencyEnabled": false,
-                "IsValidSpsPriceVisiblePlus": false,
-                "MsrpDealerOptOut": false,
-                "ListingType": 0,
-                "Make": "Kia",
-                "Model": "Forte",
-                "Odometer": 79903,
-                "Position": 0,
-                "Price": 14999.0,
-                "PriceGraphType": 0,
-                "ProvinceAbbr": "SK",
-                "SellerLogoResourceLocation": 0,
-                "SourceId": 5,
-                "Status": 0,
-                "IsCreditConnectAvailable": false,
-                "IsFinancePrequalAvailable": false,
-                "Title": "2018 Kia Forte",
-                "TitleWithTrim": "2018 Kia Forte ",
-                "Year": 2018,
-                "IsNpv": false,
-                "IsRvCare": false,
-                "IsVehicleSpecialist": false,
-                "HasMobialsReviews": false,
-                "VehicleCategory": "PassengerVehicles",
-                "FieldBodyType": "Sedan",
-                "GoogleRating": 0.0,
-                "EnableSrpListingsV2": true,
-                "Olympus": false,
-                "ShowCityOnSrpListing": true,
-                "OemCertification": 0,
-                "PostedDate": "2024-12-17 4:09:10 AM",
-                "IsEnableIcoSrp": false,
-                "ShowInsuranceWidgetOnTop": false,
-                "SupportsImageGallery": false,
-                "IsAdFromAreasHeader": false,
-                "IsAdAllListingsHeader": false,
-                "IsAmvic": false,
-                "ShowBestPricedDealer": false,
-                "ShowSortPoint": false,
-                "IsVirtualDealer": false,
-                "IsHybridDealer": false,
-                "IsMobile": false,
-                "Microsite": {
-                    "SiteId": 2,
-                    "MicrositeType": 1,
-                    "Culture": "en-CA",
-                    "LandingUrlSegment": "cars",
-                    "SearchResultsUrlSegment": "cars",
-                    "DisplayText": "Cars, Trucks & SUVs",
-                    "ShortName": "Car",
-                    "ShortNameGender": "",
-                    "RequiresType": false,
-                    "RequiresSubType": false,
-                    "Category2Ids": [
-                        7,
-                        9,
-                        10,
-                        11
-                    ],
-                    "DisableSeoModel": false,
-                    "DefaultWithPrice": true,
-                    "DefaultWithPhotos": true,
-                    "IsNpv": false,
-                    "DisplayNeuvesInNpvPopularLinks": false,
-                    "TrackingName": "Car"
-                }
-            },
-            {
-                "AdId": 83915850,
-                "AnalyticsOrdinalPosition": 0,
-                "CompanyForeignId": "CT2004105115640706",
-                "Description": "",
-                "DetailPageUrl": "/a/chevrolet/spark/regina/saskatchewan/5_63915850_ct2004105115640706/",
-                "DealerPageUrl": "/dealership/CT2004105115640706/",
-                "EnableHighlightListings": false,
-                "ForeignId": "63915850",
-                "HasCar360": false,
-                "HasVideoEdge": false,
-                "HasDealershipVideo": false,
-                "HasCustomVideo": false,
-                "HasStitchedVideo": false,
-                "HasYouTubeVideo": false,
-                "HasOemFeatureVideo": false,
-                "ImageGalleryResourceLocation": 0,
-                "ImageCount": 0,
-                "CarMediaImageCount": 0,
-                "ImageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1408/0823/b0fe2881-c26d-41e7-8250-09d4227b7c4d_overlay.jpg-133x100",
-                "IsAmvoq": false,
-                "IsCpo": false,
-                "IsDealer": false,
-                "IsFeaturedListing": false,
-                "IsGoldSeries": false,
-                "IsHighlightListing": false,
-                "IsHighlightListingMobile": false,
-                "IsMobileBoost": false,
-                "IsBoost": false,
-                "IsNewVehicle": false,
-                "IsOrganicListings": false,
-                "IsPassenger": false,
-                "IsPriorityListing": false,
-                "IsPrivate": false,
-                "IsProvincialPriorityListing": false,
-                "IsTopAd": false,
-                "IsTopSpotListing": false,
-                "IsXplListing": false,
-                "IsDigitalRetailListing": false,
-                "HasUpsellDigitalRetailListing": false,
-                "HasTryBeforeYouBuy": false,
-                "HasMoneyBackGuarantee": false,
-                "IsOnlineSellerPlus": false,
-                "IsInlineListing": false,
-                "IsSwipeProListing": false,
-                "IsHomeDeliveryEnabled": false,
-                "HasOnlineReservation": false,
-                "IsTransparencyEnabled": false,
-                "IsValidSpsPriceVisiblePlus": false,
-                "MsrpDealerOptOut": false,
-                "ListingType": 0,
-                "Make": "Chevrolet",
-                "Model": "Spark",
-                "Odometer": 117656,
-                "Position": 0,
-                "Price": 11940.0,
-                "PriceGraphType": 0,
-                "ProvinceAbbr": "SK",
-                "SellerLogoResourceLocation": 0,
-                "SourceId": 5,
-                "Status": 0,
-                "IsCreditConnectAvailable": false,
-                "IsFinancePrequalAvailable": false,
-                "Title": "2019 Chevrolet Spark",
-                "TitleWithTrim": "2019 Chevrolet Spark 1LT - 5MT Fresh Trade",
-                "Year": 2019,
-                "IsNpv": false,
-                "IsRvCare": false,
-                "IsVehicleSpecialist": false,
-                "HasMobialsReviews": false,
-                "VehicleCategory": "PassengerVehicles",
-                "FieldBodyType": "Hatchback",
-                "GoogleRating": 0.0,
-                "EnableSrpListingsV2": true,
-                "Olympus": false,
-                "ShowCityOnSrpListing": true,
-                "OemCertification": 0,
-                "Trim": "1LT - 5MT Fresh Trade",
-                "PostedDate": "2024-10-01 7:27:13 AM",
-                "IsEnableIcoSrp": false,
-                "ShowInsuranceWidgetOnTop": false,
-                "SupportsImageGallery": false,
-                "IsAdFromAreasHeader": false,
-                "IsAdAllListingsHeader": false,
-                "IsAmvic": false,
-                "ShowBestPricedDealer": false,
-                "ShowSortPoint": false,
-                "IsVirtualDealer": false,
-                "IsHybridDealer": false,
-                "IsMobile": false,
-                "Microsite": {
-                    "SiteId": 2,
-                    "MicrositeType": 1,
-                    "Culture": "en-CA",
-                    "LandingUrlSegment": "cars",
-                    "SearchResultsUrlSegment": "cars",
-                    "DisplayText": "Cars, Trucks & SUVs",
-                    "ShortName": "Car",
-                    "ShortNameGender": "",
-                    "RequiresType": false,
-                    "RequiresSubType": false,
-                    "Category2Ids": [
-                        7,
-                        9,
-                        10,
-                        11
-                    ],
-                    "DisableSeoModel": false,
-                    "DefaultWithPrice": true,
-                    "DefaultWithPhotos": true,
-                    "IsNpv": false,
-                    "DisplayNeuvesInNpvPopularLinks": false,
-                    "TrackingName": "Car"
-                }
-            },
-            {
-                "AdId": 84559393,
-                "AnalyticsOrdinalPosition": 0,
-                "CompanyForeignId": "CT200456103358801",
-                "Description": "LOCAL ACCIDENT FREE TRADE WITH ONLY 150,569 KMS, REMOTE START, P. SUNROOF, P. HEATED SEAT, BLUETOOTH, SIRIUS XM, BLIND SPOT WARNING, REAR VIEW MONITOR ",
-                "DetailPageUrl": "/a/nissan/altima/moose%20jaw/saskatchewan/5_64559393_ct200456103358801/",
-                "DealerPageUrl": "/dealership/CT200456103358801/",
-                "EnableHighlightListings": false,
-                "ForeignId": "64559393",
-                "HasCar360": false,
-                "HasVideoEdge": false,
-                "HasDealershipVideo": false,
-                "HasCustomVideo": false,
-                "HasStitchedVideo": false,
-                "HasYouTubeVideo": false,
-                "HasOemFeatureVideo": false,
-                "ImageGalleryResourceLocation": 0,
-                "ImageCount": 0,
-                "CarMediaImageCount": 0,
-                "ImageUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/0918/3659/a1870380-5be4-4526-95d8-a6f7ef86822f.jpg-133x100",
-                "IsAmvoq": false,
-                "IsCpo": false,
-                "IsDealer": false,
-                "IsFeaturedListing": false,
-                "IsGoldSeries": false,
-                "IsHighlightListing": false,
-                "IsHighlightListingMobile": false,
-                "IsMobileBoost": false,
-                "IsBoost": false,
-                "IsNewVehicle": false,
-                "IsOrganicListings": false,
-                "IsPassenger": false,
-                "IsPriorityListing": false,
-                "IsPrivate": false,
-                "IsProvincialPriorityListing": false,
-                "IsTopAd": false,
-                "IsTopSpotListing": false,
-                "IsXplListing": false,
-                "IsDigitalRetailListing": false,
-                "HasUpsellDigitalRetailListing": false,
-                "HasTryBeforeYouBuy": false,
-                "HasMoneyBackGuarantee": false,
-                "IsOnlineSellerPlus": false,
-                "IsInlineListing": false,
-                "IsSwipeProListing": false,
-                "IsHomeDeliveryEnabled": false,
-                "HasOnlineReservation": false,
-                "IsTransparencyEnabled": false,
-                "IsValidSpsPriceVisiblePlus": false,
-                "MsrpDealerOptOut": false,
-                "ListingType": 0,
-                "Make": "Nissan",
-                "Model": "Altima",
-                "Odometer": 150569,
-                "Position": 0,
-                "Price": 12995.0,
-                "PriceGraphType": 0,
-                "ProvinceAbbr": "SK",
-                "SellerLogoResourceLocation": 0,
-                "SourceId": 5,
-                "Status": 0,
-                "IsCreditConnectAvailable": false,
-                "IsFinancePrequalAvailable": false,
-                "Title": "2017 Nissan Altima",
-                "TitleWithTrim": "2017 Nissan Altima 2.5 SV LOCAL ACCIDENT FREE TRADE WITH ONLY 150,569",
-                "Year": 2017,
-                "IsNpv": false,
-                "IsRvCare": false,
-                "IsVehicleSpecialist": false,
-                "HasMobialsReviews": false,
-                "VehicleCategory": "PassengerVehicles",
-                "FieldBodyType": "Sedan",
-                "GoogleRating": 0.0,
-                "EnableSrpListingsV2": true,
-                "Olympus": false,
-                "ShowCityOnSrpListing": true,
-                "OemCertification": 0,
-                "Trim": "2.5 SV LOCAL ACCIDENT FREE TRADE WITH ONLY 150,569",
-                "PostedDate": "2024-11-25 5:12:21 AM",
-                "IsEnableIcoSrp": false,
-                "ShowInsuranceWidgetOnTop": false,
-                "SupportsImageGallery": false,
-                "IsAdFromAreasHeader": false,
-                "IsAdAllListingsHeader": false,
-                "IsAmvic": false,
-                "ShowBestPricedDealer": false,
-                "ShowSortPoint": false,
-                "IsVirtualDealer": false,
-                "IsHybridDealer": false,
-                "IsMobile": false,
-                "Microsite": {
-                    "SiteId": 2,
-                    "MicrositeType": 1,
-                    "Culture": "en-CA",
-                    "LandingUrlSegment": "cars",
-                    "SearchResultsUrlSegment": "cars",
-                    "DisplayText": "Cars, Trucks & SUVs",
-                    "ShortName": "Car",
-                    "ShortNameGender": "",
-                    "RequiresType": false,
-                    "RequiresSubType": false,
-                    "Category2Ids": [
-                        7,
-                        9,
-                        10,
-                        11
-                    ],
-                    "DisableSeoModel": false,
-                    "DefaultWithPrice": true,
-                    "DefaultWithPhotos": true,
-                    "IsNpv": false,
-                    "DisplayNeuvesInNpvPopularLinks": false,
-                    "TrackingName": "Car"
-                }
-            }
-        ],
-        "Title": "People Also Viewed",
-        "TotalCount": 4,
-        "IsPrivate": true,
-        "ViewAllText": "",
-        "ShowModule": true
+        "TotalCount": 0,
+        "IsPrivate": false,
+        "ShowModule": false
     },
-    "SourceId": "19",
+    "SourceId": "5",
     "Specifications": {
         "Specs": [
             {
                 "Key": "Kilometres",
-                "Value": "190,000 km"
+                "Value": "194,574 km"
             },
             {
                 "Key": "Status",
@@ -802,11 +714,19 @@
             },
             {
                 "Key": "Trim",
-                "Value": "4dr Sdn Titanium AWD"
+                "Value": "SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!"
             },
             {
                 "Key": "Body Type",
                 "Value": "Sedan"
+            },
+            {
+                "Key": "Engine",
+                "Value": "Regular Unleaded I-4 2.5 L/152"
+            },
+            {
+                "Key": "Cylinder",
+                "Value": "4"
             },
             {
                 "Key": "Transmission",
@@ -814,19 +734,39 @@
             },
             {
                 "Key": "Drivetrain",
-                "Value": "AWD"
+                "Value": "FWD"
+            },
+            {
+                "Key": "Stock Number",
+                "Value": "25102A"
             },
             {
                 "Key": "Exterior Colour",
-                "Value": "Red"
+                "Value": "Magnetic Metallic"
+            },
+            {
+                "Key": "Interior Colour",
+                "Value": "Black"
+            },
+            {
+                "Key": "Passengers",
+                "Value": "5"
             },
             {
                 "Key": "Doors",
-                "Value": "4 doors"
+                "Value": "4"
             },
             {
                 "Key": "Fuel Type",
-                "Value": "Gasoline"
+                "Value": "Gas"
+            },
+            {
+                "Key": "City Fuel Economy",
+                "Value": "11.3L/100km"
+            },
+            {
+                "Key": "Hwy Fuel Economy",
+                "Value": "7.5L/100km"
             }
         ],
         "ShowMadeIn": false,
@@ -837,8 +777,8 @@
     },
     "VehicleHighlightsModel": {
         "Language": "en",
-        "DealerPrice": 13600.0,
-        "Msrp": 0.0,
+        "DealerPrice": 12912.0,
+        "Msrp": 12912.0,
         "MsrpDealerOptOut": false,
         "IsCarMediaImagesUsed": false,
         "Order": 0,
@@ -847,8 +787,8 @@
     },
     "SplashPlusBodyType": "sedan",
     "ShowSplashPlus": false,
-    "DefaultVdpSearchCriteriaJson": "{\"address\":\"Regina\",\"adStatus\":[2],\"adType\":[2,1],\"bodyTypes\":[\"Sedan\"],\"cpoStatus\":0,\"datalayerCpoStatus\":true,\"isCommercial\":false,\"isUniqueSearch\":true,\"keywords\":\"\",\"location\":{\"city\":{\"placeName\":\"Regina, SK\",\"coordinates\":{\"latitude\":50.45008,\"longitude\":-104.6178},\"name\":\"Regina\",\"province\":{\"abbreviation\":\"SK\",\"name\":\"Saskatchewan\"},\"isCity\":true},\"confidence\":0.0},\"makes\":[\"Ford\"],\"micrositeType\":1,\"models\":[\"Fusion\"],\"pageNumber\":1,\"priceRange\":{\"end\":15000.0},\"proximity\":50,\"skip\":0,\"top\":15,\"yearRange\":{\"start\":2017},\"withPhotos\":true,\"withPrice\":true,\"hasNewAdStatus\":false,\"hasUsedAdStatus\":true,\"hasDamagedAdStatus\":false,\"hasAdTypeDealer\":true,\"hasAdTypePrivate\":true,\"sortBy\":35,\"inMarketType\":\"advancedSearch\",\"microsite\":{\"siteId\":2,\"micrositeType\":1,\"culture\":\"en-CA\",\"landingUrlSegment\":\"cars\",\"searchResultsUrlSegment\":\"cars\",\"displayText\":\"Cars, Trucks & SUVs\",\"shortName\":\"Car\",\"shortNameGender\":\"\",\"requiresType\":false,\"requiresSubType\":false,\"category2Ids\":[7,9,10,11],\"disableSeoModel\":false,\"defaultWithPrice\":true,\"defaultWithPhotos\":true,\"isNpv\":false,\"displayNeuvesInNpvPopularLinks\":false,\"trackingName\":\"Car\"},\"phoneNumber\":\"\",\"isDefaultAddress\":false,\"cashDown\":0.0,\"tradeIn\":0.0,\"withShoppingExperience\":\"no\",\"searchCriteriaType\":0,\"showQaAd\":false,\"hasHomeDelivery\":false}",
-    "DefaultSearchUrl": "/cars/ford/fusion/sk/regina/?rcp=15\\u0026rcs=0\\u0026srt=35\\u0026yRng=2017%2C\\u0026pRng=%2C15000\\u0026prx=50\\u0026prv=Saskatchewan\\u0026loc=Regina\\u0026body=Sedan\\u0026hprc=True\\u0026wcp=True\\u0026sts=Used",
+    "DefaultVdpSearchCriteriaJson": "{\"address\":\"Sundridge\",\"adStatus\":[2],\"adType\":[2,1],\"bodyTypes\":[\"Sedan\"],\"cpoStatus\":0,\"datalayerCpoStatus\":true,\"isCommercial\":false,\"isUniqueSearch\":true,\"keywords\":\"\",\"location\":{\"city\":{\"placeName\":\"Sundridge, ON\",\"coordinates\":{\"latitude\":45.7668,\"longitude\":-79.39964},\"name\":\"Sundridge\",\"province\":{\"abbreviation\":\"ON\",\"name\":\"Ontario\"},\"isCity\":true},\"confidence\":0.0},\"makes\":[\"Ford\"],\"micrositeType\":1,\"models\":[\"Fusion\"],\"pageNumber\":1,\"priceRange\":{\"end\":15000.0},\"proximity\":50,\"skip\":0,\"top\":15,\"yearRange\":{\"start\":2017},\"withPhotos\":true,\"withPrice\":true,\"hasNewAdStatus\":false,\"hasUsedAdStatus\":true,\"hasDamagedAdStatus\":false,\"hasAdTypeDealer\":true,\"hasAdTypePrivate\":true,\"sortBy\":35,\"inMarketType\":\"advancedSearch\",\"microsite\":{\"siteId\":2,\"micrositeType\":1,\"culture\":\"en-CA\",\"landingUrlSegment\":\"cars\",\"searchResultsUrlSegment\":\"cars\",\"displayText\":\"Cars, Trucks & SUVs\",\"shortName\":\"Car\",\"shortNameGender\":\"\",\"requiresType\":false,\"requiresSubType\":false,\"category2Ids\":[7,9,10,11],\"disableSeoModel\":false,\"defaultWithPrice\":true,\"defaultWithPhotos\":true,\"isNpv\":false,\"displayNeuvesInNpvPopularLinks\":false,\"trackingName\":\"Car\"},\"phoneNumber\":\"\",\"isDefaultAddress\":false,\"cashDown\":0.0,\"tradeIn\":0.0,\"withShoppingExperience\":\"no\",\"searchCriteriaType\":0,\"showQaAd\":false,\"hasHomeDelivery\":false}",
+    "DefaultSearchUrl": "/cars/ford/fusion/on/sundridge/?rcp=15\\u0026rcs=0\\u0026srt=35\\u0026yRng=2017%2C\\u0026pRng=%2C15000\\u0026prx=50\\u0026prv=Ontario\\u0026loc=Sundridge\\u0026body=Sedan\\u0026hprc=True\\u0026wcp=True\\u0026sts=Used",
     "IsAuthenticated": false,
     "IsInGarage": false,
     "PostNegotiateAdaptorTypeName": "Trader.Marketplace.Contracts.ViewModels.IVdpViewModel",
@@ -865,11 +805,18 @@
         {
             "ShowModule": true,
             "SpecsHighlights": {
-                "190,000 km": 1,
+                "194,574 km": 1,
                 "Automatic": 2,
-                "AWD": 3
+                "FWD": 3
             },
-            "Features": [],
+            "Features": [
+                "Intermittent Wipers",
+                "Keyless Entry",
+                "CD Player",
+                "Heated Seats",
+                "Power Locks",
+                "Air Conditioning"
+            ],
             "Conditions": [],
             "DealerCallout": "",
             "Order": 20,
@@ -882,16 +829,41 @@
             "NavigationTitle": "Payments"
         },
         {
+            "ShowIcoVdp": true,
+            "IcoConsumer": {
+                "ConsumerId": "86adb94f-b0d3-4ef0-abf2-2e2c1fa9eaf5",
+                "FirstName": null,
+                "LastName": null,
+                "EmailAddress": null,
+                "PostalCode": ""
+            },
+            "DealerId": "20211013171415578",
+            "DealerName": "Bray Motors Ltd",
+            "IcoThirdPartyProviderIFrameBaseUrl": "https://trader.accu-trade.com/",
+            "IcoThirdPartyProvider": 0,
+            "DealerKey": "efb423a08ce5529d87580c04e9d0b383b8573c61",
+            "IcoThirdPartyProviderApiBaseUrl": "https://perseus-api-production.accu-trade.com/api/",
+            "IcoApiBaseUrl": "//ico.autotrader.ca/Ico/",
+            "AdId": "5_64604623",
+            "IcoFunnel": 1,
+            "DataLayerSectionName": "ico",
+            "Order": 40,
+            "NavigationAnchorName": "ico",
+            "NavigationTitle": "Instant Cash Offer",
+            "IcoDemo": false,
+            "ShowIcoModal": false
+        },
+        {
             "DataLayerSectionName": "additionalInfo",
             "Description": [
                 {
-                    "Description": "Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different."
+                    "Description": "SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! "
                 }
             ],
             "IsNpv": false,
             "IsPv": true,
-            "IsDealer": false,
-            "IsPrivate": true,
+            "IsDealer": true,
+            "IsPrivate": false,
             "Order": 100,
             "NavigationAnchorName": "vdp-additionalInfo-widget",
             "NavigationTitle": "Description"
@@ -900,7 +872,7 @@
             "Specs": [
                 {
                     "Key": "Kilometres",
-                    "Value": "190,000 km"
+                    "Value": "194,574 km"
                 },
                 {
                     "Key": "Status",
@@ -908,11 +880,19 @@
                 },
                 {
                     "Key": "Trim",
-                    "Value": "4dr Sdn Titanium AWD"
+                    "Value": "SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED!"
                 },
                 {
                     "Key": "Body Type",
                     "Value": "Sedan"
+                },
+                {
+                    "Key": "Engine",
+                    "Value": "Regular Unleaded I-4 2.5 L/152"
+                },
+                {
+                    "Key": "Cylinder",
+                    "Value": "4"
                 },
                 {
                     "Key": "Transmission",
@@ -920,19 +900,39 @@
                 },
                 {
                     "Key": "Drivetrain",
-                    "Value": "AWD"
+                    "Value": "FWD"
+                },
+                {
+                    "Key": "Stock Number",
+                    "Value": "25102A"
                 },
                 {
                     "Key": "Exterior Colour",
-                    "Value": "Red"
+                    "Value": "Magnetic Metallic"
+                },
+                {
+                    "Key": "Interior Colour",
+                    "Value": "Black"
+                },
+                {
+                    "Key": "Passengers",
+                    "Value": "5"
                 },
                 {
                     "Key": "Doors",
-                    "Value": "4 doors"
+                    "Value": "4"
                 },
                 {
                     "Key": "Fuel Type",
-                    "Value": "Gasoline"
+                    "Value": "Gas"
+                },
+                {
+                    "Key": "City Fuel Economy",
+                    "Value": "11.3L/100km"
+                },
+                {
+                    "Key": "Hwy Fuel Economy",
+                    "Value": "7.5L/100km"
                 }
             ],
             "ShowMadeIn": false,
@@ -940,6 +940,175 @@
             "Order": 110,
             "NavigationAnchorName": "vdp-specs-widget",
             "NavigationTitle": "Specs"
+        },
+        {
+            "PriceAnalysisDescription": "This vehicle is <b>$1,696 ABOVE MARKET (15%)</b>. It is compared to similar vehicles in the <b>Sundridge</b> and adjacent area. It\u2019s based on kilometres, year, make, model, trim, manufacturer certification, manufacturer packages, options, and much more.",
+            "AverageMarketPrice": "$11,216",
+            "CurrentAskingPrice": "$12,912",
+            "CurrentAskingPricePosition": "AbovePricePosition1",
+            "PriceEvaluation": "AboveAverage",
+            "DataLayerSectionName": "price analysis",
+            "Order": 120,
+            "NavigationAnchorName": "vdp-price-Analisys",
+            "NavigationTitle": "Price Analysis"
+        },
+        {
+            "ShowModule": false,
+            "ShowOdometer": true,
+            "ShowOptions": true,
+            "MileageType": "Average km",
+            "MileageConditionType": 2,
+            "Options": [],
+            "Odometer": "194,574 KM",
+            "OdometerCondition": "Average",
+            "ConditionDisclaimer": "based on 23,000 km/year",
+            "DataLayerSectionName": "condition",
+            "Order": 130,
+            "NavigationAnchorName": "vdp-condition",
+            "NavigationTitle": "Condition Analysis"
+        },
+        {
+            "ShowModule": true,
+            "ShowAllOptions": true,
+            "Highlights": [
+                "Intermittent Wipers",
+                "Keyless Entry",
+                "CD Player",
+                "Heated Seats",
+                "Power Locks",
+                "Air Conditioning"
+            ],
+            "Options": [
+                "Power Steering",
+                "Traction Control",
+                "AM/FM Stereo",
+                "Illuminated Visor Mirror",
+                "Child-Safety Locks",
+                "Bluetooth",
+                "Remote Start",
+                "Power Seat",
+                "6 Speed",
+                "Daytime Running Lights",
+                "Anti-Lock Brakes (ABS)",
+                "Front Wheel Drive",
+                "Rear View Camera",
+                "Tilt Steering",
+                "Rear Defroster",
+                "Cruise Control",
+                "Security System",
+                "Power Windows",
+                "Cloth Interior",
+                "Passenger Airbag",
+                "Stability Control",
+                "Trip Computer",
+                "Satellite Radio",
+                "Alloy Wheels",
+                "Auto On/Off Headlamps",
+                "Bucket Seats",
+                "Driver Side Airbag",
+                "Steering Wheel Audio Controls"
+            ],
+            "ExtraOption": "ENGINE: 2.5L IVCT (STD),ABS,4-Wheel Disc Brakes,Brake Assist,Brake Actuated Limited Slip Differential,Aluminum Wheels,Tires - Front Performance,Tires - Rear Performance,Temporary Spare Tire,Power Mirror(s),MP3 Capability,Requires Subscription,Bluetooth Connection,Telematics,Auxiliary Audio Input,Smart Device Integration,Pass-Through Rear Seat,Rear Bench Seat,Keyless Start,Driver Adjustable Lumbar,Driver Vanity Mirror,Passenger Vanity Mirror,Floor Mats,Immobilizer,Front Side Air Bag,Tire Pressure Monitor,Front Head Air Bag,Rear Head Air Bag,Passenger Air Bag Sensor,Knee Air Bag,Driver Restriction Features,Back-Up Camera",
+            "DataLayerSectionName": "features",
+            "Order": 150,
+            "NavigationAnchorName": "vdp-options-widget",
+            "NavigationTitle": "Features &"
+        },
+        {
+            "ShowModule": true,
+            "FuelCity": "11.3",
+            "FuelHighway": "7.5",
+            "FuelCombined": "9.6",
+            "TankSize": 0,
+            "FuelCost": "140.9",
+            "YearlyMileage": 20000,
+            "YearlyFuelCost": 2702,
+            "ShowFuelEconomyDisclaimer": true,
+            "DataLayerSectionName": "fuel economy",
+            "Order": 160,
+            "NavigationAnchorName": "vdp-fueleconomy-widget",
+            "NavigationTitle": "Fuel Economy"
+        },
+        {
+            "RequestIsFromMobile": false,
+            "DealerCompanyName": "Bray Motors Ltd",
+            "DealerCompanyFormattedName": "Bray+Motors+Ltd",
+            "LogoUrl": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/202302/2723/1543/60fcf8cb-358f-40a4-a9ef-6652479b5c91.jpg",
+            "LogoResourceLocation": 53,
+            "PhoneNumber": "877-804-5501",
+            "IsPhoneMask": false,
+            "DealerCompleteAddress": "10508 Hwy 124, Sundridge, ON",
+            "DealerAddress": "10508 Hwy 124",
+            "CityProvinceName": "Sundridge, ON",
+            "ProvinceName": "ON",
+            "EnableAnnouncementMessageProvList": [
+                ""
+            ],
+            "ShowAnnouncementMessage": false,
+            "DealerReviewId": -1,
+            "BulletPoints": [
+                "Over 250 Certified Pre-Owned ",
+                "4 Locations",
+                "Orangeville- Sundridge & Huntsville",
+                "9 NEW Vehicle Brands to Choose From",
+                "Strict Pre-Owned Reconditioning",
+                "Community-Oriented Staff"
+            ],
+            "OtlDealerEvent": {
+                "OtlDealerEventTitle": "Dealership Event - Ends January 2, 2025",
+                "OtlDealerEventImageUrl": "",
+                "EnableOTLDealerBanner": true
+            },
+            "DealerLinks": [
+                {
+                    "LinkUrl": "/dealership/20211013171415578/",
+                    "Title": "View all inventory",
+                    "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                    "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                    "GaEvent": "gtm_ad_dealer_inventory_link_click",
+                    "GaEventDefaultLabel": "vdp"
+                },
+                {
+                    "LinkUrl": "http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral",
+                    "Title": "Dealer website",
+                    "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');",
+                    "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');",
+                    "GaEvent": "gtm_ad_dealer_link_click",
+                    "GaEventDefaultLabel": "dealer section",
+                    "IconName": "DealerWebSite"
+                }
+            ],
+            "DealerWebsiteInfo": {
+                "LinkUrl": "http://www.braymotors.com/?utm_source=autoTRADER&utm_medium=referral",
+                "Title": "Dealer website",
+                "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('seller section');",
+                "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerWebsiteClickEvent('dealer section');",
+                "GaEvent": "gtm_ad_dealer_link_click",
+                "GaEventDefaultLabel": "dealer section",
+                "IconName": "DealerWebSite"
+            },
+            "DealerInventoryInfo": {
+                "LinkUrl": "/dealership/20211013171415578/",
+                "Title": "View all inventory",
+                "SellerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                "DealerSectionClientEventHandler": "vdpDataLayerManager.addDealerInventoryClickEvent();",
+                "GaEvent": "gtm_ad_dealer_inventory_link_click",
+                "GaEventDefaultLabel": "vdp"
+            },
+            "GoogleMapUrl": "https://maps.google.com/maps?q=Bray+Motors+Ltd+10508+Hwy+124+Sundridge+Ontario&ll=45.7612,-79.406342&z=16",
+            "NavigationAnchorName": "vdp-dealer-widget",
+            "NavigationTitle": "Dealer",
+            "DataLayerSectionName": "dealer info",
+            "IsTextConnect": true,
+            "TextConnectPhone": "4169967734",
+            "Order": 180,
+            "GoogleRating": 0.0,
+            "GoogleMapsLinkURL": "",
+            "ShowIco": true,
+            "BestPriceAwardUrl": "",
+            "EnableSoftLeadsCTAsFromLeadFormXS": false,
+            "IsVirtualDealer": false,
+            "IsHybridDealer": false
         }
     ],
     "IsValidSpsPriceVisiblePlus": false,
@@ -947,13 +1116,27 @@
     "GoogleRating": 0.0,
     "GoogleMapsLinkURL": "",
     "Olympus": false,
-    "Id": 12993249,
-    "DefaultSrpUrl": "/cars/ford/fusion/sk/regina/?rcp=15&rcs=0&srt=35&yRng=2017%2C&pRng=%2C15000&prx=50&prv=Saskatchewan&loc=Regina&body=Sedan&hprc=True&wcp=True&sts=Used",
+    "Id": 84604623,
+    "DefaultSrpUrl": "/cars/ford/fusion/on/sundridge/?rcp=15&rcs=0&srt=35&yRng=2017%2C&pRng=%2C15000&prx=50&prv=Ontario&loc=Sundridge&body=Sedan&hprc=True&wcp=True&sts=Used",
     "InDemandApiUrl": "",
     "IcoViewModel": {
-        "ShowIcoVdp": false,
+        "ShowIcoVdp": true,
+        "IcoConsumer": {
+            "ConsumerId": "86adb94f-b0d3-4ef0-abf2-2e2c1fa9eaf5",
+            "FirstName": null,
+            "LastName": null,
+            "EmailAddress": null,
+            "PostalCode": ""
+        },
+        "DealerId": "20211013171415578",
+        "DealerName": "Bray Motors Ltd",
+        "IcoThirdPartyProviderIFrameBaseUrl": "https://trader.accu-trade.com/",
         "IcoThirdPartyProvider": 0,
-        "IcoFunnel": 0,
+        "DealerKey": "efb423a08ce5529d87580c04e9d0b383b8573c61",
+        "IcoThirdPartyProviderApiBaseUrl": "https://perseus-api-production.accu-trade.com/api/",
+        "IcoApiBaseUrl": "//ico.autotrader.ca/Ico/",
+        "AdId": "5_64604623",
+        "IcoFunnel": 1,
         "DataLayerSectionName": "ico",
         "Order": 40,
         "NavigationAnchorName": "ico",
@@ -961,30 +1144,32 @@
         "IcoDemo": false,
         "ShowIcoModal": false
     },
-    "SearchCriteriaJson": "{\"address\":\"S4X1Y9\",\"adStatus\":[1,2],\"adType\":[1,2],\"cpoStatus\":0,\"datalayerCpoStatus\":false,\"isCommercial\":false,\"location\":{\"city\":{\"placeName\":\"Regina, SK\",\"coordinates\":{\"latitude\":50.489639282226563,\"longitude\":-104.66639709472656},\"name\":\"Regina\",\"province\":{\"abbreviation\":\"SK\",\"name\":\"Saskatchewan\"},\"postalCode\":\"S4X1Y9\",\"isCity\":true},\"confidence\":0.0},\"makes\":[\"Ford\"],\"micrositeType\":1,\"models\":[\"Fusion\"],\"pageNumber\":0,\"proximity\":100,\"skip\":0,\"top\":15,\"withPhotos\":true,\"withPrice\":true,\"hasNewAdStatus\":true,\"hasUsedAdStatus\":true,\"hasDamagedAdStatus\":false,\"hasAdTypeDealer\":true,\"hasAdTypePrivate\":true,\"sortBy\":35,\"inMarketType\":\"advancedSearch\",\"microsite\":{\"siteId\":2,\"micrositeType\":1,\"culture\":\"en-CA\",\"landingUrlSegment\":\"cars\",\"searchResultsUrlSegment\":\"cars\",\"displayText\":\"Cars, Trucks & SUVs\",\"shortName\":\"Car\",\"shortNameGender\":\"\",\"requiresType\":false,\"requiresSubType\":false,\"category2Ids\":[7,9,10,11],\"disableSeoModel\":false,\"defaultWithPrice\":true,\"defaultWithPhotos\":true,\"isNpv\":false,\"displayNeuvesInNpvPopularLinks\":false,\"trackingName\":\"Car\"},\"isDefaultAddress\":false,\"cashDown\":0.0,\"tradeIn\":0.0,\"searchCriteriaType\":0,\"showQaAd\":false}",
-    "SrpUrl": "/cars/ford/fusion/sk/regina/?rcp=15&rcs=0&srt=35&prx=100&prv=Saskatchewan&loc=S4X1Y9&hprc=True&wcp=True&sts=New-Used",
+    "SearchCriteriaJson": "{\"address\":\"P0A 1Z0\",\"adStatus\":[1,2],\"adType\":[1,2],\"cpoStatus\":0,\"datalayerCpoStatus\":false,\"isCommercial\":false,\"location\":{\"city\":{\"placeName\":\"Sundridge, ON\",\"coordinates\":{\"latitude\":45.766666412353516,\"longitude\":-79.4000015258789},\"name\":\"Sundridge\",\"province\":{\"abbreviation\":\"ON\",\"name\":\"Ontario\"},\"postalCode\":\"P0A 1Z0\",\"isCity\":true},\"confidence\":0.0},\"makes\":[\"Ford\"],\"micrositeType\":1,\"models\":[\"Fusion\"],\"pageNumber\":0,\"proximity\":100,\"skip\":0,\"top\":15,\"withPhotos\":true,\"withPrice\":true,\"hasNewAdStatus\":true,\"hasUsedAdStatus\":true,\"hasDamagedAdStatus\":false,\"hasAdTypeDealer\":true,\"hasAdTypePrivate\":true,\"sortBy\":35,\"inMarketType\":\"advancedSearch\",\"microsite\":{\"siteId\":2,\"micrositeType\":1,\"culture\":\"en-CA\",\"landingUrlSegment\":\"cars\",\"searchResultsUrlSegment\":\"cars\",\"displayText\":\"Cars, Trucks & SUVs\",\"shortName\":\"Car\",\"shortNameGender\":\"\",\"requiresType\":false,\"requiresSubType\":false,\"category2Ids\":[7,9,10,11],\"disableSeoModel\":false,\"defaultWithPrice\":true,\"defaultWithPhotos\":true,\"isNpv\":false,\"displayNeuvesInNpvPopularLinks\":false,\"trackingName\":\"Car\"},\"isDefaultAddress\":false,\"cashDown\":0.0,\"tradeIn\":0.0,\"searchCriteriaType\":0,\"showQaAd\":false}",
+    "SrpUrl": "/cars/ford/fusion/on/sundridge/?rcp=15&rcs=0&srt=35&prx=100&prv=Ontario&loc=P0A%201Z0&hprc=True&wcp=True&sts=New-Used",
     "OemCertification": 0,
+    "StockNumber": "25102A",
     "HasRvCare": false,
     "IsPriceAlertAvailable": true,
-    "SearchLocation": "Regina, SK",
+    "SearchLocation": "Sundridge, ON",
     "AdCompositeKey": {
-        "SourceId": 19,
-        "ForeignId": "12993249"
+        "SourceId": 5,
+        "ForeignId": "64604623"
     },
     "AdLocation": {
         "Aliases": {
             "Alias": {
-                "Type": "Region"
+                "Type": "Region",
+                "Value": "Ontario"
             }
         },
         "Type": "Physical",
-        "Name": "",
-        "Address": "",
-        "City": "REGINA",
-        "Province": "SK",
-        "PostalCode": "S4X1Y9",
-        "Latitude": 50.489639,
-        "Longitude": -104.666397
+        "Name": "Bray Motors Ltd",
+        "Address": "10508 Hwy 124",
+        "City": "Sundridge",
+        "Province": "ON",
+        "PostalCode": "P0A 1Z0",
+        "Latitude": 45.7612,
+        "Longitude": -79.406342
     },
     "CurrentMicrosite": {
         "SiteId": 2,
@@ -1014,9 +1199,9 @@
     "IsAmvic": false,
     "DeepLinkSavedSearch": {
         "SavedSearch": {
-            "Id": "a498b395-1fb8-49e7-9d60-dbe6df55c128",
-            "Query": "/cars/ford/fusion/2017/sk/regina/?rcp=0&rcs=0&srt=0&prx=100&prv=Saskatchewan&hprc=False&wcp=False&sts=New-Used",
-            "Title": " new & used Ford Fusion vehicles 2017 for sale within 100km of REGINA, SK",
+            "Id": "beb29128-f2e4-4e67-9636-120be0a56ada",
+            "Query": "/cars/ford/fusion/2017/on/sundridge/?rcp=0&rcs=0&srt=0&prx=100&prv=Ontario&hprc=False&wcp=False&sts=New-Used",
+            "Title": " new & used Ford Fusion vehicles 2017 for sale within 100km of Sundridge, ON",
             "IsMre": false,
             "Type": 0,
             "SourceId": 0
@@ -1025,11 +1210,11 @@
             "MicrositeType": 1,
             "MicrositeCulture": "en-CA",
             "Location": {
-                "Latitude": 50.489639,
-                "Longitude": -104.666397
+                "Latitude": 45.7612,
+                "Longitude": -79.406342
             },
-            "ProvinceAbbreviation": "SK",
-            "City": "REGINA",
+            "ProvinceAbbreviation": "ON",
+            "City": "Sundridge",
             "Proximity": 100,
             "AdStatus": [
                 1,
@@ -1062,8 +1247,24 @@
     "SecurePaymentApiUrl": "https://sellmycar.autotrader.ca/SecurePayment/GetBuyNowLink",
     "SecurePaymentLandingUrl": "https://sellmycar.autotrader.ca/securepayment/index",
     "PrivateWarrantyLink": "",
-    "SellFunnelURLHost": "sellmycar.autotrader.ca",
-    "PrivateFinanceLink": "?year=2017&make=Ford&model=Fusion&trim=4dr+Sdn+Titanium+AWD&mileage=190000&vin=XXXXXXXXXXXXXXXXX&price=13600&vehicleImg=https%3a%2f%2fmkt-vehicleimages-prd.autotradercdn.ca%2fprivate%2f2024%2f11%2f6%2f29887df8-c98e-414a-96d0-8c35d1fb4996.jpg&adid=19-12993249&category=Cars%2c+Trucks+%26+SUVs&language=en",
+    "DealerId": "20211013171415578",
+    "SellFunnelURLHost": "",
+    "RemoteServices": {
+        "HasUpsellDealerDelivery": false,
+        "HasUpsellHomeTestDrive": false,
+        "HasUpsellDigitalRetail": true,
+        "DigitalRetailUrl": "https://braymotorsltd.shop.autotrader.ca/details/4914883?platform=Desktop&activeUpsells=xpl&dealerId=20211013171415578&adid=5_64604623",
+        "DigitalRetailVehicleId": "4914883",
+        "ShowDigitalRetailModal": false,
+        "HasLiveChat": true,
+        "HasVirtualAppraisal": true,
+        "HasOnlineReservation": false,
+        "HasBookAnAppointment": true,
+        "HasTryBeforeYouBuy": false,
+        "HasMoneyBackGuarantee": false,
+        "IsOnlineSellerPlus": false,
+        "HasGetInsuranceQuote": true
+    },
     "EnableVdpDrLiveChat": true,
     "SpinDataModel": {
         "IsEnabled": false,
@@ -1078,7 +1279,7 @@
         },
         "IsMobile": false
     },
-    "AlternativeLanguageUri": "https://www.autohebdo.net/a/ford/fusion/regina/saskatchewan/19_12993249_/?showcpo=ShowCpo&ncse=no&orup=91_1_91&sprx=0",
+    "AlternativeLanguageUri": "https://www.autohebdo.net/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=7&urm=8&sprx=0",
     "AlternativeCultureName": "fr-CA",
     "GoogleDfpViewModel": {
         "BannerSet": {
@@ -1146,6 +1347,19 @@
                     ],
                     "LazyLoading": false,
                     "IsOopBanner": false
+                },
+                {
+                    "HtmlDivId": "VDP_DEAC_Events_OTL",
+                    "AdUnitPath": "/8544/autoTRADER/Cars/Details",
+                    "Sizes": "[480,360]",
+                    "Targets": [
+                        {
+                            "Key": "position",
+                            "Value": "'right'"
+                        }
+                    ],
+                    "LazyLoading": true,
+                    "IsOopBanner": false
                 }
             ],
             "PageLevelTargets": [
@@ -1171,15 +1385,19 @@
                 },
                 {
                     "Key": "price",
-                    "Value": "'13600'"
+                    "Value": "'12912'"
                 },
                 {
                     "Key": "fuel_type",
-                    "Value": "'gasoline'"
+                    "Value": "'gas'"
                 },
                 {
                     "Key": "listing",
-                    "Value": "'private'"
+                    "Value": "'dealer'"
+                },
+                {
+                    "Key": "dealer",
+                    "Value": "'20211013171415578'"
                 },
                 {
                     "Key": "condition",
@@ -1200,6 +1418,10 @@
                 {
                     "Key": "vdptype",
                     "Value": "'regular_vdp'"
+                },
+                {
+                    "Key": "buying_options",
+                    "Value": "['live_chat','virtual_appraisal','buy_online']"
                 }
             ],
             "DisableLazyLoad": false,
@@ -2531,8 +2753,8 @@
         ]
     },
     "GoogleTagManagerKey": "GTM-K7JHZJ",
-    "GtmDataLayerScript": "{\"vehicle\":{\"adID\":\"19-12993249\",\"adType\":\"private\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"\",\"financingPrice\":\"no\",\"listingPosition\":\"organic\",\"make\":\"Ford\",\"model\":\"Fusion\",\"price\":\"13600\",\"priceAnalysis\":\"not used\",\"priceHistory\":\"not used\",\"province\":\"SK\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"testingDimension\":\"pageload\",\"transparency\":\"no\",\"upgradeHL\":\"no\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"no\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2017\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"no\",\"chatProvider\":\"none\",\"latlong\":\"\",\"carfax\":\"buy\",\"showInsuranceWidgetOnTop\":\"no\",\"totalPictures\":\"8\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"organic\",\"digitalRetail\":\"no\",\"serviceBadges\":\"no\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"no\",\"mediaTypes\":\"photo\"},\"pageType\":\"ad-details\",\"loginStatus\":\"not logged in\",\"userID\":\"\",\"detailViewType\":\"dv\",\"showRemarketing\":true,\"build\":\"20241125.2\",\"clientType\":\"Unknown\",\"clientId\":\"7\",\"clientIp\":\"174.113.4.11\",\"requestId\":\"147076821451540047\",\"googleRemarketingParams\":{\"pagetype\":\"Listings\",\"prodid\":\"19_12993249\",\"source\":\"Private\",\"make\":\"Ford\",\"model\":\"Fusion\",\"minyear\":2017,\"maxyear\":2017,\"minprice\":\"13600\",\"maxprice\":\"13600\",\"condition\":\"Used\",\"city\":\"Regina\"},\"optimizely\":{\"expId\":\"none\",\"varId\":\"none\"}}",
-    "GtmRemarketingParamsScript": "{\r\n  \"pagetype\": \"Listings\",\r\n  \"prodid\": \"19_12993249\",\r\n  \"source\": \"Private\",\r\n  \"make\": \"Ford\",\r\n  \"model\": \"Fusion\",\r\n  \"minyear\": 2017,\r\n  \"maxyear\": 2017,\r\n  \"minprice\": \"13600\",\r\n  \"maxprice\": \"13600\",\r\n  \"condition\": \"Used\",\r\n  \"city\": \"Regina\"\r\n}",
+    "GtmDataLayerScript": "{\"vehicle\":{\"adID\":\"5-64604623\",\"adType\":\"dealer\",\"car360Enabled\":\"no\",\"category\":\"Cars, Trucks & SUVs\",\"condition\":\"used\",\"dealerID\":\"5-20211013171415578\",\"financingPrice\":\"no\",\"listingPosition\":\"xpl\",\"make\":\"Ford\",\"model\":\"Fusion\",\"price\":\"12912\",\"priceAnalysis\":\"above average\",\"priceHistory\":\"not used\",\"province\":\"ON\",\"rawLocation\":\"\",\"strikethrough\":\"no\",\"subprimeLeadForm\":\"no\",\"testingDimension\":\"pageload\",\"transparency\":\"yes\",\"upgradeHL\":\"yes\",\"upgradeMobileBoost\":\"no\",\"upgradePL\":\"no\",\"upgradePPL\":\"no\",\"upgradeTA\":\"no\",\"upgradeTopSpot\":\"no\",\"upgradeXPL\":\"yes\",\"upgradeInline\":\"no\",\"upgradeSwipePro\":\"no\",\"vehicleSpecialist\":\"no\",\"year\":\"2017\",\"olympus\":\"no\",\"ncse\":\"no\",\"chatEnabled\":\"yes\",\"chatProvider\":\"liveperson\",\"latlong\":\"\",\"carfax\":\"buy\",\"showInsuranceWidgetOnTop\":\"yes\",\"totalPictures\":\"32\",\"mainPictureCM\":\"no\",\"cmPictures\":\"0\",\"activeUpsells\":\"xpl\",\"digitalRetail\":\"yes\",\"serviceBadges\":\"book an appointment|buy online|live chat|virtual appraisal|insurance\",\"upgradeBoost\":\"no\",\"prequalificationLeadForm\":\"yes\",\"mediaTypes\":\"photo\"},\"pageType\":\"ad-details\",\"loginStatus\":\"not logged in\",\"userID\":\"\",\"detailViewType\":\"dv\",\"showRemarketing\":true,\"build\":\"20241125.2\",\"clientType\":\"Unknown\",\"clientId\":\"7\",\"clientIp\":\"174.113.4.11\",\"requestId\":\"245897679560771152\",\"googleRemarketingParams\":{\"pagetype\":\"Listings\",\"prodid\":\"5_64604623\",\"source\":\"Dealer\",\"make\":\"Ford\",\"model\":\"Fusion\",\"minyear\":2017,\"maxyear\":2017,\"minprice\":\"12912\",\"maxprice\":\"12912\",\"condition\":\"Used\",\"city\":\"Sundridge\"},\"optimizely\":{\"expId\":\"none\",\"varId\":\"none\"}}",
+    "GtmRemarketingParamsScript": "{\r\n  \"pagetype\": \"Listings\",\r\n  \"prodid\": \"5_64604623\",\r\n  \"source\": \"Dealer\",\r\n  \"make\": \"Ford\",\r\n  \"model\": \"Fusion\",\r\n  \"minyear\": 2017,\r\n  \"maxyear\": 2017,\r\n  \"minprice\": \"12912\",\r\n  \"maxprice\": \"12912\",\r\n  \"condition\": \"Used\",\r\n  \"city\": \"Sundridge\"\r\n}",
     "IsMobile": false,
     "JwplayerViewModel": {
         "Jwplayer": {
@@ -2566,28 +2788,28 @@
         "TrackingName": "Car"
     },
     "SeoViewModel": {
-        "PageTitle": "2017 Ford Fusion 4dr Sdn Titanium AWD - Regina",
-        "H1": "2017 Ford Fusion 4dr Sdn Titanium AWD - Regina",
+        "PageTitle": "2017 Ford Fusion SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED! - Sundridge",
+        "H1": "2017 Ford Fusion SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED! - Sundridge",
         "MetaTags": [
             {
                 "TypeKey": "name",
                 "TypeValue": "description",
-                "Content": "Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different."
+                "Content": "SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! "
             },
             {
                 "TypeKey": "property",
                 "TypeValue": "og:title",
-                "Content": "2017 Ford Fusion 4dr Sdn Titanium AWD - Regina"
+                "Content": "2017 Ford Fusion SESE LUXURY, ROOF, HTD LEATHER, CERTIFIED! - Sundridge"
             },
             {
                 "TypeKey": "property",
                 "TypeValue": "og:description",
-                "Content": "Reliable, comfortable, loaded, full size vehicle. Driven for 5 years and want something different."
+                "Content": "SE LUXURY, FWD, 2.5L 4-CYLINDER, 6-SPEED AUTOMATIC, HEATED LEATHER BUCKETS, SUNROOF, MICROSOFT SYNC, POWER GROUP, 18 INCH ALLOYS, CLIMATE, REMOTE START, 2 SETS OF TIRES, CERTIFIED AS-TRADED! COME TAKE A LOOK AT THIS JUST TRADED 2017 FORD FUSION SE LUXURY FWD WITH 194K HIGHWAY KMS AND EQUIPPED WITH A LEATHER INTERIOR AND BIGGER ALLOYS! ON THE EXTERIOR, THIS FUSION IS FINISHED IN MAGNETIC AND IS EQUIPPED WITH 18 INCH ALLOY WHEELS, CHROME GRILLE AND A STRIKING DESIGN! UNDER THE HOOD, THIS SE IS EQUIPPED WITH THE EFFICIENT 2.5L 4-CYLINDER WITH 6-SPEED AUTOMATIC TRANSMISSION FOR AMAZING ECONOMY! ON THE INTERIOR, THIS FUSION SE IS EQUIPPED WITH HEATED LEATHER SEATS AS WELL AS POWER WINDOWS, LOCKS AND MIRRORS! THIS FUSION IS ALSO EQUIPPED WITH CLIMATE CONTROL AS WELL AS MICROSOFT SYNC FOR HANDS FREE CALLING, WIRELESS MEDIA STREAMING AND CD/MP3 CAPABILITIES! ALSO ENJOY THE POWER SUNROOF FOR A GREAT OPEN AIR FEEL WHILE DRIVING! HURRY BEFORE THIS AFFORDABLE FUSION IS SOLD! "
             },
             {
                 "TypeKey": "property",
                 "TypeValue": "og:image",
-                "Content": "https://mkt-vehicleimages-prd.autotradercdn.ca/private/2024/11/6/29887df8-c98e-414a-96d0-8c35d1fb4996.jpg-1024x786"
+                "Content": "https://mkt-vehicleimages-prd.autotradercdn.ca/photos/import/202412/1818/0744/7290a7f1-e766-4e61-bce0-f5b7962d1ea5_overlay.jpg-1024x786"
             },
             {
                 "TypeKey": "property",
@@ -2597,7 +2819,7 @@
             {
                 "TypeKey": "property",
                 "TypeValue": "og:url",
-                "Content": "https://www.autotrader.ca/a/ford/fusion/regina/saskatchewan/19_12993249_/"
+                "Content": "https://www.autotrader.ca/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/"
             },
             {
                 "TypeKey": "property",
@@ -2610,10 +2832,10 @@
                 "Content": "NOINDEX,NOFOLLOW"
             }
         ],
-        "CanonicalUrl": "https://www.autotrader.ca/a/ford/fusion/regina/saskatchewan/19_12993249_/"
+        "CanonicalUrl": "https://www.autotrader.ca/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/"
     },
     "TraderRequest": {
-        "RequestId": "6cefa24d-4940-4f25-a021-ea3e1e79994d",
+        "RequestId": "0c0efeb0-ccb5-4978-94da-581f4780119f",
         "Incapsula": {
             "CountryCode": "CA",
             "IsBrowserClientType": false,
@@ -2657,7 +2879,7 @@
             "CanBeCanceled": false,
             "WaitHandle": {
                 "Handle": {
-                    "value": 12684
+                    "value": 12224
                 },
                 "SafeWaitHandle": {
                     "IsInvalid": false,
@@ -2665,9 +2887,9 @@
                 }
             }
         },
-        "Uri": "https://www.autotrader.ca/a/ford/fusion/regina/saskatchewan/19_12993249_/?showcpo=ShowCpo&ncse=no&orup=91_1_91&sprx=0",
-        "UrlReferrer": "https://www.yahoo.com/",
-        "CanonicalUrl": "https://www.autotrader.ca/a/ford/fusion/regina/saskatchewan/19_12993249_/",
+        "Uri": "https://www.autotrader.ca/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=7&urm=8&sprx=0",
+        "UrlReferrer": "https://www.bing.com/",
+        "CanonicalUrl": "https://www.autotrader.ca/a/ford/fusion/sundridge/ontario/5_64604623_20211013171415578/",
         "RequestHasBeenForwardedThroughAProxy": true,
         "IpAddress": "174.113.4.11",
         "CrawlerBotType": 0,
@@ -2685,14 +2907,15 @@
             "Tablet": "false",
             "Page": "VDP",
             "VehicleType": "PV",
-            "SellerType": "Private",
+            "SellerType": "Dealer",
             "Language": "EN",
             "SearchCriteriaVehicleCondition": null,
-            "$opt_user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
+            "$opt_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
             "VehicleStatus": "Used"
         },
-        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
+        "UserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
         "IsBot": false,
+        "UpsellResultsSource": "xpl",
         "TestDriveRewardEnabledOverride": false,
         "HideHeaderAndFooterBar": false,
         "IsTBYBFlow": false,
