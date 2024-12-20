@@ -3,6 +3,8 @@ import json
 import os
 import time
 
+from bs4 import BeautifulSoup
+
 
 def parse_html_file(file_path,exclusions = []):
     """
