@@ -410,6 +410,7 @@ def main():
     """
     print("Welcome to the Payload and AutoTrader Manager!")
     while True:
+        cls()
         print("\nOptions:")
         print("1. Create a new payload")
         print("2. Save a payload to a file")
@@ -435,8 +436,8 @@ def main():
             if 'payload' in locals() and payload:
                 results = fetch_autotrader_data(payload)
                 results = remove_duplicates(results)
-                filenamestr = f"{payload["Make"]}_{payload["Model"]}_{format_time_ymd_hms()}"
-                save_to_csv(results, )
+                filenamestr = f"{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}"
+                save_to_csv(results, filename=filenamestr)
                 print(f"Total Results Fetched: {len(results)}")
             else:
                 print("No payload found. Please create or load one first.")
