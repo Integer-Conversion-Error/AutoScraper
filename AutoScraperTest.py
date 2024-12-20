@@ -1,9 +1,10 @@
 import json
 import requests
-from SaveToFile import save_html_to_file
+from SaveToFile import parse_html_file, save_html_to_file
 from bs4 import BeautifulSoup
+from GetUserSelection import get_user_responses
 
-def fetch_autotrader_data(params, exclusions = []):
+def fetch_autotrader_data(params):
     """
     Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
 
@@ -26,11 +27,13 @@ def fetch_autotrader_data(params, exclusions = []):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
+        "Exclusions" : []
     }
+    
 
     # Update default values with provided parameters
     params = {**default_params, **params}
-
+    exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
 
     headers = {
@@ -105,73 +108,11 @@ def fetch_autotrader_data(params, exclusions = []):
 
 
 
-def parse_html_file(file_path,exclusions = []):
-    """
-    Parses the HTML file and extracts links and their corresponding listing details.
 
-    :param file_path: str, path to the HTML file
-    :return: list of dictionaries, each containing a link and associated listing details
-    """
-    with open(file_path, 'r', encoding='utf-8') as file:
-        soup = BeautifulSoup(file, 'html.parser')
-
-    listings = []
-
-    # Find all listing containers
-    for result_item in soup.find_all('div', class_='result-item'):
-        listing = {}
-        excluded = False
-        # Extract link
-        link_tag = result_item.find('a', class_='inner-link')
-        if link_tag and link_tag.get('href'):
-            listing['link'] = link_tag['href']
-
-        # Extract title
-        title_tag = result_item.find('span', class_='title-with-trim')
-        if title_tag:
-            if any(exclusion in title_tag.get_text(strip=True) for exclusion in exclusions):
-                excluded = True
-            listing['title'] = title_tag.get_text(strip=True)
-
-        # Extract price
-        price_tag = result_item.find('span', class_='price-amount')
-        if price_tag:
-            listing['price'] = price_tag.get_text(strip=True)
-
-        # Extract mileage
-        mileage_tag = result_item.find('span', class_='odometer-proximity')
-        if mileage_tag:
-            listing['mileage'] = mileage_tag.get_text(strip=True)
-
-        # Extract location
-        location_tag = result_item.find('span', class_='proximity-text', attrs={'class': None})
-        if location_tag:
-            listing['location'] = location_tag.get_text(strip=True)
-
-        # Add the listing if it has a link
-        if 'link' in listing and not excluded:
-            listings.append(listing)
-    
-    return listings
 
 def sendTestPayload():
-    payload = {
-        "Address": "Kanata, ON",
-        "Make": "Ford",
-        "Model": "Fusion",
-        "PriceMin": "12000",
-        "PriceMax": "17000",
-        "Skip": 0,
-        "Top": 15,
-        "IsNew": "True",
-        "IsUsed": "True",
-        "WithPhotos": "True",
-        "YearMax": "2019",
-        "YearMin": "2017",
-        "micrositeType": 1,  # This field is fixed
-    }
-    excl = ["SE","Titanium", "2.0"]
-    links,all_ads = fetch_autotrader_data(params=payload,exclusions=excl)
+    payload = get_user_responses()
+    links,all_ads = fetch_autotrader_data(params=payload)
 
     # for link in links:
     #     print(link)
