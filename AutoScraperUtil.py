@@ -57,6 +57,58 @@ def parse_html_file(file_path,exclusions = []):
     
     return listings
 
+
+def parse_html_content(html_content, exclusions=[]):
+    """
+    Parses the HTML content and extracts links and their corresponding listing details.
+
+    :param html_content: str, the HTML content as a string
+    :param exclusions: list, strings to exclude from titles
+    :return: list of dictionaries, each containing a link and associated listing details
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    listings = []
+
+    # Find all listing containers
+    for result_item in soup.find_all('div', class_='result-item'):
+        listing = {}
+        excluded = False
+        
+        # Extract link
+        link_tag = result_item.find('a', class_='inner-link')
+        if link_tag and link_tag.get('href'):
+            listing['link'] = link_tag['href']
+
+        # Extract title
+        title_tag = result_item.find('span', class_='title-with-trim')
+        if title_tag:
+            title_text = title_tag.get_text(strip=True)
+            if any(exclusion in title_text for exclusion in exclusions):
+                excluded = True
+            listing['title'] = title_text
+
+        # Extract price
+        price_tag = result_item.find('span', class_='price-amount')
+        if price_tag:
+            listing['price'] = price_tag.get_text(strip=True)
+
+        # Extract mileage
+        mileage_tag = result_item.find('span', class_='odometer-proximity')
+        if mileage_tag:
+            listing['mileage'] = mileage_tag.get_text(strip=True)
+
+        # Extract location
+        location_tag = result_item.find('span', class_='proximity-text', attrs={'class': None})
+        if location_tag:
+            listing['location'] = location_tag.get_text(strip=True)
+
+        # Add the listing if it has a link and is not excluded
+        if 'link' in listing and not excluded:
+            listings.append(listing)
+    
+    return listings
+
 def parse_html_to_json(file_path = "output.html"):
     """
     Parses the JSON-like content embedded within an HTML file.
@@ -81,6 +133,34 @@ def parse_html_to_json(file_path = "output.html"):
         # Convert the extracted content into JSON
         json_content = json.loads(html_content[json_start:json_end + 1])
         #print("Successfully parsed JSON content from the HTML.")
+        return json_content
+
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON: {e}")
+    except Exception as e:
+        print(f"An error occurred while parsing HTML to JSON: {e}")
+
+
+def parse_html_content_to_json(html_content):
+    """
+    Parses the JSON-like content embedded within an HTML string.
+
+    Args:
+        html_content (str): The HTML content as a string.
+
+    Returns:
+        dict: Extracted JSON content or an error message.
+    """
+    try:
+        # Extract JSON-like content between braces assuming it's embedded
+        json_start = html_content.find("{")
+        json_end = html_content.rfind("}")
+
+        if json_start == -1 or json_end == -1:
+            raise ValueError("No JSON-like content found in the HTML content.")
+
+        # Convert the extracted content into JSON
+        json_content = json.loads(html_content[json_start:json_end + 1])
         return json_content
 
     except json.JSONDecodeError as e:

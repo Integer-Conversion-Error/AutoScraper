@@ -75,6 +75,7 @@ def fetch_autotrader_data(params):
             if not search_results_json:
                 print("No more data available.")
                 break
+            
             save_html_to_file(ad_results_json,"html_test_output.html")
             parsed_html_page = parse_html_file("html_test_output.html",exclusions)
             parsed_html_ad_info.extend(parsed_html_page)

@@ -9,3 +9,6 @@ __pycache__/AutotraderXHRTest.cpython-310.pyc
 *.pyc
 *.html
 *.json
+output.html
+*.html
+html_test_output.html

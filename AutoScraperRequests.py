@@ -4,7 +4,7 @@ import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
+from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
 
 
 def fetch_autotrader_data(params):
@@ -78,9 +78,11 @@ def fetch_autotrader_data(params):
             if not search_results_json:
                 print("No more data available.")
                 break
-            save_html_to_file(ad_results_json,"html_test_output.html")
-            parsed_html_page = parse_html_file("html_test_output.html",exclusions)
+            #save_html_to_file(ad_results_json,"html_test_output.html")
+            parsed_html_page = parse_html_content(ad_results_json,exclusions)
             parsed_html_ad_info.extend(parsed_html_page)
+
+            ##search results still necessary for max page (?)
             search_results = json.loads(search_results_json)
             all_results.extend(search_results.get("compositeIdUrls", []))
 
@@ -164,7 +166,7 @@ def extract_ng_vdp_model(url, proxies=None):
         response.raise_for_status()
         while "Request unsuccessful." in response.text:
             #print("Original Block")
-            save_html_to_file(response.text)
+            #save_html_to_file(response.text)
             #print(response.text)
             print("Rate limited: Incapsula says Too Many Requests. Waiting for 10 seconds")
             for x in reversed(range(waitlength)):
@@ -177,16 +179,16 @@ def extract_ng_vdp_model(url, proxies=None):
                 raw_data = line.split("=", 1)[1].strip()
                 normalreturn = True
                 break
-            elif "Request unsuccessful. Incapsula incident ID:" in line:
-                save_html_to_file(response.text)
+            elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
+                #save_html_to_file(response.text)
                 print(response.text)
                 raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")
                 
         else:
-            save_html_to_file(response.text)
-            respprejson = parse_html_to_json() ##ANOTHER WAY IS THIS WAY
-            save_json_to_file(respprejson)
-            respjson = read_json_file()
+            #save_html_to_file(response.text)
+             ##ANOTHER WAY IS THIS WAY
+            #save_json_to_file(respprejson)
+            respjson = parse_html_content_to_json(response.text)#read_json_file()
             #print(type(respjson))
             # for item in respjson:
             #     print(item)
