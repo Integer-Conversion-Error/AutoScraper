@@ -386,7 +386,7 @@ def filter_csv(input_file, output_file, filter_strings):
         print(f"An error occurred: {e}")
 
 
-def keep_if_contains(input_file, output_file, required_string):
+def keep_if_contains(input_file, output_file, required_string = None):
     """
     Removes rows from a CSV file if none of the columns contain the specified string.
 
@@ -408,7 +408,7 @@ def keep_if_contains(input_file, output_file, required_string):
         # Filter rows
         filtered_rows = []
         for row in rows:
-            if any(required_string in cell for cell in row):
+            if any(required_string in cell for cell in row) or required_string == None:
                 filtered_rows.append(row)
 
         # Write the updated rows to the output CSV file

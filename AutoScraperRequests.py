@@ -216,9 +216,9 @@ def extract_ng_vdp_model(url, proxies=None):
 
 
 def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.ca/a/ford/fusion/orangeville/ontario/5_64604589_on20070704162913228/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=3&urm=8&sprx=-1"):
-    """
+    """ 
     Extracts car info from the JSON data on the AutoTrader page.
-    """
+    """##WHERE IS PRICE DATA??????????
     result,goodreturn = extract_ng_vdp_model(url)
     carinfodict = {"Make": make, "Model": model}
 
@@ -239,7 +239,7 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
         #print(allofspecs, type(result))
         for spec in allofspecs:
             tempdict = dict(spec)
-            carinfodict.update({tempdict["Key"]: tempdict["Value"]})
+            carinfodict.update({tempdict["Key"]: tempdict["Value"]}) 
         return carinfodict
     else:
         print(f"Error fetching data from URL: {url}")
@@ -298,7 +298,7 @@ def save_results_to_csv(data, filename="results.csv"):
                 averagetime += cartime
             averagetime /= float(len(cartimes))
             cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}\tWithout Pause: {opTime-2:.2f}\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-2:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
 
     #print("Processing CSV to fetch car details...")
@@ -333,7 +333,7 @@ def main():
                 pld_name = cleaned_input("Payload Name",f"payload_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.json",str)
                 save_json_to_file(payload,pld_name)
                 input(f"Payload saved to {pld_name}.\n\nPress enter to continue...")
-                cls()
+                
             else:
                 print("No payload found. Please create one first.")
                 
@@ -342,12 +342,13 @@ def main():
             loaded_payload = read_json_file(jsonfilename)
             if loaded_payload:
                 payload = loaded_payload
+                cls()
                 print("Loaded payload:", payload)
                 
         elif choice == "4":
             if 'payload' in locals() and payload:
                 results = fetch_autotrader_data(payload)
-                for result in results: print(result)
+                # for result in results: print(result)
                
                 results = remove_duplicates_exclusions(results,payload["Exclusions"])##ONLY SENDING LINKS
                 filenamestr = f"results_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.csv"
