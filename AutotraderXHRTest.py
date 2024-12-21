@@ -2,7 +2,7 @@ import csv
 import requests
 import json,random
 
-# Existing functions
+#DEPRECATED
 def extract_ng_vdp_model(url, proxies=None):
     """
     Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.

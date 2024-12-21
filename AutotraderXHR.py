@@ -2,6 +2,8 @@ import requests
 import json
 import csv
 
+##DEPRECATED
+
 def fetch_autotrader_data(params):
     """
     Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).

@@ -4,101 +4,8 @@ import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from ProxyGen import getRandomProxy
-from AutoScraperUtil import cleaned_input, format_time, format_time_ymd_hms, parse_html_to_json, read_json_file, remove_duplicates, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
+from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
 
-
-
-# def fetch_autotrader_data(params):
-#     """
-#     Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
-
-#     Args:
-#         params (dict): Dictionary containing search parameters with default values.
-
-#     Returns:
-#         list: Combined list of all results from all pages.
-#     """
-#     # Set default values for parameters
-#     default_params = {
-#         "Make": "",
-#         "Model": "",
-#         "PriceMin": 0,
-#         "PriceMax": 99999,
-#         "YearMin": "1950",
-#         "YearMax": "2025",
-#         "Top": 15,
-#         "Address": "Kanata, ON",
-#         "IsNew": True,
-#         "IsUsed": True,
-#         "WithPhotos": True,
-#     }
-
-#     # Update default values with provided parameters
-#     params = {**default_params, **params}
-
-#     url = "https://www.autotrader.ca/Refinement/Search"
-
-#     headers = {
-#         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-#         "Content-Type": "application/json",
-#         "Accept": "application/json",
-#         "Accept-Language": "en-US,en;q=0.9",
-#     }
-
-#     all_results = []
-#     current_page = 1
-#     max_page = None
-#     skip = 0
-
-#     while True:
-#         payload = {
-#             "Address": params["Address"],
-#             "Make": params["Make"],
-#             "Model": params["Model"],
-#             "PriceMin": params["PriceMin"],
-#             "PriceMax": params["PriceMax"],
-#             "Skip": skip,
-#             "Top": params["Top"],
-#             "IsNew": params["IsNew"],
-#             "IsUsed": params["IsUsed"],
-#             "WithPhotos": params["WithPhotos"],
-#             "YearMax": params["YearMax"],
-#             "YearMin": params["YearMin"],
-#             "micrositeType": 1,
-#         }
-
-#         try:
-#             response = requests.post(url, headers=headers, json=payload)
-#             response.raise_for_status()
-#             json_response = response.json()
-#             search_results_json = json_response.get("SearchResultsDataJson", "")
-#             if not search_results_json:
-#                 print("No more data available.")
-#                 break
-
-#             search_results = json.loads(search_results_json)
-#             all_results.extend(search_results.get("compositeIdUrls", []))
-
-#             current_page = search_results.get("currentPage", 0)
-#             max_page = search_results.get("maxPage", current_page)
-
-#             print(f"Fetched page {current_page} of {max_page}...")
-
-#             if current_page >= max_page:
-#                 print("Reached the last page.")
-#                 break
-
-#             skip += params["Top"]
-
-#         except requests.exceptions.RequestException as e:
-#             print(f"An error occurred: {e}")
-#             break
-#         except json.JSONDecodeError as e:
-#             print(f"Failed to decode SearchResultsDataJson: {e}")
-#             break
-
-#     return all_results
 
 def fetch_autotrader_data(params):
     """
@@ -195,7 +102,8 @@ def fetch_autotrader_data(params):
             print(f"Failed to decode SearchResultsDataJson: {e}")
             break
 
-    return all_results#,parsed_html_ad_info
+    #return all_results#,parsed_html_ad_info ADD THIS INSTEAD OF ALLRESULTS
+    return parsed_html_ad_info
 
 
 def extract_ng_vdp_model(url, proxies=None):
@@ -355,8 +263,9 @@ def save_results_to_csv(data, filename="results.csv"):
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
-        for link in data:
+        for item in data:
             startTime = time.time()
+            link = item["link"]
             car_info = get_info_from_json(url=link)
             
             time.sleep(2)
@@ -423,6 +332,7 @@ def main():
             if 'payload' in locals() and payload:
                 pld_name = cleaned_input("Payload Name",f"payload_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.json",str)
                 save_json_to_file(payload,pld_name)
+                input(f"Payload saved to {pld_name}.\n\nPress enter to continue...")
                 cls()
             else:
                 print("No payload found. Please create one first.")
@@ -437,10 +347,14 @@ def main():
         elif choice == "4":
             if 'payload' in locals() and payload:
                 results = fetch_autotrader_data(payload)
-                results = remove_duplicates(results)
+                for result in results: print(result)
+               
+                results = remove_duplicates_exclusions(results,payload["Exclusions"])##ONLY SENDING LINKS
                 filenamestr = f"results_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.csv"
                 save_results_to_csv(results, filename=filenamestr)
-                print(f"Total Results Fetched: {len(results)}")
+                filter_csv(filenamestr,filenamestr,payload["Exclusions"])
+                keep_if_contains(filenamestr,filenamestr, payload["Inclusion"])
+                print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
                 
             else:
                 print("No payload found. Please create or load one first.")

@@ -1,34 +1,35 @@
 from AutoScraperUtil import cleaned_input,transform_strings
 
-def get_keywords_from_user():
+def get_keywords_from_user(kw_type = "exclude"):
     """
     Allows the user to input keywords and manage them through a menu system.
+    Inputs: kw_type (default: exclude) exclude or include
     Returns a list of keywords.
     """
     keywords = []
 
-    print("Enter keywords one by one. Press -1 to stop entering keywords.")
+    print(f"Enter keywords to {kw_type} one by one. Press -1 to stop entering keywords.")
     while True:
-        keyword = input("Enter a keyword: ").strip()
+        keyword = input(f"Enter a keyword to {kw_type}: ").strip()
         if keyword == '-1':
             break
         if keyword:
             keywords.append(keyword)
 
     while True:
-        print("\nCurrent excluded keywords:", ", ".join(keywords) if keywords else "None")
+        print(f"\nCurrent {kw_type} keywords:", ", ".join(keywords) if keywords else "None")
         print("Menu:")
-        print("1. Add a keyword to excluded")
-        print("2. Remove an exclusion keyword")
+        print(f"1. Add a keyword to {kw_type} ")
+        print(f"2. Remove an {kw_type}  keyword")
         print("3. Finish")
 
         choice = input("Choose an option (1, 2, or 3): ").strip()
         if choice == '1':
-            new_keyword = input("Enter a new keyword to exclude: ").strip()
+            new_keyword = input(f"Enter a new keyword to {kw_type}: ").strip()
             if new_keyword:
                 keywords.append(new_keyword)
         elif choice == '2':
-            keyword_to_remove = input("Enter an exclusion keyword to remove: ").strip()
+            keyword_to_remove = input(f"Enter an {kw_type} keyword to remove: ").strip()
             if keyword_to_remove in keywords:
                 keywords.remove(keyword_to_remove)
             else:
@@ -62,6 +63,7 @@ def get_user_responses():
         "YearMax": cleaned_input("Maximum Year", None, int),
         "YearMin": cleaned_input("Minimum Year", None, int),
         "Exclusions" : [],
+        "Inclusion" : "",
         "micrositeType": 1,  # This field is fixed
     }
 
@@ -79,6 +81,7 @@ def get_user_responses():
             payload["YearMax"] = cleaned_input("Maximum Year", None, int)
 
     payload["Exclusions"] = get_keywords_from_user()
+    payload["Inclusion"] = cleaned_input("String To Be Always Included", None, str)
 
     return payload
 

@@ -249,7 +249,7 @@ def format_time_ymd_hms(seconds = time.time()):
 
 
 
-def remove_duplicates(arr):
+def remove_duplicates(arr, excl = []):
     """
     Removes duplicates from an array while maintaining the order of elements.
 
@@ -267,6 +267,49 @@ def remove_duplicates(arr):
             seen.add(item)
     return result
 
+
+def remove_duplicates_exclusions(arr, excl=[]):
+    """
+    Removes duplicates from an array of dictionaries while maintaining the order of elements.
+    Excludes entries with 'link' values in the exclusions list.
+    
+    Args:
+        arr (list): The input array of dictionaries.
+        excl (list): The exclusions array of 'link' values.
+    
+    Returns:
+        list: A new array with duplicates removed and exclusions applied.
+    """
+    seen = set()
+    result = []
+    for item in arr:
+        full_link = "https://www.autotrader.ca" + item["link"]
+        if full_link not in seen and full_link not in excl:
+            # Add the full_link to the item dictionary before appending
+            item_with_full_link = item.copy()
+            item_with_full_link["link"] = full_link
+            result.append(item_with_full_link)
+            seen.add(full_link)
+
+    result = filter_dicts(result,excl)
+    return result
+
+def filter_dicts(data, exclusion_strings):
+    """
+    Removes dictionaries from a list if any of their values contain any of the exclusion strings.
+
+    Parameters:
+        data (list): List of dictionaries to filter.
+        exclusion_strings (list): List of strings to check against dictionary values.
+
+    Returns:
+        list: Filtered list of dictionaries.
+    """
+    filtered_data = []
+    for record in data:
+        if not any(exclusion_string in str(value) for value in record.values() for exclusion_string in exclusion_strings):
+            filtered_data.append(record)
+    return filtered_data
 
 def read_json_file(file_path = "output.json"):
     """
@@ -302,3 +345,81 @@ def format_time(seconds):
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
     return f"{hours}h {minutes}m {seconds:.2f}s"
+
+
+def filter_csv(input_file, output_file, filter_strings):
+    """
+    Removes rows from a CSV file if any column contains any of the strings in the filter_strings list.
+
+    Parameters:
+        input_file (str): Path to the input CSV file.
+        output_file (str): Path to the output CSV file with filtered rows.
+        filter_strings (list): List of strings to filter rows by.
+
+    Returns:
+        None
+    """
+    try:
+        # Read the input CSV file
+        with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
+            reader = csv.reader(infile)
+            header = next(reader)  # Get the header row
+            rows = list(reader)  # Get the remaining rows
+
+        # Filter rows
+        filtered_rows = []
+        for row in rows:
+            if not any(filter_string in cell for cell in row for filter_string in filter_strings):
+                filtered_rows.append(row)
+
+        # Write the updated rows to the output CSV file
+        with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(header)  # Write the header row
+            writer.writerows(filtered_rows)  # Write the filtered rows
+
+        print(f"Filtered CSV saved to {output_file}")
+
+    except FileNotFoundError:
+        print(f"Error: The file {input_file} does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def keep_if_contains(input_file, output_file, required_string):
+    """
+    Removes rows from a CSV file if none of the columns contain the specified string.
+
+    Parameters:
+        input_file (str): Path to the input CSV file.
+        output_file (str): Path to the output CSV file with filtered rows.
+        required_string (str): String that must be present in at least one column to keep the row.
+
+    Returns:
+        None
+    """
+    try:
+        # Read the input CSV file
+        with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
+            reader = csv.reader(infile)
+            header = next(reader)  # Get the header row
+            rows = list(reader)  # Get the remaining rows
+
+        # Filter rows
+        filtered_rows = []
+        for row in rows:
+            if any(required_string in cell for cell in row):
+                filtered_rows.append(row)
+
+        # Write the updated rows to the output CSV file
+        with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(header)  # Write the header row
+            writer.writerows(filtered_rows)  # Write the filtered rows
+
+        print(f"Filtered CSV saved to {output_file}")
+
+    except FileNotFoundError:
+        print(f"Error: The file {input_file} does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
