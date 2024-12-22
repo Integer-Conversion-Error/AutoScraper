@@ -174,6 +174,8 @@ def extract_ng_vdp_model(url, proxies=None):
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=proxies)
 
+
+        
         for line in response.text.splitlines():
             if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
                 raw_data = line.split("=", 1)[1].strip()
@@ -269,7 +271,6 @@ def save_results_to_csv(data, filename="results.csv"):
             startTime = time.time()
             link = item["link"]
             car_info = get_info_from_json(url=link)
-            
             time.sleep(2)
             #print(car_info)
             if car_info:
