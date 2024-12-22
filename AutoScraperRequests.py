@@ -4,7 +4,7 @@ import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
+from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file, showcarsmain
 
 
 def fetch_autotrader_data(params):
@@ -359,7 +359,7 @@ def main():
                 filter_csv(filenamestr,filenamestr,payload["Exclusions"])
                 keep_if_contains(filenamestr,filenamestr, payload["Inclusion"])
                 print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
-                
+                showcarsmain(filenamestr)
             else:
                 print("No payload found. Please create or load one first.")
                 
