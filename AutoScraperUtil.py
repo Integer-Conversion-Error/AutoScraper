@@ -30,6 +30,8 @@ def open_links_from_csv(file_path, column_name = "Link"):
                 return
 
             # Open each link in a new tab
+            if len(reader) > 15:
+                print(f"Large amount of links, opening first 15")
             for row in reader:
                 link = row[column_name].strip()
                 if link:
