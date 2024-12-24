@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 import requests, random,ast
 import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file
-
+from AutoScraperUtil import cleaned_input, convert_km_to_double, extract_prices_from_html, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file, showcarsmain, string_after_second_last
 
 def fetch_autotrader_data(params):
     """
@@ -22,7 +22,7 @@ def fetch_autotrader_data(params):
         "Make": "",
         "Model": "",
         "PriceMin": 0,
-        "PriceMax": 99999,
+        "PriceMax": 999999,
         "YearMin": "1950",
         "YearMax": "2025",
         "Top": 15,
@@ -32,7 +32,7 @@ def fetch_autotrader_data(params):
         "WithPhotos": True,
         "Exclusions" : []
     }
-    
+    #measut baris
 
     # Update default values with provided parameters
     params = {**default_params, **params}
@@ -78,33 +78,23 @@ def fetch_autotrader_data(params):
             if not search_results_json:
                 print("No more data available.")
                 break
-            #save_html_to_file(ad_results_json,"html_test_output.html")
             parsed_html_page = parse_html_content(ad_results_json,exclusions)
             parsed_html_ad_info.extend(parsed_html_page)
-
-            ##search results still necessary for max page (?)
             search_results = json.loads(search_results_json)
             all_results.extend(search_results.get("compositeIdUrls", []))
-
             current_page = search_results.get("currentPage", 0)
             max_page = search_results.get("maxPage", current_page)
-
             print(f"Fetched page {current_page} of {max_page}...")
-
             if current_page >= max_page:
                 print("Reached the last page.")
                 break
-
             skip += params["Top"]
-
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             break
         except json.JSONDecodeError as e:
             print(f"Failed to decode SearchResultsDataJson: {e}")
             break
-
-    #return all_results#,parsed_html_ad_info ADD THIS INSTEAD OF ALLRESULTS
     return parsed_html_ad_info
 
 
@@ -123,15 +113,6 @@ def extract_ng_vdp_model(url, proxies=None):
     waitlength = 10
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:110.0) Gecko/20100101 Firefox/110.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
-        "Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.66 Mobile Safari/537.36",
-        "Mozilla/5.0 (iPad; CPU OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
-        "Mozilla/5.0 (Linux; Android 10; SM-A505F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.127 Mobile Safari/537.36"
     ]
 
     ACCEPT_HEADERS = [
@@ -162,6 +143,8 @@ def extract_ng_vdp_model(url, proxies=None):
         # Check for rate limiting
         if response.status_code == 429:
             raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
+        #filenamest = url.rfind("/")##FIND PROPER LINK
+        filenamenew = string_after_second_last(url,"/")
         
         response.raise_for_status()
         while "Request unsuccessful." in response.text:
@@ -173,43 +156,55 @@ def extract_ng_vdp_model(url, proxies=None):
                 time.sleep(1)
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=proxies)
-
-
-        
         for line in response.text.splitlines():
             if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
+                respjson = extract_vehicle_info_from_html(response.text)
+                #print(respjson)
+                #save_html_to_file(response.text,"ngVdpModel.html")
+                #os._exit(0)
                 raw_data = line.split("=", 1)[1].strip()
-                normalreturn = True
-                break
+                
+                #save_html_to_file(response.text, filenamenew)
+                #normalreturn = True
+                if raw_data.endswith(";"):
+                    raw_data = raw_data[:-1]
+
+                cleaned_data = (
+                    raw_data
+                    .replace("undefined", "null")
+                    .replace("\n", "")
+                    .replace("\t", "")
+                )
+
+                
+                ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
+                
+                print(ng_vdp_model,"HTML Block")
+                return ng_vdp_model
+                # break
             elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
                 #save_html_to_file(response.text)
                 print(response.text)
                 raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")
                 
         else:
-            #save_html_to_file(response.text)
-             ##ANOTHER WAY IS THIS WAY
+            #save_html_to_file(response.text,filenamenew)
+            ##ANOTHER WAY IS THIS WAY
             #save_json_to_file(respprejson)
             respjson = parse_html_content_to_json(response.text)#read_json_file()
+            altrespjson = extract_vehicle_info_from_json(respjson)
             #print(type(respjson))
             # for item in respjson:
             #     print(item)
             #respjson = parse_string_to_json(respprejson)
-            return respjson,normalreturn#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
+            #save_json_to_file(respjson,"testoutput.json")
+            print(altrespjson,"Pure JSON Block")
+            #os._exit(0)
+            return altrespjson#,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
 
-        if raw_data.endswith(";"):
-            raw_data = raw_data[:-1]
-
-        cleaned_data = (
-            raw_data
-            .replace("undefined", "null")
-            .replace("\n", "")
-            .replace("\t", "")
-        )
-
-        ng_vdp_model = json.loads(cleaned_data)
-        normalreturn = True
-        return ng_vdp_model,normalreturn
+        
+        #normalreturn = True
+        #return ng_vdp_model#,normalreturn,response
 
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
@@ -217,42 +212,145 @@ def extract_ng_vdp_model(url, proxies=None):
         return f"Failed to parse JSON: {e}"
 
 
+def extract_vehicle_info_from_nested_json(json_content):
+    """
+    Extracts vehicle information from a nested JSON object structure.
 
+    Args:
+        json_content (dict): The JSON content as a dictionary.
 
-def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.ca/a/ford/fusion/orangeville/ontario/5_64604589_on20070704162913228/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=3&urm=8&sprx=-1"):
-    """ 
-    Extracts car info from the JSON data on the AutoTrader page.
-    """##WHERE IS PRICE DATA??????????
-    result,goodreturn = extract_ng_vdp_model(url)
-    carinfodict = {"Make": make, "Model": model}
+    Returns:
+        dict: A dictionary containing extracted vehicle details.
+    """
+    try:
+        # Initialize an empty dictionary for vehicle information
+        vehicle_info = {}
 
-    if isinstance(result, dict) and goodreturn:
-        allofspecs = result.get("specifications")
+        # Define all required keys
+        required_keys = [
+            "Make",
+            "Model",
+            "Trim",
+            "Price",
+            "Drivetrain",
+            "Kilometres",
+            "Status",
+            "Body Type",
+            "Engine",
+            "Cylinder",
+            "Transmission",
+            "Exterior Colour",
+            "Doors",
+            "Fuel Type",
+            "City Fuel Economy",
+            "Hwy Fuel Economy"
+        ]
+
+        # Extract from hero section
+        hero = json_content.get("hero", {})
+        vehicle_info.update({
+            "Make": hero.get("make", ""),
+            "Model": hero.get("model", ""),
+            "Trim": hero.get("trim", ""),
+            "Price": convert_km_to_double(hero.get("price", "")),
+            "Kilometres": hero.get("mileage", ""),
+            "Drivetrain": hero.get("drivetrain", ""),
+        })
+
+        # Extract specifications
+        specs = json_content.get("specifications", {}).get("specs", [])
+        for spec in specs:
+            key = spec.get("key", "")
+            value = spec.get("value", "")
+            if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
+                vehicle_info[key] = value
+            elif "Fuel Economy" in key:
+                vehicle_info[key] = value.split("L")[0]
+            elif "Kilometres" in key:
+                vehicle_info[key] = convert_km_to_double(value)
+            elif "Price" in key:
+                vehicle_info[key] = float(value.replace(",",""))
+
+        # Identify missing keys
+        missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
+
+        if missing_keys:
+            print(f"Missing keys with no values: {', '.join(missing_keys)}")
+
+        return vehicle_info
+
+    except Exception as e:
+        print(f"An error occurred while extracting vehicle info: {e}")
+        return {}
+
+def extract_vehicle_info_from_json(json_content):
+    """
+    Extracts vehicle information from a JSON object.
+
+    Args:
+        json_content (dict): The JSON content as a dictionary.
+
+    Returns:
+        dict: A dictionary containing extracted vehicle details.
+    """
+    try:
+        # Map of keys to extract from Specifications
+        vehicle_info = {}
+        hero = json_content.get("HeroViewModel", {})
+        vehicle_info.update({
+            "Make": hero.get("Make", ""),
+            "Model": hero.get("Model", ""),
+            "Trim": hero.get("Trim", ""),
+            "Price": hero.get("Price", ""),
+            "Kilometres": hero.get("mileage", ""),
+            "Drivetrain": hero.get("drivetrain", ""),
+        })
+
+        keys_to_extract = {
+            "Kilometres": "Kilometres",
+            "Status": "Status",
+            "Trim": "Trim",
+            "Body Type": "Body Type",
+            "Engine": "Engine",
+            "Cylinder": "Cylinder",
+            "Transmission": "Transmission",
+            "Drivetrain": "Drivetrain",
+            "Exterior Colour": "Exterior Colour",
+            "Doors": "Doors",
+            "Fuel Type": "Fuel Type",
+            "City Fuel Economy": "City Fuel Economy",
+            "Hwy Fuel Economy": "Hwy Fuel Economy"
+        }
+
+        # Extract specifications
+        specs = json_content.get("Specifications", {}).get("Specs", [])
         
-        allspecs = allofspecs.get("specs", [])
-        for spec in allspecs:
-            carinfodict.update({spec["key"]: spec["value"]})
-        #print("Normal GetInfoFromJson Block! ")
-        return carinfodict
-    elif not goodreturn:
-        #print(type(result))
-        # for key in result.keys():
-        #     print(f"Key: {key}")
-        allofspecs = dict(result["Specifications"])
-        allofspecs = allofspecs.get("Specs",[])
-        #print(allofspecs, type(result))
-        for spec in allofspecs:
-            tempdict = dict(spec)
-            carinfodict.update({tempdict["Key"]: tempdict["Value"]}) 
-        return carinfodict
-    else:
-        print(f"Error fetching data from URL: {url}")
-        print(result)
-        return None
 
+        for spec in specs:
+            key = spec.get("Key")
+            value = spec.get("Value")
+            if key in keys_to_extract and "Fuel Economy" not in key and "Kilometres" not in key:
+                vehicle_info[keys_to_extract[key]] = value
+            elif "Fuel Economy" in key:
+                vehicle_info[keys_to_extract[key]] = value.split("L")[0]
+            elif "Kilometres" in key:
+                vehicle_info[keys_to_extract[key]] = convert_km_to_double(value)
+            # elif "Price" in key:
+            #     vehicle_info[keys_to_extract[key]] = float(value.replace(",",""))
 
-
-
+        # Ensure all required keys are present
+        for required_key in keys_to_extract.values():
+            if required_key not in vehicle_info:
+                vehicle_info[required_key] = ""
+                #print(f"Couldn't find {required_key}")
+        
+        missing_keys = [key for key in keys_to_extract.keys() if key not in vehicle_info or not vehicle_info[key]]
+        if missing_keys:
+            print(f"Missing keys with no values: {', '.join(missing_keys)}")
+        return vehicle_info
+    except Exception as e:
+        print(f"An error occurred while extracting vehicle info: {e}")
+        return {}
 
 def save_results_to_csv(data, filename="results.csv"):
     """
@@ -264,13 +362,32 @@ def save_results_to_csv(data, filename="results.csv"):
     """
     countofcars = 0
     cartimes = []
+    allColNames = [
+        "Link",
+        "Make",
+        "Model",
+        "Trim",
+        "Price",
+        "Drivetrain",
+        "Kilometres",
+        "Status",
+        "Body Type",
+        "Engine",
+        "Cylinder",
+        "Transmission",
+        "Exterior Colour",
+        "Doors",
+        "Fuel Type",
+        "City Fuel Economy",
+        "Hwy Fuel Economy"
+    ]
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
+        writer.writerow(allColNames)  # Write the header
         for item in data:
             startTime = time.time()
             link = item["link"]
-            car_info = get_info_from_json(url=link)
+            car_info = extract_ng_vdp_model(url=link)
             time.sleep(2)
             #print(car_info)
             if car_info:
@@ -280,15 +397,20 @@ def save_results_to_csv(data, filename="results.csv"):
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
+                    car_info.get("Trim", ""),
+                    car_info.get("Price",""),
+                    car_info.get("Drivetrain", ""),
                     car_info.get("Kilometres", ""),
                     car_info.get("Status", ""),
-                    car_info.get("Trim", ""),
                     car_info.get("Body Type", ""),
                     car_info.get("Engine", ""),
                     car_info.get("Cylinder", ""),
                     car_info.get("Transmission", ""),
-                    car_info.get("Drivetrain", ""),
+                    car_info.get("Exterior Colour",""),
+                    car_info.get("Doors",""),
                     car_info.get("Fuel Type", ""),
+                    car_info.get("City Fuel Economy",""),
+                    car_info.get("Hwy Fuel Economy","")
                 ])
             else: 
                 print(f"No valid data found for {link}")
@@ -307,9 +429,67 @@ def save_results_to_csv(data, filename="results.csv"):
     #print("Processing CSV to fetch car details...")
     #process_csv(input_csv=filename, output_csv=filename)
 
+def extract_vehicle_info_from_html(html_content):
+    """
+    Extracts vehicle information from the JSON-like script elements within an HTML page.
 
+    Args:
+        html_content (str): The full HTML content as a string.
 
+    Returns:
+        list: A list of dictionaries containing vehicle details or an empty list if none found.
+    """
+    try:
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
 
+        # Find all <script> tags containing JSON data
+        script_tags = soup.find_all('script', type='application/ld+json')
+
+        vehicles = []
+
+        for script_tag in script_tags:
+            try:
+                if script_tag.string:
+                    # Parse the JSON content
+                    json_content = json.loads(script_tag.string)
+
+                    # Map driveWheelConfiguration to Drivetrain enumeration
+                    drive_config = json_content.get("driveWheelConfiguration", "")
+                    drivetrain = "Unknown"
+                    if "AllWheelDriveConfiguration" in drive_config:
+                        drivetrain = "AWD"
+                    elif "FourWheelDriveConfiguration" in drive_config:
+                        drivetrain = "4WD"
+                    elif "FrontWheelDriveConfiguration" in drive_config:
+                        drivetrain = "FWD"
+                    elif "RearWheelDriveConfiguration" in drive_config:
+                        drivetrain = "RWD"
+
+                    # Extract relevant vehicle information
+                    vehicle_info = {
+                        "Make": json_content.get("brand", {}).get("name", ""),
+                        "Model": json_content.get("model", ""),
+                        "Kilometres": json_content.get("mileageFromOdometer", {}).get("value", ""),
+                        "Price": json_content.get("offers", {}).get("price", ""),
+                        "Status": json_content.get("itemCondition", ""),
+                        "Trim": json_content.get("vehicleConfiguration", ""),
+                        "Body Type": json_content.get("bodyType", ""),
+                        "Engine": json_content.get("vehicleEngine", {}).get("engineType", ""),
+                        "Cylinder": json_content.get("vehicleEngine", {}).get("cylinder", ""),
+                        "Transmission": json_content.get("vehicleTransmission", ""),
+                        "Drivetrain": drivetrain,
+                        "Fuel Type": json_content.get("vehicleEngine", {}).get("fuelType", "")
+                    }
+                    vehicles.append(vehicle_info)
+            except json.JSONDecodeError as e:
+                print(f"Failed to decode JSON in one of the script tags: {e}")
+                continue
+
+        return vehicles
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
 
 
 def main():
@@ -359,7 +539,7 @@ def main():
                 filter_csv(filenamestr,filenamestr,payload["Exclusions"])
                 keep_if_contains(filenamestr,filenamestr, payload["Inclusion"])
                 print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
-                
+                showcarsmain(filenamestr)
             else:
                 print("No payload found. Please create or load one first.")
                 

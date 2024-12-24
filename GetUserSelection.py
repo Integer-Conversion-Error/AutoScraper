@@ -100,6 +100,6 @@ def get_user_responses():
     return payload
 
 
-while True:
+if __name__ == "__main__":
     get_user_responses()
-    break
+

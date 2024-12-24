@@ -234,6 +234,101 @@ def extract_prices_from_html(html_content):
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
+    
+def convert_km_to_double(km_string):
+    """
+    Converts a string like "109,403 km" to a float.
+
+    Args:
+        km_string (str): The input string representing kilometres.
+
+    Returns:
+        float: The numeric value of kilometres.
+    """
+    try:
+        return float(km_string.replace(",", "").replace(" km", ""))
+    except ValueError:
+        print(f"Invalid format: {km_string}")
+        return 0.0
+
+
+def extract_vehicle_info_from_html(html_content):
+    """
+    Extracts vehicle information from the JSON-like script elements within an HTML page.
+
+    Args:
+        html_content (str): The full HTML content as a string.
+
+    Returns:
+        list: A list of dictionaries containing vehicle details or an empty list if none found.
+    """
+    try:
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Find all <script> tags containing JSON data
+        script_tags = soup.find_all('script', type='application/ld+json')
+
+        vehicles = []
+
+        for script_tag in script_tags:
+            try:
+                if script_tag.string:
+                    # Parse the JSON content
+                    json_content = json.loads(script_tag.string)
+
+                    # Map driveWheelConfiguration to Drivetrain enumeration
+                    drive_config = json_content.get("driveWheelConfiguration", "")
+                    drivetrain = "Unknown"
+                    if "AllWheelDriveConfiguration" in drive_config:
+                        drivetrain = "AWD"
+                    elif "FourWheelDriveConfiguration" in drive_config:
+                        drivetrain = "4WD"
+                    elif "FrontWheelDriveConfiguration" in drive_config:
+                        drivetrain = "FWD"
+                    elif "RearWheelDriveConfiguration" in drive_config:
+                        drivetrain = "RWD"
+
+                    # Extract relevant vehicle information
+                    vehicle_info = {
+                        "Make": json_content.get("brand", {}).get("name", ""),
+                        "Model": json_content.get("model", ""),
+                        "Kilometres": json_content.get("mileageFromOdometer", {}).get("value", ""),
+                        "Price": json_content.get("offers", {}).get("price", ""),
+                        "Status": json_content.get("itemCondition", ""),
+                        "Trim": json_content.get("vehicleConfiguration", ""),
+                        "Body Type": json_content.get("bodyType", ""),
+                        "Engine": json_content.get("vehicleEngine", {}).get("engineType", ""),
+                        "Cylinder": json_content.get("vehicleEngine", {}).get("cylinder", ""),
+                        "Transmission": json_content.get("vehicleTransmission", ""),
+                        "Drivetrain": drivetrain,
+                        "Fuel Type": json_content.get("vehicleEngine", {}).get("fuelType", "")
+                    }
+                    vehicles.append(vehicle_info)
+            except json.JSONDecodeError as e:
+                print(f"Failed to decode JSON in one of the script tags: {e}")
+                continue
+
+        return vehicles
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+
+def file_initialisation():
+    """
+    Initializes two folders: 'Results' and 'Queries'.
+    If the folders already exist, they are left untouched.
+    """
+    import os
+
+    folders = ["Results", "Queries"]
+    for folder in folders:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            print(f"Folder '{folder}' created.")
+        else:
+            print(f"Folder '{folder}' already exists.")
+
 
 def parse_html_content_to_json(html_content):
     """
@@ -439,6 +534,7 @@ def get_makes_input():
     table_len = 8
     while True:
         # Display options in tabular format with numeration for each cell
+        cls()
         if popular:
             table = []
             for idx, option in enumerate(valid_options, start=1):
@@ -469,8 +565,6 @@ def get_makes_input():
                 print("Invalid number. Please choose a valid number from the list.")
         else:
             print("Invalid input. Please enter a valid number or -1 to see all options.")
-
-
 
 def get_models_for_make(make):
     """
@@ -542,6 +636,7 @@ def get_models_input(models_for_make):
     table_len = 8
     while True:
         # Display options in tabular format with numeration for each cell
+        cls()
         table = []
         for idx, option in enumerate(valid_options, start=1):
             table.append([f"{idx}. {option}"])
@@ -559,9 +654,6 @@ def get_models_input(models_for_make):
                 print("Invalid number. Please choose a valid number from the list.")
         else:
             print("Invalid input. Please enter a valid number.")
-
-    
-
 
 def transform_strings(input_list):
     """
@@ -600,7 +692,6 @@ def read_json_file(file_path = "output.json"):
         print(f"Unexpected error: {e}")
         return None
     
-
 def format_time(seconds):
     """
     Formats time given in seconds into hours, minutes, and seconds.
@@ -613,7 +704,6 @@ def format_time(seconds):
     seconds = seconds % 60
     return f"{hours}h {minutes}m {seconds:.2f}s"
 
-
 def format_time_ymd_hms(seconds = time.time()):
     """
     Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss".
@@ -623,8 +713,6 @@ def format_time_ymd_hms(seconds = time.time()):
     """
     base_time = datetime(1970, 1, 1) + timedelta(seconds=seconds)
     return base_time.strftime("%Y-%m-%d_%H-%M-%S")
-
-
 
 def remove_duplicates(arr, excl = []):
     """
@@ -643,7 +731,6 @@ def remove_duplicates(arr, excl = []):
             result.append("https://www.autotrader.ca" + item)
             seen.add(item)
     return result
-
 
 def remove_duplicates_exclusions(arr, excl=[]):
     """
@@ -688,42 +775,6 @@ def filter_dicts(data, exclusion_strings):
             filtered_data.append(record)
     return filtered_data
 
-def read_json_file(file_path = "output.json"):
-    """
-    Reads the contents of a JSON file and returns it as a Python dictionary.
-
-    :param file_path: str, the path to the JSON file
-    :return: dict, the parsed JSON content
-    """
-    try:
-        with open(file_path, 'r') as file:
-            # Load the JSON content from the file
-            data = json.load(file)
-            return data
-    except FileNotFoundError:
-        print(f"Error: The file '{file_path}' was not found.")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to decode JSON - {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return None
-
-
-def format_time(seconds):
-    """
-    Formats time given in seconds into hours, minutes, and seconds.
-
-    :param seconds: int, time in seconds
-    :return: str, formatted time as "h m s"
-    """
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours}h {minutes}m {seconds:.2f}s"
-
-
 def filter_csv(input_file, output_file, filter_strings):
     """
     Removes rows from a CSV file if any column contains any of the strings in the filter_strings list.
@@ -761,7 +812,6 @@ def filter_csv(input_file, output_file, filter_strings):
         print(f"Error: The file {input_file} does not exist.")
     except Exception as e:
         print(f"An error occurred: {e}")
-
 
 def keep_if_contains(input_file, output_file, required_string = None):
     """
