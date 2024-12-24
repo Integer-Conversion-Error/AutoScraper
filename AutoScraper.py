@@ -4,8 +4,7 @@ import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from AutoScraperUtil import cleaned_input, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file, showcarsmain
-
+from AutoScraperUtil import cleaned_input, extract_prices_from_html, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file, showcarsmain, string_after_second_last
 
 def fetch_autotrader_data(params):
     """
@@ -32,7 +31,7 @@ def fetch_autotrader_data(params):
         "WithPhotos": True,
         "Exclusions" : []
     }
-    
+    #measut baris
 
     # Update default values with provided parameters
     params = {**default_params, **params}
@@ -72,6 +71,7 @@ def fetch_autotrader_data(params):
         try:
             response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
+            #full_response = response
             json_response = response.json()
             search_results_json = json_response.get("SearchResultsDataJson", "")
             ad_results_json = json_response.get("AdsHtml","")
@@ -123,15 +123,6 @@ def extract_ng_vdp_model(url, proxies=None):
     waitlength = 10
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:110.0) Gecko/20100101 Firefox/110.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
-        "Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.66 Mobile Safari/537.36",
-        "Mozilla/5.0 (iPad; CPU OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
-        "Mozilla/5.0 (Linux; Android 10; SM-A505F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.127 Mobile Safari/537.36"
     ]
 
     ACCEPT_HEADERS = [
@@ -162,6 +153,8 @@ def extract_ng_vdp_model(url, proxies=None):
         # Check for rate limiting
         if response.status_code == 429:
             raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
+        #filenamest = url.rfind("/")##FIND PROPER LINK
+        filenamenew = string_after_second_last(url,"/")
         
         response.raise_for_status()
         while "Request unsuccessful." in response.text:
@@ -173,12 +166,11 @@ def extract_ng_vdp_model(url, proxies=None):
                 time.sleep(1)
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=proxies)
-
-
-        
         for line in response.text.splitlines():
             if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
                 raw_data = line.split("=", 1)[1].strip()
+                
+                #save_html_to_file(response.text, filenamenew)
                 normalreturn = True
                 break
             elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
@@ -187,15 +179,15 @@ def extract_ng_vdp_model(url, proxies=None):
                 raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")
                 
         else:
-            #save_html_to_file(response.text)
-             ##ANOTHER WAY IS THIS WAY
+            #save_html_to_file(response.text,filenamenew)
+            ##ANOTHER WAY IS THIS WAY
             #save_json_to_file(respprejson)
             respjson = parse_html_content_to_json(response.text)#read_json_file()
             #print(type(respjson))
             # for item in respjson:
             #     print(item)
             #respjson = parse_string_to_json(respprejson)
-            return respjson,normalreturn#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
+            return respjson,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
 
         if raw_data.endswith(";"):
             raw_data = raw_data[:-1]
@@ -209,7 +201,7 @@ def extract_ng_vdp_model(url, proxies=None):
 
         ng_vdp_model = json.loads(cleaned_data)
         normalreturn = True
-        return ng_vdp_model,normalreturn
+        return ng_vdp_model,normalreturn,response
 
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
@@ -223,16 +215,23 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
     """ 
     Extracts car info from the JSON data on the AutoTrader page.
     """##WHERE IS PRICE DATA??????????
-    result,goodreturn = extract_ng_vdp_model(url)
+    result,goodreturn,full_response = extract_ng_vdp_model(url)
     carinfodict = {"Make": make, "Model": model}
 
     if isinstance(result, dict) and goodreturn:
         allofspecs = result.get("specifications")
         
         allspecs = allofspecs.get("specs", [])
+        pricedata = int(extract_prices_from_html(full_response.text)[0])
+        #print(f"PRICE: {pricedata}")
         for spec in allspecs:
             carinfodict.update({spec["key"]: spec["value"]})
+        carinfodict.update({"Price":pricedata})    
         #print("Normal GetInfoFromJson Block! ")
+        #print(f"HTML-JSON block:")
+        #for key,val in carinfodict.items(): print(f"{key}:{val}")
+        #time.sleep(1)
+        save_html_to_file(full_response.text,"lastBadHTML.html")
         return carinfodict
     elif not goodreturn:
         #print(type(result))
@@ -241,9 +240,15 @@ def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.
         allofspecs = dict(result["Specifications"])
         allofspecs = allofspecs.get("Specs",[])
         #print(allofspecs, type(result))
+        allpricedata = result.get("AdViewModel")
+        pricedata = int(allpricedata.get("Price"))
         for spec in allofspecs:
             tempdict = dict(spec)
             carinfodict.update({tempdict["Key"]: tempdict["Value"]}) 
+        carinfodict.update({"Price":pricedata})
+        #for key,val in carinfodict.items(): print(f"{key}:{val}")
+        #print(f"PRICE: {pricedata}")
+        #time.sleep(1)
         return carinfodict
     else:
         print(f"Error fetching data from URL: {url}")
@@ -266,7 +271,7 @@ def save_results_to_csv(data, filename="results.csv"):
     cartimes = []
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["Link","Make", "Model", "Kilometres", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
+        writer.writerow(["Link","Make", "Model", "Kilometres","Price", "Status", "Trim", "Body Type", "Engine", "Cylinder", "Transmission", "Drivetrain", "Fuel Type"])  # Write the header
         for item in data:
             startTime = time.time()
             link = item["link"]
@@ -281,6 +286,7 @@ def save_results_to_csv(data, filename="results.csv"):
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
                     car_info.get("Kilometres", ""),
+                    car_info.get("Price",""),
                     car_info.get("Status", ""),
                     car_info.get("Trim", ""),
                     car_info.get("Body Type", ""),
@@ -306,9 +312,6 @@ def save_results_to_csv(data, filename="results.csv"):
 
     #print("Processing CSV to fetch car details...")
     #process_csv(input_csv=filename, output_csv=filename)
-
-
-
 
 
 

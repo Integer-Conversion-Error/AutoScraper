@@ -1,4 +1,5 @@
-from AutoScraperUtil import cleaned_input,transform_strings
+
+from AutoScraperUtil import cleaned_input, get_makes_input, get_models_input,transform_strings, get_models_for_make
 
 def get_keywords_from_user(kw_type = "exclude"):
     """
@@ -48,24 +49,37 @@ def get_user_responses():
     Returns:
         dict: A dictionary containing user inputs for the payload.
     """
-    
+    #all_makes = get_all_makes()
     payload = {
-        "Address": cleaned_input("Address", "Kanata, ON", str),
-        "Make": cleaned_input("Make", None, str),
-        "Model": cleaned_input("Model", None, str),
-        "PriceMin": cleaned_input("Minimum Price", None, int),
-        "PriceMax": cleaned_input("Maximum Price", None, int),
+        "Make": get_makes_input(),
+        "Model": None,
+        "Address": None,
+        "YearMin": None,
+        "YearMax": None,
+        "PriceMin": None,
+        "PriceMax": None,
         "Skip": 0,
         "Top": 15,
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
-        "YearMax": cleaned_input("Maximum Year", None, int),
-        "YearMin": cleaned_input("Minimum Year", None, int),
-        "Exclusions" : [],
-        "Inclusion" : "",
+        "Exclusions": [],
+        "Inclusion": "",
         "micrositeType": 1,  # This field is fixed
     }
+
+    if payload["Make"]:
+        models_for_make = get_models_for_make(payload["Make"])
+        if models_for_make:
+            payload["Model"] = get_models_input(models_for_make)
+
+    payload["Address"] = cleaned_input("Address", "Kanata, ON", str)
+
+    payload["YearMin"] = cleaned_input("Minimum Year", None, int)
+    payload["YearMax"] = cleaned_input("Maximum Year", None, int)
+
+    payload["PriceMin"] = cleaned_input("Minimum Price", None, int)
+    payload["PriceMax"] = cleaned_input("Maximum Price", None, int)
 
     # Validate logical consistency of inputs
     if payload["PriceMin"] is not None and payload["PriceMax"] is not None:
@@ -82,8 +96,10 @@ def get_user_responses():
 
     payload["Exclusions"] = get_keywords_from_user()
     payload["Inclusion"] = cleaned_input("String To Be Always Included", None, str)
-
+    print(payload)
     return payload
 
 
-
+while True:
+    get_user_responses()
+    break

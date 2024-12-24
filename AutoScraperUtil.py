@@ -4,12 +4,14 @@ from datetime import datetime, timedelta
 import json
 import os
 import time
-
+from tabulate import tabulate
 from bs4 import BeautifulSoup
 
 
 import csv
 import webbrowser
+
+import requests
 
 def open_links_from_csv(file_path, column_name = "Link"):
     """
@@ -19,6 +21,7 @@ def open_links_from_csv(file_path, column_name = "Link"):
         file_path (str): Path to the CSV file.
         column_name (str): The name of the column containing the links.
     """
+    openedcount = 0
     try:
         # Open the CSV file
         with open(file_path, 'r') as csv_file:
@@ -30,31 +33,29 @@ def open_links_from_csv(file_path, column_name = "Link"):
                 return
 
             # Open each link in a new tab
-            if len(reader) > 15:
-                print(f"Large amount of links, opening first 15")
+            
             for row in reader:
                 link = row[column_name].strip()
+                openedcount+=1
                 if link:
                     webbrowser.open_new_tab(link)
+                if openedcount > 15:
+                    print(f"Large amount of links, opening first 15")
+                    break
             print("Links have been opened in Chrome.")
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
-# Example Usage
-# Provide the path to your CSV file and the column name containing the links
 def showcarsmain(csv_file_path):
     # Replace with the path to your CSV file
     link_column_name = 'Link'  # Replace with the actual column name in your CSV
     open_links_from_csv(csv_file_path, link_column_name)
 
-
-
-
 def parse_html_file(file_path,exclusions = []):
     """
-    Parses the HTML file and extracts links and their corresponding listing details.
+    DEPRECATED: Parses the HTML file and extracts links and their corresponding listing details.
 
     :param file_path: str, path to the HTML file
     :return: list of dictionaries, each containing a link and associated listing details
@@ -100,7 +101,6 @@ def parse_html_file(file_path,exclusions = []):
             listings.append(listing)
     
     return listings
-
 
 def parse_html_content(html_content, exclusions=[]):
     """
@@ -184,6 +184,56 @@ def parse_html_to_json(file_path = "output.html"):
     except Exception as e:
         print(f"An error occurred while parsing HTML to JSON: {e}")
 
+def string_after_second_last(string, char):
+    # Find the last occurrence
+    last_index = string.rfind(char)
+    if last_index == -1:
+        return ""  # Character not found
+    # Find the second last occurrence
+    second_last_index = string.rfind(char, 0, last_index)
+    if second_last_index == -1:
+        return ""  # Second last occurrence does not exist
+    # Return the substring after the second last occurrence
+    return string[second_last_index + 1:-1]+".html"
+
+def extract_prices_from_html(html_content):
+    """
+    Extracts all prices from the JSON-like script elements within an HTML page.
+
+    Args:
+        html_content (str): The full HTML content as a string.
+
+    Returns:
+        list: A list of prices found in the HTML, or an empty list if none found.
+    """
+    try:
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Find all <script> tags containing JSON data
+        script_tags = soup.find_all('script', type='application/ld+json')
+
+        prices = []
+
+        for script_tag in script_tags:
+            try:
+                if script_tag.string:
+                    # Parse the JSON content
+                    json_content = json.loads(script_tag.string)
+
+                    # Extract the price from the "offers" object if available
+                    offers = json_content.get("offers", {})
+                    price = offers.get("price")
+                    if price:
+                        prices.append(price)
+            except json.JSONDecodeError as e:
+                print(f"Failed to decode JSON in one of the script tags: {e}")
+                continue
+
+        return prices
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
 
 def parse_html_content_to_json(html_content):
     """
@@ -271,7 +321,6 @@ def cls():
     else:  # For Linux and MacOS
         os.system('clear')
 
-
 def read_payload_from_file(filename = "ff2019.txt"):
     """
     Read a payload from a file in JSON format.
@@ -289,7 +338,6 @@ def read_payload_from_file(filename = "ff2019.txt"):
     except FileNotFoundError:
         print(f"File {filename} not found.")
         return None
-    
 
 def cleaned_input(itemTitle, defaultval, expectedtype):
     """
@@ -309,6 +357,211 @@ def cleaned_input(itemTitle, defaultval, expectedtype):
             return value
         except ValueError:
             print(f"Invalid input. Please enter a value of type {expectedtype.__name__}.")
+
+def extract_car_makes_from_html(html_content, popular = True):
+    """
+    Extracts all car makes from the optgroup element within an HTML page.
+
+    Args:
+        html_content (str): The full HTML content as a string.
+
+    Returns:
+        list: A list of car makes found in the optgroup, or an empty list if none found.
+    """
+    try:
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Find the <optgroup> tag with label "All Makes"
+        if popular: optgroup = soup.find('optgroup', {'label': 'Popular Makes'})
+        else: optgroup = soup.find('optgroup', {'label': 'All Makes'})
+
+        car_makes = []
+
+        if optgroup:
+            # Extract all <option> values within the optgroup
+            for option in optgroup.find_all('option'):
+                make = option.get_text(strip=True)
+                if make:
+                    car_makes.append(make)
+
+        return car_makes
+    except Exception as e:
+        print(f"An error occurred while parsing HTML: {e}")
+        return []
+
+def get_html_from_url(url):
+    """
+    Fetches the HTML content of a given URL with a custom User-Agent.
+
+    Parameters:
+        url (str): The URL of the webpage.
+
+    Returns:
+        str: The HTML content of the webpage, or None if the request fails.
+    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while fetching the URL: {e}")
+        return None
+
+def get_all_makes(cased=False, popular=True):
+    url = "https://www.autotrader.ca/"
+    html_content = get_html_from_url(url)
+
+    if html_content:  # Proceed only if HTML content was fetched successfully
+        car_makes = extract_car_makes_from_html(html_content, popular=popular)
+        if car_makes:
+            return car_makes
+        else:
+            print("No car makes found in the specified optgroup.")
+    else:
+        print("Failed to fetch HTML content.")
+
+def get_makes_input():
+    """
+    Prompts the user for input and validates it against a list of valid strings,
+    displaying popular options in a tabular format with numeration for each cell.
+
+    :return: str, the validated input matching an item from the list
+    """
+    itemTitle = "Make"
+
+    # Fetch popular car makes initially
+    valid_options = get_all_makes(popular=True)
+    popular = True
+    table_len = 8
+    while True:
+        # Display options in tabular format with numeration for each cell
+        if popular:
+            table = []
+            for idx, option in enumerate(valid_options, start=1):
+                table.append([f"{idx}. {option}"])
+
+            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+            print(formatted_table)
+        else:
+            print("Displaying all available options:")
+            table = []
+            for idx, option in enumerate(valid_options, start=1):
+                table.append([f"{idx}. {option}"])
+
+            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+            print(formatted_table)
+
+        user_input = input(f"Enter {itemTitle} number (-1 to see all options): ").strip()
+
+        # Check if the user wants to see all options
+        if user_input == "-1":
+            popular = False
+            valid_options = get_all_makes(popular=False)
+        elif user_input.isdigit():
+            number = int(user_input)
+            if 1 <= number <= len(valid_options):
+                return valid_options[number - 1]
+            else:
+                print("Invalid number. Please choose a valid number from the list.")
+        else:
+            print("Invalid input. Please enter a valid number or -1 to see all options.")
+
+
+
+def get_models_for_make(make):
+    """
+    Fetches all models for a given car make by sending a POST request to the AutoTrader API.
+
+    Args:
+        make (str): The car make for which models are to be fetched.
+
+    Returns:
+        dict: A dictionary of models and their respective counts, or an empty dictionary if none found.
+    """
+    try:
+        url = "https://www.autotrader.ca/Home/Refine"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'AllowMvt': 'true'
+        }
+        # Using cookies from the response
+        cookies = {
+            'atOptUser': 'db0860a4-b562-4270-9ed0-b2d2875c873c',
+            'nlbi_820541_1646237': 'Z30UdORIkUeQlTEnZpjQsQAAAACqH714EnL/JlzmRPTWgXMX'
+        }
+        payload = {
+            "IsDealer": True,
+            "IsPrivate": True,
+            "InMarketType": "basicSearch",
+            "Address": "Rockland",
+            "Proximity": -1,
+            "Make": make,
+            "Model": None,
+            "IsNew": True,
+            "IsUsed": True,
+            "IsCpo": True,
+            "IsDamaged": False,
+            "WithPhotos": True,
+            "WithPrice": True,
+            "HasDigitalRetail": False
+        }
+
+        # Sending POST request with headers and cookies
+        response = requests.post(url, json=payload, headers=headers, cookies=cookies)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+
+        data = response.json()
+
+        # Extract and return models from the response
+        return data.get("Models", {})
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while making the request: {e}")
+        return {}
+    except ValueError as e:
+        print(f"Failed to parse JSON response: {e}")
+        return {}
+
+def get_models_input(models_for_make):
+    """
+    Prompts the user to select a model from the available options for a given make.
+    Displays the models in a tabular format with numeration for each cell.
+
+    :param models_for_make: dict, models as keys and counts as values
+    :return: str, the selected model
+    """
+    itemTitle = "Model"
+    valid_options = list(models_for_make.keys())
+    table_len = 8
+    while True:
+        # Display options in tabular format with numeration for each cell
+        table = []
+        for idx, option in enumerate(valid_options, start=1):
+            table.append([f"{idx}. {option}"])
+
+        formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+        print(formatted_table)
+
+        user_input = input(f"Enter {itemTitle} number: ").strip()
+
+        if user_input.isdigit():
+            number = int(user_input)
+            if 1 <= number <= len(valid_options):
+                return valid_options[number - 1]
+            else:
+                print("Invalid number. Please choose a valid number from the list.")
+        else:
+            print("Invalid input. Please enter a valid number.")
+
+    
+
 
 def transform_strings(input_list):
     """
@@ -541,7 +794,7 @@ def keep_if_contains(input_file, output_file, required_string = None):
             writer.writerow(header)  # Write the header row
             writer.writerows(filtered_rows)  # Write the filtered rows
 
-        print(f"Filtered CSV saved to {output_file}")
+        #print(f"Filtered CSV saved to {output_file}")
 
     except FileNotFoundError:
         print(f"Error: The file {input_file} does not exist.")
