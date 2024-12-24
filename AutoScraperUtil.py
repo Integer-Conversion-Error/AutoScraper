@@ -251,7 +251,6 @@ def convert_km_to_double(km_string):
         print(f"Invalid format: {km_string}")
         return 0.0
 
-
 def extract_vehicle_info_from_html(html_content):
     """
     Extracts vehicle information from the JSON-like script elements within an HTML page.
@@ -328,7 +327,6 @@ def file_initialisation():
             print(f"Folder '{folder}' created.")
         else:
             print(f"Folder '{folder}' already exists.")
-
 
 def parse_html_content_to_json(html_content):
     """
@@ -704,15 +702,30 @@ def format_time(seconds):
     seconds = seconds % 60
     return f"{hours}h {minutes}m {seconds:.2f}s"
 
-def format_time_ymd_hms(seconds = time.time()):
+def format_time_ymd_hms(seconds=None):
     """
-    Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss".
+    Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss"
+    in the current time zone.
 
-    :param seconds: int, time in seconds
+    :param seconds: int, time in seconds (defaults to current time)
     :return: str, formatted time
     """
-    base_time = datetime(1970, 1, 1) + timedelta(seconds=seconds)
-    return base_time.strftime("%Y-%m-%d_%H-%M-%S")
+    from datetime import datetime, timezone, timedelta
+    import time
+
+    if seconds is None:
+        seconds = time.time()
+
+    # Get the current time zone's offset
+    #current_time = datetime.now()
+    #offset = current_time.utcoffset()
+
+    # Adjust time to the current time zone
+    base_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+    local_time = base_time.astimezone()
+
+    return local_time.strftime("%Y-%m-%d_%H-%M-%S")
+
 
 def remove_duplicates(arr, excl = []):
     """

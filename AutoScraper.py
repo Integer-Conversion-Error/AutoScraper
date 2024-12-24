@@ -164,7 +164,7 @@ def extract_ng_vdp_model(url, proxies=None):
 
                 ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
                 
-                print(ng_vdp_model,"HTML Block")
+                #print(ng_vdp_model,"HTML Block")
                 return ng_vdp_model
                 # break
             elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
@@ -183,7 +183,7 @@ def extract_ng_vdp_model(url, proxies=None):
             #     print(item)
             #respjson = parse_string_to_json(respprejson)
             #save_json_to_file(respjson,"testoutput.json")
-            print(altrespjson,"Pure JSON Block")
+            #print(altrespjson,"Pure JSON Block")
             #os._exit(0)
             return altrespjson#,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
 
@@ -256,10 +256,10 @@ def extract_vehicle_info_from_nested_json(json_content):
                 vehicle_info[key] = float(value.replace(",",""))
 
         # Identify missing keys
-        missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
+        # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
 
-        if missing_keys:
-            print(f"Missing keys with no values: {', '.join(missing_keys)}")
+        # if missing_keys:
+        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
 
         return vehicle_info
 
@@ -327,48 +327,14 @@ def extract_vehicle_info_from_json(json_content):
                 vehicle_info[required_key] = ""
                 
         
-        missing_keys = [key for key in keys_to_extract.keys() if key not in vehicle_info or not vehicle_info[key]]
-        if missing_keys:
-            print(f"Missing keys with no values: {', '.join(missing_keys)}")
+        # missing_keys = [key for key in keys_to_extract.keys() if key not in vehicle_info or not vehicle_info[key]]
+        # if missing_keys:
+        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
         return vehicle_info
     except Exception as e:
         print(f"An error occurred while extracting vehicle info: {e}")
         return {}
 
-
-def get_info_from_json(make="Ford", model="Fusion", url="https://www.autotrader.ca/a/ford/fusion/orangeville/ontario/5_64604589_on20070704162913228/?showcpo=ShowCpo&ncse=no&ursrc=xpl&urp=3&urm=8&sprx=-1"):
-    """ 
-    Extracts car info from the JSON data on the AutoTrader page.
-    """##WHERE IS PRICE DATA??????????
-    result,goodreturn,full_response = extract_ng_vdp_model(url)
-    carinfodict = {"Make": make, "Model": model}
-
-    if isinstance(result, dict) and goodreturn:
-        allofspecs = result.get("specifications")
-        
-        allspecs = allofspecs.get("specs", [])
-        pricedata = int(extract_prices_from_html(full_response.text)[0])
-        
-        for spec in allspecs:
-            carinfodict.update({spec["key"]: spec["value"]})
-        carinfodict.update({"Price":pricedata})    
-        
-        save_html_to_file(full_response.text,"lastBadHTML.html")
-        return carinfodict
-    elif not goodreturn:
-        allofspecs = dict(result["Specifications"])
-        allofspecs = allofspecs.get("Specs",[])
-        allpricedata = result.get("AdViewModel")
-        pricedata = int(allpricedata.get("Price"))
-        for spec in allofspecs:
-            tempdict = dict(spec)
-            carinfodict.update({tempdict["Key"]: tempdict["Value"]}) 
-        carinfodict.update({"Price":pricedata})
-        return carinfodict
-    else:
-        print(f"Error fetching data from URL: {url}")
-        print(result)
-        return None
 
 def save_results_to_csv(data, filename="results.csv"):
     """
@@ -466,7 +432,12 @@ def main():
             cls()
         elif choice == "2":
             if 'payload' in locals() and payload:
-                pld_name = "Queries\\"+cleaned_input("Payload Name",f"payload_{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.json",str)
+                foldernamestr = f"Queries\\{payload['Make']}_{payload['Model']}"
+                filenamestr = f"{payload['YearMin']}-{payload['YearMax']}_{payload['PriceMin']}-{payload['PriceMax']}_{format_time_ymd_hms()}.json"
+                pld_name = foldernamestr+"\\"+cleaned_input("Payload Name",filenamestr,str)
+                if not os.path.exists(foldernamestr):
+                    os.makedirs(foldernamestr)
+                    print(f"Folder '{foldernamestr}' created.")
                 save_json_to_file(payload,pld_name)
                 input(f"Payload saved to {pld_name}.\n\nPress enter to continue...")
                 
@@ -487,7 +458,12 @@ def main():
                 # for result in results: print(result)
                
                 results = remove_duplicates_exclusions(results,payload["Exclusions"])##ONLY SENDING LINKS
-                filenamestr = f"Results\\{payload['Make']}_{payload['Model']}_{format_time_ymd_hms()}.csv"
+                foldernamestr = f"Results\\{payload['Make']}_{payload['Model']}"
+                filenamestr = f"{foldernamestr}\\{payload['YearMin']}-{payload['YearMax']}_{payload['PriceMin']}-{payload['PriceMax']}_{format_time_ymd_hms()}.csv"
+                
+                if not os.path.exists(foldernamestr):
+                    os.makedirs(foldernamestr)
+                    print(f"Folder '{foldernamestr}' created.")
                 save_results_to_csv(results, filename=filenamestr)
                 filter_csv(filenamestr,filenamestr,payload["Exclusions"])
                 keep_if_contains(filenamestr,filenamestr, payload["Inclusion"])
