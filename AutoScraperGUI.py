@@ -1,0 +1,174 @@
+import tkinter as tk
+from tkinter import filedialog, ttk, messagebox
+import webbrowser
+from AutoScraper_ALL import *
+
+# Main GUI Application
+def main_gui():
+    root = tk.Tk()
+    root.title("AutoScraper GUI")
+    root.geometry("800x600")
+
+    # Tabs Setup
+    notebook = ttk.Notebook(root)
+    tab_config = ttk.Frame(notebook)
+    tab_results = ttk.Frame(notebook)
+
+    notebook.add(tab_config, text="Search Configuration")
+    notebook.add(tab_results, text="Results Viewer")
+    notebook.pack(expand=True, fill="both")
+
+    # Variables for User Input
+    make_var = tk.StringVar()
+    model_var = tk.StringVar()
+    address_var = tk.StringVar(value="Kanata, ON")
+    proximity_var = tk.IntVar(value=-1)
+    year_min_var = tk.IntVar()
+    year_max_var = tk.IntVar()
+    price_min_var = tk.IntVar()
+    price_max_var = tk.IntVar()
+    exclusions_var = tk.StringVar()
+    inclusion_var = tk.StringVar()
+
+    # Search Configuration Form
+    tk.Label(tab_config, text="Make:").grid(row=0, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=make_var).grid(row=0, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Model:").grid(row=1, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=model_var).grid(row=1, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Address:").grid(row=2, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=address_var).grid(row=2, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Proximity (km):").grid(row=3, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=proximity_var).grid(row=3, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Year Min:").grid(row=4, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=year_min_var).grid(row=4, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Year Max:").grid(row=5, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=year_max_var).grid(row=5, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Price Min:").grid(row=6, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=price_min_var).grid(row=6, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Price Max:").grid(row=7, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=price_max_var).grid(row=7, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Exclusions (comma-separated):").grid(row=8, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=exclusions_var).grid(row=8, column=1, padx=10, pady=5)
+
+    tk.Label(tab_config, text="Inclusion:").grid(row=9, column=0, padx=10, pady=5)
+    tk.Entry(tab_config, textvariable=inclusion_var).grid(row=9, column=1, padx=10, pady=5)
+
+    # Results Viewer
+    tree = ttk.Treeview(tab_results, show="headings")
+    tree.pack(expand=True, fill="both")
+
+    # Functions for Buttons
+    def fetch_data():
+        payload = {
+            "Make": make_var.get(),
+            "Model": model_var.get(),
+            "Address": address_var.get(),
+            "Proximity": proximity_var.get(),
+            "YearMin": year_min_var.get() if year_min_var.get() else None,
+            "YearMax": year_max_var.get() if year_max_var.get() else None,
+            "PriceMin": price_min_var.get() if price_min_var.get() else None,
+            "PriceMax": price_max_var.get() if price_max_var.get() else None,
+            "Exclusions": exclusions_var.get().split(",") if exclusions_var.get() else [],
+            "Inclusion": inclusion_var.get(),
+        }
+        try:
+            print("Payload being sent to fetch_autotrader_data:", payload)
+            results = fetch_autotrader_data(payload)
+            print("Results fetched:", results)
+            if not isinstance(results, list):
+                raise ValueError("Fetched data is not a list. Please check the data source.")
+
+            # Ensure each result is a dictionary
+            for i, result in enumerate(results):
+                print(f"Result at index {i}: {result}")
+                result["link"] = "https://www.autotrader.ca" + result["link"]
+                if not isinstance(result, dict):
+                    raise ValueError(f"Result at index {i} is not a dictionary: {result}")
+
+            filename = "results.csv"
+            save_results_to_csv(results, payload, filename=filename)
+            print(f"Results saved to {filename}")
+
+            # Reload results from the CSV file into the treeview
+            with open(filename, mode="r", newline="", encoding="utf-8") as file:
+                import csv
+                reader = csv.DictReader(file)
+                tree.delete(*tree.get_children())  # Clear existing entries
+
+                # Update columns dynamically based on the CSV headers
+                tree["columns"] = reader.fieldnames
+                for col in reader.fieldnames:
+                    tree.heading(col, text=col)
+
+                for row in reader:
+                    #print("Row being processed for treeview:", row)
+                    tree.insert("", "end", values=[row.get(col, "") for col in reader.fieldnames])
+
+        except Exception as e:
+            print("Error occurred:", e)
+            messagebox.showerror("Error", str(e))
+
+    def on_row_click(event):
+        selected_item = tree.focus()
+        if not selected_item:
+            return
+        row_data = tree.item(selected_item, "values")
+        if "Link" in tree["columns"]:
+            link_index = tree["columns"].index("Link")
+            link = row_data[link_index]
+            print("Opening link:", link)
+            webbrowser.open(link)
+
+    tree.bind("<Double-1>", on_row_click)
+
+    def save_payload():
+        payload = {
+            "Make": make_var.get(),
+            "Model": model_var.get(),
+            "Address": address_var.get(),
+            "Proximity": proximity_var.get(),
+            "YearMin": year_min_var.get() if year_min_var.get() else None,
+            "YearMax": year_max_var.get() if year_max_var.get() else None,
+            "PriceMin": price_min_var.get() if price_min_var.get() else None,
+            "PriceMax": price_max_var.get() if price_max_var.get() else None,
+            "Exclusions": exclusions_var.get().split(",") if exclusions_var.get() else [],
+            "Inclusion": inclusion_var.get(),
+        }
+        file_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
+        if file_path:
+            save_json_to_file(payload, file_path)
+            messagebox.showinfo("Success", f"Payload saved to {file_path}")
+
+    def load_payload():
+        file_path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
+        if file_path:
+            payload = read_json_file(file_path)
+            if payload:
+                make_var.set(payload.get("Make", ""))
+                model_var.set(payload.get("Model", ""))
+                address_var.set(payload.get("Address", ""))
+                proximity_var.set(payload.get("Proximity", -1))
+                year_min_var.set(payload.get("YearMin", 0))
+                year_max_var.set(payload.get("YearMax", 0))
+                price_min_var.set(payload.get("PriceMin", 0))
+                price_max_var.set(payload.get("PriceMax", 0))
+                exclusions_var.set(",".join(payload.get("Exclusions", [])))
+                inclusion_var.set(payload.get("Inclusion", ""))
+
+    # Buttons
+    tk.Button(tab_config, text="Fetch Data", command=fetch_data).grid(row=10, column=0, columnspan=2, pady=10)
+    tk.Button(tab_config, text="Save Payload", command=save_payload).grid(row=11, column=0, pady=10)
+    tk.Button(tab_config, text="Load Payload", command=load_payload).grid(row=11, column=1, pady=10)
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main_gui()

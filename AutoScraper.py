@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
-import requests, random,ast
+
+import requests, random
 import json
 import csv,time,os
 
 from GetUserSelection import get_user_responses
-from AutoScraperUtil import cleaned_input, convert_km_to_double, extract_prices_from_html, extract_vehicle_info_from_html, file_initialisation, filter_csv, format_time, format_time_ymd_hms, keep_if_contains, parse_html_content, parse_html_content_to_json, parse_html_to_json, read_json_file, remove_duplicates, remove_duplicates_exclusions, save_html_to_file, save_json_to_file,cls,read_payload_from_file,parse_html_file, showcarsmain, string_after_second_last
+from AutoScraperUtil import *
+
 
 def fetch_autotrader_data(params):
     """
@@ -20,10 +21,11 @@ def fetch_autotrader_data(params):
     default_params = {
         "Make": "",
         "Model": "",
+        "Proximity": "-1",
         "PriceMin": 0,
         "PriceMax": 999999,
         "YearMin": "1950",
-        "YearMax": "2025",
+        "YearMax": "2050",
         "Top": 15,
         "Address": "Kanata, ON",
         "IsNew": True,
@@ -54,6 +56,7 @@ def fetch_autotrader_data(params):
     while True:
         payload = {
             "Address": params["Address"],
+            "Proximity":params["Proximity"],
             "Make": params["Make"],
             "Model": params["Model"],
             "PriceMin": params["PriceMin"],
@@ -97,18 +100,15 @@ def fetch_autotrader_data(params):
     return parsed_html_ad_info
 
 
-def extract_ng_vdp_model(url, proxies=None):
+def extract_ng_vdp_model(url):
     """
     Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.
-    Detects rate limiting and raises an error if encountered. Supports proxy usage.
+    Detects rate limiting and raises an error if encountered. 
 
     Args:
         url (str): The URL to fetch data from.
-        proxies (dict): Optional. A dictionary of proxies to use for the request.
-            Example: {"http": "http://proxy_url", "https": "https://proxy_url"}
     """
 
-    
     waitlength = 10
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -128,16 +128,16 @@ def extract_ng_vdp_model(url, proxies=None):
     ]
 
     headers = {
-        "User-Agent": random.choice(USER_AGENTS),
+        "User-Agent": USER_AGENTS[0],
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept": random.choice(ACCEPT_HEADERS),
-        "Referer": random.choice(REFERERS),
+        "Accept": ACCEPT_HEADERS[2],
+        "Referer": REFERERS[0],
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
     }
 
     try:
-        response = requests.get(url, headers=headers, proxies=proxies)
+        response = requests.get(url, headers=headers, proxies=None)
         
         # Check for rate limiting
         if response.status_code == 429:
@@ -148,49 +148,19 @@ def extract_ng_vdp_model(url, proxies=None):
             for x in reversed(range(waitlength)):
                 time.sleep(1)
                 print(f"Retrying in {x} seconds")
-            response = requests.get(url, headers=headers, proxies=proxies)
+            response = requests.get(url, headers=headers, proxies=None)
         for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line: ##ONE WAY IS THIS WAY
-                respjson = extract_vehicle_info_from_html(response.text)
-                raw_data = line.split("=", 1)[1].strip()
-                if raw_data.endswith(";"):
-                    raw_data = raw_data[:-1]
-                cleaned_data = (
-                    raw_data
-                    .replace("undefined", "null")
-                    .replace("\n", "")
-                    .replace("\t", "")
-                )
-
+            if "window['ngVdpModel'] =" in line: 
+                cleaned_data = process_line(line)
                 ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
-                
-                #print(ng_vdp_model,"HTML Block")
-                return ng_vdp_model
-                # break
+                return ng_vdp_model                
             elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
-                #save_html_to_file(response.text)
                 print(response.text)
-                raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")
-                
+                raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")                
         else:
-            #save_html_to_file(response.text,filenamenew)
-            ##ANOTHER WAY IS THIS WAY
-            #save_json_to_file(respprejson)
             respjson = parse_html_content_to_json(response.text)#read_json_file()
             altrespjson = extract_vehicle_info_from_json(respjson)
-            #print(type(respjson))
-            # for item in respjson:
-            #     print(item)
-            #respjson = parse_string_to_json(respprejson)
-            #save_json_to_file(respjson,"testoutput.json")
-            #print(altrespjson,"Pure JSON Block")
-            #os._exit(0)
             return altrespjson#,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
-
-        
-        #normalreturn = True
-        #return ng_vdp_model#,normalreturn,response
-
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
@@ -336,7 +306,7 @@ def extract_vehicle_info_from_json(json_content):
         return {}
 
 
-def save_results_to_csv(data, filename="results.csv"):
+def save_results_to_csv(data, payload,filename="results.csv"):
     """
     Saves fetched data by processing it using external CSV handling function.
 
@@ -406,6 +376,8 @@ def save_results_to_csv(data, filename="results.csv"):
             cls()
             print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-2:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
+    filter_csv(filename,filename,payload=payload)
+
 
 
 
@@ -414,10 +386,10 @@ def main():
     """
     Main function to interact with the user.
     """
-    print("Welcome to the Payload and AutoTrader Manager!")
+    print("Welcome to the AutoScraper, a tool to speed up niche searches for cars on Autotrader!")
     file_initialisation()
     while True:
-        
+        foldernamestr,filenamestr,pld_name,jsonfilename = "","","",""
         print("\nOptions:")
         print("1. Create a new payload")
         print("2. Save a payload to a file")
@@ -445,7 +417,7 @@ def main():
                 print("No payload found. Please create one first.")
                 
         elif choice == "3":
-            jsonfilename = "Queries\\"+cleaned_input("Payload Name", "payload_Ford_Fusion_2024-12-20_07-47-34.json",str)
+            jsonfilename = "Queries\\"+cleaned_input("Payload Name", "Ford_Fusion\\ff1.json",str)
             loaded_payload = read_json_file(jsonfilename)
             if loaded_payload:
                 payload = loaded_payload
@@ -464,42 +436,20 @@ def main():
                 if not os.path.exists(foldernamestr):
                     os.makedirs(foldernamestr)
                     print(f"Folder '{foldernamestr}' created.")
-                save_results_to_csv(results, filename=filenamestr)
-                filter_csv(filenamestr,filenamestr,payload["Exclusions"])
-                keep_if_contains(filenamestr,filenamestr, payload["Inclusion"])
+                save_results_to_csv(results,payload=payload,filename=filenamestr)
                 print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
                 showcarsmain(filenamestr)
             else:
                 print("No payload found. Please create or load one first.")
                 
         elif choice == "5":
-            print("Exiting the Payload Manager. Goodbye!")
+            print("Exiting AutoScraper. Goodbye!")
             break
         else:
             print("Invalid choice. Please try again.")
 
 
 
-def testmain():
-    """
-    Main function to interact with the user.
-    """
-
-    loaded_payload = read_payload_from_file()
-    if loaded_payload:
-        payload = loaded_payload
-    if 'payload' in locals() and payload:
-        results = fetch_autotrader_data(payload)
-        results = remove_duplicates(results)
-        save_results_to_csv(results)
-        print(f"Total Results Fetched: {len(results)}")
-
-
 if __name__ == "__main__":
     main()
 
-
-    # file_path = "output.html"  # Replace with the correct path to your file
-    # parsed_json = parse_html_to_json(file_path)
-    # if parsed_json:
-    #     save_json_to_file(parsed_json, "parsed_output.json")

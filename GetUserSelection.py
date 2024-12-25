@@ -53,6 +53,7 @@ def get_user_responses():
     payload = {
         "Make": get_makes_input(),
         "Model": None,
+        "Proximity": -1,
         "Address": None,
         "YearMin": None,
         "YearMax": None,
@@ -74,6 +75,7 @@ def get_user_responses():
             payload["Model"] = get_models_input(models_for_make)
 
     payload["Address"] = cleaned_input("Address", "Kanata, ON", str)
+    payload["Proximity"] = cleaned_input("Distance",-1,int)
 
     payload["YearMin"] = cleaned_input("Minimum Year", None, int)
     payload["YearMax"] = cleaned_input("Maximum Year", None, int)
