@@ -9,7 +9,7 @@ from AutoScraper_ALL import *
 def main_gui():
     root = tk.Tk()
     root.title("AutoScraper GUI")
-    root.geometry("800x600")
+    root.geometry("1200x600")
 
     # Run get_all_makes at startup
     makes_list = get_all_makes()
