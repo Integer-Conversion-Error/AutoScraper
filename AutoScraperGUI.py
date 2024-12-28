@@ -3,14 +3,20 @@ from tkinter import filedialog, ttk, messagebox
 import webbrowser
 import threading
 import os
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 from AutoScraper_ALL import *
 
-# Main GUI Application
-def main_gui():
-    root = tk.Tk()
+
+def root_setup():
+    root = ttk.Window(themename="cosmo")
     root.title("AutoScraper GUI")
     root.geometry("1200x600")
-
+    return root
+# Main GUI Application
+def main_gui():
+    
+    root = root_setup()
     # Run get_all_makes at startup
     makes_list = get_all_makes()
 
@@ -19,6 +25,10 @@ def main_gui():
     tab_basic_search = ttk.Frame(notebook)
     tab_advanced_search = ttk.Frame(notebook)
     tab_results = ttk.Frame(notebook)
+
+    tab_advanced_search.place(relx=0.5, rely=0.5,anchor="center")
+    tab_basic_search.place(relx=0.5, rely=0.5,anchor="center")
+    
 
     notebook.add(tab_basic_search, text="Basic Search")
     notebook.add(tab_advanced_search, text="Advanced Search")
@@ -52,70 +62,70 @@ def main_gui():
             thread.start()
 
     # Basic Search Form
-    tk.Label(tab_basic_search, text="Make:").grid(row=0, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Make:").grid(row=0, column=0, padx=10, pady=5,sticky="nsew")
     make_dropdown = ttk.Combobox(tab_basic_search, textvariable=make_var, values=makes_list, state="readonly")
     make_dropdown.grid(row=0, column=1, padx=10, pady=5)
     make_var.trace("w", update_model_dropdown)
 
-    tk.Label(tab_basic_search, text="Model:").grid(row=1, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Model:").grid(row=1, column=0, padx=10, pady=5,sticky="nsew")
     model_dropdown = ttk.Combobox(tab_basic_search, textvariable=model_var, state="readonly")
     model_dropdown.grid(row=1, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Address:").grid(row=2, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Address:").grid(row=2, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=address_var).grid(row=2, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Proximity (km):").grid(row=3, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Proximity (km):").grid(row=3, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=proximity_var).grid(row=3, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Year Min:").grid(row=4, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Year Min:").grid(row=4, column=0, padx=10, pady=5,sticky="nsew")
     year_min_dropdown = ttk.Combobox(tab_basic_search, textvariable=year_min_var, values=years, state="readonly")
     year_min_dropdown.grid(row=4, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Year Max:").grid(row=5, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Year Max:").grid(row=5, column=0, padx=10, pady=5,sticky="nsew")
     year_max_dropdown = ttk.Combobox(tab_basic_search, textvariable=year_max_var, values=years, state="readonly")
     year_max_dropdown.grid(row=5, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Price Min:").grid(row=6, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Price Min:").grid(row=6, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=price_min_var).grid(row=6, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Price Max:").grid(row=7, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Price Max:").grid(row=7, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=price_max_var).grid(row=7, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Exclusions (comma-separated):").grid(row=8, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Exclusions (comma-separated):").grid(row=8, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=exclusions_var).grid(row=8, column=1, padx=10, pady=5)
 
-    tk.Label(tab_basic_search, text="Inclusion:").grid(row=9, column=0, padx=10, pady=5)
+    tk.Label(tab_basic_search, text="Inclusion:").grid(row=9, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_basic_search, textvariable=inclusion_var).grid(row=9, column=1, padx=10, pady=5)
 
     # Advanced Search Form
-    tk.Label(tab_advanced_search, text="Make:").grid(row=0, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Make:").grid(row=0, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=make_var).grid(row=0, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Model:").grid(row=1, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Model:").grid(row=1, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=model_var).grid(row=1, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Address:").grid(row=2, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Address:").grid(row=2, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=address_var).grid(row=2, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Proximity (km):").grid(row=3, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Proximity (km):").grid(row=3, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=proximity_var).grid(row=3, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Year Min:").grid(row=4, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Year Min:").grid(row=4, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=year_min_var).grid(row=4, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Year Max:").grid(row=5, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Year Max:").grid(row=5, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=year_max_var).grid(row=5, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Price Min:").grid(row=6, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Price Min:").grid(row=6, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=price_min_var).grid(row=6, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Price Max:").grid(row=7, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Price Max:").grid(row=7, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=price_max_var).grid(row=7, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Exclusions (comma-separated):").grid(row=8, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Exclusions (comma-separated):").grid(row=8, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=exclusions_var).grid(row=8, column=1, padx=10, pady=5)
 
-    tk.Label(tab_advanced_search, text="Inclusion:").grid(row=9, column=0, padx=10, pady=5)
+    tk.Label(tab_advanced_search, text="Inclusion:").grid(row=9, column=0, padx=10, pady=5,sticky="nsew")
     tk.Entry(tab_advanced_search, textvariable=inclusion_var).grid(row=9, column=1, padx=10, pady=5)
 
     # Results Viewer
@@ -236,13 +246,13 @@ def main_gui():
                 inclusion_var.set(payload.get("Inclusion", ""))
 
     # Buttons
-    tk.Button(tab_basic_search, text="Fetch Data", command=fetch_data).grid(row=10, column=0, columnspan=2, pady=10)
-    tk.Button(tab_basic_search, text="Save Payload", command=save_payload).grid(row=11, column=0, pady=10)
-    tk.Button(tab_basic_search, text="Load Payload", command=load_payload).grid(row=11, column=1, pady=10)
+    tk.Button(tab_basic_search, text="Fetch Data", command=fetch_data).grid(row=11,rowspan=2, column=0, pady=10)
+    tk.Button(tab_basic_search, text="Save Payload", command=save_payload).grid(row=11, rowspan=2,column=1, pady=10)
+    tk.Button(tab_basic_search, text="Load Payload", command=load_payload).grid(row=11, rowspan=2,column=2, pady=10)
 
-    tk.Button(tab_advanced_search, text="Fetch Data", command=fetch_data).grid(row=10, column=0, columnspan=2, pady=10)
-    tk.Button(tab_advanced_search, text="Save Payload", command=save_payload).grid(row=11, column=0, pady=10)
-    tk.Button(tab_advanced_search, text="Load Payload", command=load_payload).grid(row=11, column=1, pady=10)
+    tk.Button(tab_advanced_search, text="Fetch Data", command=fetch_data).grid(row=11, rowspan=2,column=0,pady=10)
+    tk.Button(tab_advanced_search, text="Save Payload", command=save_payload).grid(row=11,rowspan=2, column=1, pady=10)
+    tk.Button(tab_advanced_search, text="Load Payload", command=load_payload).grid(row=11, rowspan=2,column=2, pady=10)
 
     root.mainloop()
 
