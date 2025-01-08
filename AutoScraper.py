@@ -24,7 +24,7 @@ def fetch_autotrader_data(params):
         "Proximity": "-1",
         "PriceMin": 0,
         "PriceMax": 999999,
-        "YearMin": "1950",
+        "YearMin": "1950", 
         "YearMax": "2050",
         "Top": 15,
         "Address": "Kanata, ON",
