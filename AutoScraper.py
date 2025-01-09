@@ -103,7 +103,7 @@ def fetch_autotrader_data(params):
 
 def extract_vehicle_info(url):
     """
-    Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.
+    Extracts the vehicle info
     Detects rate limiting and raises an error if encountered. 
 
     Args:
@@ -150,18 +150,9 @@ def extract_vehicle_info(url):
                 time.sleep(1)
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=None)
-        for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line: ##unreachable when only using json
-                cleaned_data = process_line(line)
-                ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
-                return ng_vdp_model                
-            elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
-                print(response.text)
-                raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")                
-        else:
-            respjson = parse_html_content_to_json(response.text)#read_json_file()
-            altrespjson = extract_vehicle_info_from_json(respjson)
-            return altrespjson
+        respjson = parse_html_content_to_json(response.text)#read_json_file()
+        altrespjson = extract_vehicle_info_from_json(respjson)
+        return altrespjson
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
@@ -383,7 +374,7 @@ def save_results_to_csv(data, payload,filename="results.csv"):
                 averagetime += cartime
             averagetime /= float(len(cartimes))
             cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-sleeptime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
     filter_csv(filename,filename,payload=payload)
 
