@@ -158,76 +158,76 @@ def extract_vehicle_info(url):
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
 
-def extract_vehicle_info_from_nested_json(json_content):
-    """
-    Extracts vehicle information from a nested JSON object structure.
+# def extract_vehicle_info_from_nested_json(json_content):
+#     """
+#     Extracts vehicle information from a nested JSON object structure.
 
-    Args:
-        json_content (dict): The JSON content as a dictionary.
+#     Args:
+#         json_content (dict): The JSON content as a dictionary.
 
-    Returns:
-        dict: A dictionary containing extracted vehicle details.
-    """
-    try:
-        # Initialize an empty dictionary for vehicle information
-        vehicle_info = {}
+#     Returns:
+#         dict: A dictionary containing extracted vehicle details.
+#     """
+#     try:
+#         # Initialize an empty dictionary for vehicle information
+#         vehicle_info = {}
 
-        # Define all required keys
-        required_keys = [
-            "Make",
-            "Model",
-            "Trim",
-            "Price",
-            "Drivetrain",
-            "Kilometres",
-            "Status",
-            "Body Type",
-            "Engine",
-            "Cylinder",
-            "Transmission",
-            "Exterior Colour",
-            "Doors",
-            "Fuel Type",
-            "City Fuel Economy",
-            "Hwy Fuel Economy"
-        ]
+#         # Define all required keys
+#         required_keys = [
+#             "Make",
+#             "Model",
+#             "Trim",
+#             "Price",
+#             "Drivetrain",
+#             "Kilometres",
+#             "Status",
+#             "Body Type",
+#             "Engine",
+#             "Cylinder",
+#             "Transmission",
+#             "Exterior Colour",
+#             "Doors",
+#             "Fuel Type",
+#             "City Fuel Economy",
+#             "Hwy Fuel Economy"
+#         ]
 
-        # Extract from hero section
-        hero = json_content.get("hero", {})
-        vehicle_info.update({
-            "Make": hero.get("make", ""),
-            "Model": hero.get("model", ""),
-            "Trim": hero.get("trim", ""),
-            "Price": convert_km_to_double(hero.get("price", "")),
-            "Kilometres": hero.get("mileage", ""),
-            "Drivetrain": hero.get("drivetrain", ""),
-        })
+#         # Extract from hero section
+#         hero = json_content.get("hero", {})
+#         vehicle_info.update({
+#             "Make": hero.get("make", ""),
+#             "Model": hero.get("model", ""),
+#             "Trim": hero.get("trim", ""),
+#             "Price": convert_km_to_double(hero.get("price", "")),
+#             "Kilometres": hero.get("mileage", ""),
+#             "Drivetrain": hero.get("drivetrain", ""),
+#         })
 
-        # Extract specifications
-        specs = json_content.get("specifications", {}).get("specs", [])
-        for spec in specs:
-            key = spec.get("key", "")
-            value = spec.get("value", "")
-            if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
-                vehicle_info[key] = value
-            elif "Fuel Economy" in key:
-                vehicle_info[key] = value.split("L")[0]
-            elif "Kilometres" in key:
-                vehicle_info[key] = convert_km_to_double(value)
-            elif "Price" in key:
-                vehicle_info[key] = float(value.replace(",",""))
+#         # Extract specifications
+#         specs = json_content.get("specifications", {}).get("specs", [])
+#         for spec in specs:
+#             key = spec.get("key", "")
+#             value = spec.get("value", "")
+#             if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
+#                 vehicle_info[key] = value
+#             elif "Fuel Economy" in key:
+#                 vehicle_info[key] = value.split("L")[0]
+#             elif "Kilometres" in key:
+#                 vehicle_info[key] = convert_km_to_double(value)
+#             elif "Price" in key:
+#                 vehicle_info[key] = float(value.replace(",",""))
 
-        # Identify missing keys
-        # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
+#         # Identify missing keys
+#         # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
 
-        # if missing_keys:
-        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
+#         # if missing_keys:
+#         #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
 
-        return vehicle_info
+#         return vehicle_info
 
-    except Exception as e:
-        print(f"An error occurred while extracting vehicle info: {e}")
-        return {}
+#     except Exception as e:
+#         print(f"An error occurred while extracting vehicle info: {e}")
+#         return {}
 
 def extract_vehicle_info_from_json(json_content):
     """

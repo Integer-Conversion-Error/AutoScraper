@@ -6,6 +6,7 @@ import csv
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,  # type: ignore
                              QLabel, QLineEdit, QPushButton, QComboBox, QTabWidget, 
                              QTreeWidget, QTreeWidgetItem, QFileDialog, QMessageBox,QStatusBar)
+from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget)
 from PyQt5.QtGui import QPalette, QColor # type: ignore
 from PyQt5.QtCore import Qt, QThread, pyqtSignal # type: ignore
 
@@ -58,49 +59,63 @@ class AutoScraperGUI(QMainWindow):
         #self.set_dark_mode()
         self.statusBar().showMessage("Ready")
 
-    def setup_basic_search_tab(self):
-        layout = QVBoxLayout(self.basic_search_tab)
+    
+                             
 
+
+    def setup_basic_search_tab(self):
+        layout = QGridLayout(self.basic_search_tab)
+
+        # Create widgets
         self.make_combo = QComboBox()
         self.make_combo.addItems(get_all_makes())
         self.make_combo.currentTextChanged.connect(self.update_model_dropdown)
-
         self.model_combo = QComboBox()
-
         self.address_input = QLineEdit("Kanata, ON")
         self.proximity_input = QLineEdit("-1")
         self.year_min_combo = QComboBox()
         self.year_max_combo = QComboBox()
         self.year_min_combo.addItems([str(year) for year in range(2025, 1899, -1)])
         self.year_max_combo.addItems([str(year) for year in range(2025, 1899, -1)])
-        #self.year_min_combo.setCurrentIndex()
         self.price_min_input = QLineEdit()
         self.price_max_input = QLineEdit()
+        self.km_min_input = QLineEdit()
+        self.km_max_input = QLineEdit()
         self.exclusions_input = QLineEdit()
         self.inclusion_input = QLineEdit()
 
-        layout.addWidget(QLabel("Make:"))
-        layout.addWidget(self.make_combo)
-        layout.addWidget(QLabel("Model:"))
-        layout.addWidget(self.model_combo)
-        layout.addWidget(QLabel("Address:"))
-        layout.addWidget(self.address_input)
-        layout.addWidget(QLabel("Proximity (km):"))
-        layout.addWidget(self.proximity_input)
-        layout.addWidget(QLabel("Year Min:"))
-        layout.addWidget(self.year_min_combo)
-        layout.addWidget(QLabel("Year Max:"))
-        layout.addWidget(self.year_max_combo)
-        layout.addWidget(QLabel("Price Min:"))
-        layout.addWidget(self.price_min_input)
-        layout.addWidget(QLabel("Price Max:"))
-        layout.addWidget(self.price_max_input)
-        layout.addWidget(QLabel("Exclusions (comma-separated):"))
-        layout.addWidget(self.exclusions_input)
-        layout.addWidget(QLabel("Inclusion:"))
-        layout.addWidget(self.inclusion_input)
+        # Add widgets to layout
+        current_row = 0
 
-        button_layout = QHBoxLayout()
+        # Full-width widgets
+        full_width_widgets = [
+            ("Make:", self.make_combo),
+            ("Model:", self.model_combo),
+            ("Address:", self.address_input),
+            ("Proximity (km):", self.proximity_input),
+            ("Exclusions (comma-separated):", self.exclusions_input),
+            ("Inclusion:", self.inclusion_input)
+        ]
+
+        for label_text, widget in full_width_widgets:
+            layout.addWidget(QLabel(label_text), current_row, 0, 1, 1)
+            layout.addWidget(widget, current_row, 1, 1, 2)
+            current_row += 1
+
+        # Min/Max widgets
+        min_max_widgets = [
+            ("Year (min to max):", self.year_min_combo, self.year_max_combo),
+            ("Price (min to max):", self.price_min_input, self.price_max_input),
+            ("KMs (min to max):", self.km_min_input, self.km_max_input)
+        ]
+
+        for label_text, min_widget, max_widget in min_max_widgets:
+            layout.addWidget(QLabel(label_text), current_row, 0, 1, 1)
+            layout.addWidget(min_widget, current_row, 1,1,1)
+            layout.addWidget(max_widget, current_row, 2,1,1)
+            current_row += 1
+
+        # Buttons
         fetch_button = QPushButton("Fetch Data")
         fetch_button.clicked.connect(self.fetch_data)
         save_payload_button = QPushButton("Save Payload")
@@ -108,11 +123,19 @@ class AutoScraperGUI(QMainWindow):
         load_payload_button = QPushButton("Load Payload")
         load_payload_button.clicked.connect(self.load_payload)
 
-        button_layout.addWidget(fetch_button)
-        button_layout.addWidget(save_payload_button)
-        button_layout.addWidget(load_payload_button)
+        layout.addWidget(fetch_button, current_row, 0, 1, 1)
+        layout.addWidget(save_payload_button, current_row, 1, 1, 1)
+        layout.addWidget(load_payload_button, current_row, 2, 1, 1)
 
-        layout.addLayout(button_layout)
+        # Set column stretch to make all columns equal width
+        for i in range(3):
+            layout.setColumnStretch(i, 1)
+
+        self.basic_search_tab.setLayout(layout)
+
+
+
+
 
     def setup_advanced_search_tab(self):
         layout = QVBoxLayout(self.advanced_search_tab)
@@ -125,6 +148,8 @@ class AutoScraperGUI(QMainWindow):
         self.adv_year_max_input = QLineEdit()
         self.adv_price_min_input = QLineEdit()
         self.adv_price_max_input = QLineEdit()
+        self.adv_km_min_input = QLineEdit()  # New Min KM widget
+        self.adv_km_max_input = QLineEdit()  # New Max KM widget
         self.adv_exclusions_input = QLineEdit()
         self.adv_inclusion_input = QLineEdit()
 
@@ -144,6 +169,10 @@ class AutoScraperGUI(QMainWindow):
         layout.addWidget(self.adv_price_min_input)
         layout.addWidget(QLabel("Price Max:"))
         layout.addWidget(self.adv_price_max_input)
+        layout.addWidget(QLabel("KM Min:"))  # New Min KM label
+        layout.addWidget(self.adv_km_min_input)  # New Min KM widget
+        layout.addWidget(QLabel("KM Max:"))  # New Max KM label
+        layout.addWidget(self.adv_km_max_input)  # New Max KM widget
         layout.addWidget(QLabel("Exclusions (comma-separated):"))
         layout.addWidget(self.adv_exclusions_input)
         layout.addWidget(QLabel("Inclusion:"))
@@ -162,6 +191,7 @@ class AutoScraperGUI(QMainWindow):
         button_layout.addWidget(load_payload_button)
 
         layout.addLayout(button_layout)
+
 
     def setup_results_tab(self):
         allColNames = [
@@ -190,24 +220,6 @@ class AutoScraperGUI(QMainWindow):
         self.results_tree.itemDoubleClicked.connect(self.on_item_double_clicked)
         layout.addWidget(self.results_tree)
 
-    def set_dark_mode(self):
-        app = QApplication.instance()
-        palette = QPalette()
-        palette.setColor(QPalette.Window, QColor(53, 53, 53))
-        palette.setColor(QPalette.WindowText, Qt.white)
-        palette.setColor(QPalette.Base, QColor(25, 25, 25))
-        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-        palette.setColor(QPalette.ToolTipBase, Qt.white)
-        palette.setColor(QPalette.ToolTipText, Qt.white)
-        palette.setColor(QPalette.Text, Qt.white)
-        palette.setColor(QPalette.Button, QColor(53, 53, 53))
-        palette.setColor(QPalette.ButtonText, Qt.white)
-        palette.setColor(QPalette.BrightText, Qt.red)
-        palette.setColor(QPalette.Link, QColor(42, 130, 218))
-        palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-        palette.setColor(QPalette.HighlightedText, Qt.black)
-        app.setPalette(palette)
-
     def update_model_dropdown(self):
         make = self.make_combo.currentText()
         self.model_combo.clear()
@@ -224,8 +236,10 @@ class AutoScraperGUI(QMainWindow):
                 "Proximity": int(self.adv_proximity_input.text()),
                 "YearMin": self.adv_year_min_input.text() or None,
                 "YearMax": self.adv_year_max_input.text() or None,
-                "PriceMin": int(self.adv_price_min_input.text()) if self.adv_price_min_input.text() else None,
-                "PriceMax": int(self.adv_price_max_input.text()) if self.adv_price_max_input.text() else None,
+                "PriceMin": self.adv_price_min_input.text() or "",
+                "PriceMax": self.adv_price_max_input.text() or "",
+                "OdometerMin": self.adv_km_min_input.text() or "",
+                "OdometerMax": self.adv_km_max_input.text() or "",
                 "Exclusions": [x.strip() for x in self.adv_exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.adv_inclusion_input.text(),
             }
@@ -237,11 +251,14 @@ class AutoScraperGUI(QMainWindow):
                 "Proximity": int(self.proximity_input.text()),
                 "YearMin": self.year_min_combo.currentText() or None,
                 "YearMax": self.year_max_combo.currentText() or None,
-                "PriceMin": int(self.price_min_input.text()) if self.price_min_input.text() else "",
-                "PriceMax": int(self.price_max_input.text()) if self.price_max_input.text() else "",
+                "PriceMin": self.price_min_input.text() or "",
+                "PriceMax": self.price_max_input.text() or "",
+                "OdometerMin": self.km_min_input.text() or "",
+                "OdometerMax": self.km_max_input.text() or "",
                 "Exclusions": [x.strip() for x in self.exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.inclusion_input.text(),
             }
+
 
     def fetch_data(self):
         self.fetch_data_common(advanced=False)
@@ -382,7 +399,10 @@ class AutoScraperGUI(QMainWindow):
         self.price_max_input.setText(str(payload.get("PriceMax", "")))
         self.exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.inclusion_input.setText(payload.get("Inclusion", ""))
-
+        self.km_min_input.setText(str(payload.get("KMMin", "")))
+        self.km_max_input.setText(str(payload.get("KMMax", "")))
+        
+        
         # Set values for advanced search tab
         self.adv_make_input.setText(payload.get("Make", ""))
         self.adv_model_input.setText(payload.get("Model", ""))
@@ -394,7 +414,10 @@ class AutoScraperGUI(QMainWindow):
         self.adv_price_max_input.setText(str(payload.get("PriceMax", "")))
         self.adv_exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.adv_inclusion_input.setText(payload.get("Inclusion", ""))
-
+        self.adv_km_min_input.setText(str(payload.get("KMMin", "")))
+        self.adv_km_max_input.setText(str(payload.get("KMMax", "")))
+        
+        
     def on_item_double_clicked(self, item):
         link = item.text(0)
         if link:
