@@ -1,5 +1,5 @@
 
-import requests, random
+import requests
 import json
 import csv,time,os
 
@@ -91,6 +91,7 @@ def fetch_autotrader_data(params):
                 print("Reached the last page.")
                 break
             skip += params["Top"]
+            
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             break

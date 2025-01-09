@@ -3,9 +3,11 @@ from tkinter import filedialog, ttk, messagebox
 import webbrowser
 import threading
 import os
-import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from AutoScraper_ALL import *
+import ttkbootstrap as ttk # type: ignore
+from ttkbootstrap.constants import * # type: ignore
+from AutoScraper import *
+from GetUserSelection import *
+from AutoScraperUtil import *
 
 
 def root_setup():
