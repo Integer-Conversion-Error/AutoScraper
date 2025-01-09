@@ -101,7 +101,7 @@ def fetch_autotrader_data(params):
     return parsed_html_ad_info
 
 
-def extract_ng_vdp_model(url):
+def extract_vehicle_info(url):
     """
     Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.
     Detects rate limiting and raises an error if encountered. 
@@ -151,7 +151,7 @@ def extract_ng_vdp_model(url):
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=None)
         for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line: 
+            if "window['ngVdpModel'] =" in line: ##unreachable when only using json
                 cleaned_data = process_line(line)
                 ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
                 return ng_vdp_model                
@@ -161,7 +161,7 @@ def extract_ng_vdp_model(url):
         else:
             respjson = parse_html_content_to_json(response.text)#read_json_file()
             altrespjson = extract_vehicle_info_from_json(respjson)
-            return altrespjson#,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
+            return altrespjson
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
@@ -248,6 +248,7 @@ def extract_vehicle_info_from_json(json_content):
     Returns:
         dict: A dictionary containing extracted vehicle details.
     """
+    save_json_to_file(json_content=json_content)
     try:
         # Map of keys to extract from Specifications
         vehicle_info = {}
@@ -259,10 +260,12 @@ def extract_vehicle_info_from_json(json_content):
             "Price": hero.get("Price", ""),
             "Kilometres": hero.get("mileage", ""),
             "Drivetrain": hero.get("drivetrain", ""),
+            "Year":hero.get("Year","")
         })
 
         keys_to_extract = {
             "Kilometres": "Kilometres",
+            # "Year": "Year",
             "Status": "Status",
             "Trim": "Trim",
             "Body Type": "Body Type",
@@ -321,6 +324,7 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "Link",
         "Make",
         "Model",
+        "Year",
         "Trim",
         "Price",
         "Drivetrain",
@@ -336,20 +340,24 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "City Fuel Economy",
         "Hwy Fuel Economy"
     ]
+    sleeptime = 2 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(allColNames)  # Write the header
+        if len(data) <= 2500:
+            sleeptime = 0
         for item in data:
             startTime = time.time()
             link = item["link"]
-            car_info = extract_ng_vdp_model(url=link)
-            time.sleep(2)
+            car_info = extract_vehicle_info(url=link)
+            time.sleep(sleeptime)
             if car_info:
                 # Write the row with additional columns
                 countofcars+=1
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
+                    car_info.get("Year", ""),
                     car_info.get("Trim", ""),
                     car_info.get("Price",""),
                     car_info.get("Drivetrain", ""),
@@ -375,7 +383,7 @@ def save_results_to_csv(data, payload,filename="results.csv"):
                 averagetime += cartime
             averagetime /= float(len(cartimes))
             cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-2:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-sleeptime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
     filter_csv(filename,filename,payload=payload)
 

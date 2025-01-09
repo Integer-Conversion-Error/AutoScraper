@@ -2,7 +2,8 @@ import sys
 import os
 import threading
 import webbrowser
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+import csv
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,  # type: ignore
                              QLabel, QLineEdit, QPushButton, QComboBox, QTabWidget, 
                              QTreeWidget, QTreeWidgetItem, QFileDialog, QMessageBox,QStatusBar)
 from PyQt5.QtGui import QPalette, QColor # type: ignore
@@ -163,9 +164,29 @@ class AutoScraperGUI(QMainWindow):
         layout.addLayout(button_layout)
 
     def setup_results_tab(self):
+        allColNames = [
+            "Link",
+            "Make",
+            "Model",
+            "Year",
+            "Trim",
+            "Price",
+            "Drivetrain",
+            "Kilometres",
+            "Status",
+            "Body Type",
+            "Engine",
+            "Cylinder",
+            "Transmission",
+            "Exterior Colour",
+            "Doors",
+            "Fuel Type",
+            "City Fuel Economy",
+            "Hwy Fuel Economy"
+        ]
         layout = QVBoxLayout(self.results_tab)
         self.results_tree = QTreeWidget()
-        self.results_tree.setHeaderLabels(["Make", "Model", "Year", "Price", "Link"])
+        self.results_tree.setHeaderLabels(allColNames)
         self.results_tree.itemDoubleClicked.connect(self.on_item_double_clicked)
         layout.addWidget(self.results_tree)
 
@@ -216,8 +237,8 @@ class AutoScraperGUI(QMainWindow):
                 "Proximity": int(self.proximity_input.text()),
                 "YearMin": self.year_min_combo.currentText() or None,
                 "YearMax": self.year_max_combo.currentText() or None,
-                "PriceMin": int(self.price_min_input.text()) if self.price_min_input.text() else None,
-                "PriceMax": int(self.price_max_input.text()) if self.price_max_input.text() else None,
+                "PriceMin": int(self.price_min_input.text()) if self.price_min_input.text() else "",
+                "PriceMax": int(self.price_max_input.text()) if self.price_max_input.text() else "",
                 "Exclusions": [x.strip() for x in self.exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.inclusion_input.text(),
             }
@@ -251,11 +272,15 @@ class AutoScraperGUI(QMainWindow):
             if isinstance(result, dict):
                 result["link"] = "https://www.autotrader.ca" + result["link"]
                 item = QTreeWidgetItem(self.results_tree)
-                item.setText(0, str(result.get("Make", "")))
-                item.setText(1, str(result.get("Model", "")))
-                item.setText(2, str(result.get("Year", "")))
-                item.setText(3, str(result.get("Price", "")))
-                item.setText(4, str(result.get("link", "")))
+                item.setText(0, str(result.get("link", "")))
+                item.setText(1, str(result.get("Make", "")))
+                item.setText(2, str(result.get("Model", "")))
+                item.setText(3, str(result.get("Year", "")))
+                item.setText(4, str(result.get("Trim", "")))
+                item.setText(5, str(result.get("Price", "")))
+                item.setText(6, str(result.get("Drivetrain", "")))
+                item.setText(7, str(result.get("Odometer", "")))
+                item.setText(8, str(result.get("Status", "")))
             else:
                 print(f"Unexpected result type: {type(result)}, content: {result}")
 
@@ -277,7 +302,9 @@ class AutoScraperGUI(QMainWindow):
         try:
             if isinstance(results, list) and all(isinstance(item, dict) for item in results):
                 save_results_to_csv(results, payload, filename=filenamestr)
+                self.load_csv_to_tree(filenamestr)
                 QMessageBox.information(self, "Success", f"Results saved to {filenamestr}")
+                
             else:
                 raise ValueError("Results are not in the expected format (list of dictionaries)")
         except Exception as e:
@@ -286,6 +313,37 @@ class AutoScraperGUI(QMainWindow):
         # Update the GUI to show we're done fetching
         self.statusBar().showMessage("Data fetching completed")
 
+    def load_csv_to_tree(self, csv_filename):
+        self.results_tree.clear()
+        
+        # Define column names
+        allColNames = [
+            "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain", "Kilometres", "Status",
+            "Body Type", "Engine", "Cylinder", "Transmission", "Exterior Colour", "Doors",
+            "Fuel Type", "City Fuel Economy", "Hwy Fuel Economy"
+        ]
+        
+        # Set the column headers
+        self.results_tree.setColumnCount(len(allColNames))
+        self.results_tree.setHeaderLabels(allColNames)
+        
+        try:
+            with open(csv_filename, 'r', newline='', encoding='utf-8') as csvfile:
+                csv_reader = csv.DictReader(csvfile)
+                for row in csv_reader:
+                    item = QTreeWidgetItem(self.results_tree)
+                    for i, col_name in enumerate(allColNames):
+                        item.setText(i, str(row.get(col_name, "")))
+            
+            # Resize columns to content
+            for i in range(len(allColNames)):
+                self.results_tree.resizeColumnToContents(i)
+            
+            self.tab_widget.setCurrentWidget(self.results_tab)
+        except Exception as e:
+            QMessageBox.warning(self, "Warning", f"Failed to load CSV: {str(e)}")
+            
+            
     def on_fetch_error(self, error_message):
         self.statusBar().clearMessage()
         QMessageBox.critical(self, "Error", f"An error occurred: {error_message}")
@@ -337,11 +395,10 @@ class AutoScraperGUI(QMainWindow):
         self.adv_exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.adv_inclusion_input.setText(payload.get("Inclusion", ""))
 
-    def on_item_double_clicked(self, item, column):
-        if column == 4:  # Link column
-            link = item.text(column)
-            if link:
-                webbrowser.open(link)
+    def on_item_double_clicked(self, item):
+        link = item.text(0)
+        if link:
+            webbrowser.open(link)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
