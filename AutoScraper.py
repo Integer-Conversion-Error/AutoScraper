@@ -239,7 +239,7 @@ def extract_vehicle_info_from_json(json_content):
     Returns:
         dict: A dictionary containing extracted vehicle details.
     """
-    save_json_to_file(json_content=json_content)
+    #save_json_to_file(json_content=json_content)
     try:
         # Map of keys to extract from Specifications
         vehicle_info = {}
