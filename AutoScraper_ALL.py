@@ -975,6 +975,12 @@ def fetch_autotrader_data(params):
     parsed_html_ad_info = []
 
     while True:
+        payload = dict
+        for key,val in params.items():
+            payload.update({key:val})
+        payload.update({"Skip":skip})
+        payload.update({"micrositeType":1})
+        
         payload = {
             "Address": params["Address"],
             "Proximity":params["Proximity"],
@@ -982,6 +988,7 @@ def fetch_autotrader_data(params):
             "Model": params["Model"],
             "PriceMin": params["PriceMin"],
             "PriceMax": params["PriceMax"],
+
             "Skip": skip,
             "Top": params["Top"],
             "IsNew": params["IsNew"],

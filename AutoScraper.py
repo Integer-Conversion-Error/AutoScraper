@@ -1,5 +1,5 @@
 
-import requests, random
+import requests
 import json
 import csv,time,os
 
@@ -24,7 +24,7 @@ def fetch_autotrader_data(params):
         "Proximity": "-1",
         "PriceMin": 0,
         "PriceMax": 999999,
-        "YearMin": "1950",
+        "YearMin": "1950", 
         "YearMax": "2050",
         "Top": 15,
         "Address": "Kanata, ON",
@@ -91,6 +91,7 @@ def fetch_autotrader_data(params):
                 print("Reached the last page.")
                 break
             skip += params["Top"]
+            
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             break
@@ -100,9 +101,9 @@ def fetch_autotrader_data(params):
     return parsed_html_ad_info
 
 
-def extract_ng_vdp_model(url):
+def extract_vehicle_info(url):
     """
-    Extracts the `window['ngVdpModel']` variable from a webpage by capturing the entire line and parses it into a Python dictionary.
+    Extracts the vehicle info
     Detects rate limiting and raises an error if encountered. 
 
     Args:
@@ -149,93 +150,84 @@ def extract_ng_vdp_model(url):
                 time.sleep(1)
                 print(f"Retrying in {x} seconds")
             response = requests.get(url, headers=headers, proxies=None)
-        for line in response.text.splitlines():
-            if "window['ngVdpModel'] =" in line: 
-                cleaned_data = process_line(line)
-                ng_vdp_model = extract_vehicle_info_from_nested_json(json.loads(cleaned_data))
-                return ng_vdp_model                
-            elif "Request unsuccessful. Incapsula incident ID:" in line: ##unreachable basically
-                print(response.text)
-                raise requests.exceptions.RequestException("Rate limited: Incapsula says Too Many Requests")                
-        else:
-            respjson = parse_html_content_to_json(response.text)#read_json_file()
-            altrespjson = extract_vehicle_info_from_json(respjson)
-            return altrespjson#,normalreturn,response#"window['ngVdpModel'] not found in the HTML. Response dump: " + response.text#.splitlines()
+        respjson = parse_html_content_to_json(response.text)#read_json_file()
+        altrespjson = extract_vehicle_info_from_json(respjson)
+        return altrespjson
     except requests.exceptions.RequestException as e:
         return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
 
-def extract_vehicle_info_from_nested_json(json_content):
-    """
-    Extracts vehicle information from a nested JSON object structure.
+# def extract_vehicle_info_from_nested_json(json_content):
+#     """
+#     Extracts vehicle information from a nested JSON object structure.
 
-    Args:
-        json_content (dict): The JSON content as a dictionary.
+#     Args:
+#         json_content (dict): The JSON content as a dictionary.
 
-    Returns:
-        dict: A dictionary containing extracted vehicle details.
-    """
-    try:
-        # Initialize an empty dictionary for vehicle information
-        vehicle_info = {}
+#     Returns:
+#         dict: A dictionary containing extracted vehicle details.
+#     """
+#     try:
+#         # Initialize an empty dictionary for vehicle information
+#         vehicle_info = {}
 
-        # Define all required keys
-        required_keys = [
-            "Make",
-            "Model",
-            "Trim",
-            "Price",
-            "Drivetrain",
-            "Kilometres",
-            "Status",
-            "Body Type",
-            "Engine",
-            "Cylinder",
-            "Transmission",
-            "Exterior Colour",
-            "Doors",
-            "Fuel Type",
-            "City Fuel Economy",
-            "Hwy Fuel Economy"
-        ]
+#         # Define all required keys
+#         required_keys = [
+#             "Make",
+#             "Model",
+#             "Trim",
+#             "Price",
+#             "Drivetrain",
+#             "Kilometres",
+#             "Status",
+#             "Body Type",
+#             "Engine",
+#             "Cylinder",
+#             "Transmission",
+#             "Exterior Colour",
+#             "Doors",
+#             "Fuel Type",
+#             "City Fuel Economy",
+#             "Hwy Fuel Economy"
+#         ]
 
-        # Extract from hero section
-        hero = json_content.get("hero", {})
-        vehicle_info.update({
-            "Make": hero.get("make", ""),
-            "Model": hero.get("model", ""),
-            "Trim": hero.get("trim", ""),
-            "Price": convert_km_to_double(hero.get("price", "")),
-            "Kilometres": hero.get("mileage", ""),
-            "Drivetrain": hero.get("drivetrain", ""),
-        })
+#         # Extract from hero section
+#         hero = json_content.get("hero", {})
+#         vehicle_info.update({
+#             "Make": hero.get("make", ""),
+#             "Model": hero.get("model", ""),
+#             "Trim": hero.get("trim", ""),
+#             "Price": convert_km_to_double(hero.get("price", "")),
+#             "Kilometres": hero.get("mileage", ""),
+#             "Drivetrain": hero.get("drivetrain", ""),
+#         })
 
-        # Extract specifications
-        specs = json_content.get("specifications", {}).get("specs", [])
-        for spec in specs:
-            key = spec.get("key", "")
-            value = spec.get("value", "")
-            if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
-                vehicle_info[key] = value
-            elif "Fuel Economy" in key:
-                vehicle_info[key] = value.split("L")[0]
-            elif "Kilometres" in key:
-                vehicle_info[key] = convert_km_to_double(value)
-            elif "Price" in key:
-                vehicle_info[key] = float(value.replace(",",""))
+#         # Extract specifications
+#         specs = json_content.get("specifications", {}).get("specs", [])
+#         for spec in specs:
+#             key = spec.get("key", "")
+#             value = spec.get("value", "")
+#             if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
+#                 vehicle_info[key] = value
+#             elif "Fuel Economy" in key:
+#                 vehicle_info[key] = value.split("L")[0]
+#             elif "Kilometres" in key:
+#                 vehicle_info[key] = convert_km_to_double(value)
+#             elif "Price" in key:
+#                 vehicle_info[key] = float(value.replace(",",""))
 
-        # Identify missing keys
-        # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
+#         # Identify missing keys
+#         # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
 
-        # if missing_keys:
-        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
+#         # if missing_keys:
+#         #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
 
-        return vehicle_info
+#         return vehicle_info
 
-    except Exception as e:
-        print(f"An error occurred while extracting vehicle info: {e}")
-        return {}
+#     except Exception as e:
+#         print(f"An error occurred while extracting vehicle info: {e}")
+#         return {}
 
 def extract_vehicle_info_from_json(json_content):
     """
@@ -247,6 +239,7 @@ def extract_vehicle_info_from_json(json_content):
     Returns:
         dict: A dictionary containing extracted vehicle details.
     """
+    save_json_to_file(json_content=json_content)
     try:
         # Map of keys to extract from Specifications
         vehicle_info = {}
@@ -258,10 +251,12 @@ def extract_vehicle_info_from_json(json_content):
             "Price": hero.get("Price", ""),
             "Kilometres": hero.get("mileage", ""),
             "Drivetrain": hero.get("drivetrain", ""),
+            "Year":hero.get("Year","")
         })
 
         keys_to_extract = {
             "Kilometres": "Kilometres",
+            # "Year": "Year",
             "Status": "Status",
             "Trim": "Trim",
             "Body Type": "Body Type",
@@ -320,6 +315,7 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "Link",
         "Make",
         "Model",
+        "Year",
         "Trim",
         "Price",
         "Drivetrain",
@@ -335,20 +331,24 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "City Fuel Economy",
         "Hwy Fuel Economy"
     ]
+    sleeptime = 2 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(allColNames)  # Write the header
+        if len(data) <= 2500:
+            sleeptime = 0
         for item in data:
             startTime = time.time()
             link = item["link"]
-            car_info = extract_ng_vdp_model(url=link)
-            time.sleep(2)
+            car_info = extract_vehicle_info(url=link)
+            time.sleep(sleeptime)
             if car_info:
                 # Write the row with additional columns
                 countofcars+=1
                 writer.writerow([link,
                     car_info.get("Make", ""),
                     car_info.get("Model", ""),
+                    car_info.get("Year", ""),
                     car_info.get("Trim", ""),
                     car_info.get("Price",""),
                     car_info.get("Drivetrain", ""),
@@ -374,7 +374,7 @@ def save_results_to_csv(data, payload,filename="results.csv"):
                 averagetime += cartime
             averagetime /= float(len(cartimes))
             cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tWithout Pause: {opTime-2:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
     filter_csv(filename,filename,payload=payload)
 

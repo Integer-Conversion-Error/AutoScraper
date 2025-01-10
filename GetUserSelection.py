@@ -59,6 +59,8 @@ def get_user_responses():
         "YearMax": None,
         "PriceMin": None,
         "PriceMax": None,
+        "OdometerMax":None,
+        "OdometerMin":None,
         "Skip": 0,
         "Top": 15,
         "IsNew": True,
@@ -83,12 +85,21 @@ def get_user_responses():
     payload["PriceMin"] = cleaned_input("Minimum Price", None, int)
     payload["PriceMax"] = cleaned_input("Maximum Price", None, int)
 
+    payload["OdometerMax"] = cleaned_input("Maximum KMs", None,int)
+    payload["OdometerMin"] = cleaned_input("Minimum KMs",None, int)
+
     # Validate logical consistency of inputs
     if payload["PriceMin"] is not None and payload["PriceMax"] is not None:
         if payload["PriceMin"] > payload["PriceMax"]:
             print("Error: Minimum Price cannot be greater than Maximum Price. Please re-enter.")
             payload["PriceMin"] = cleaned_input("Minimum Price", None, int)
             payload["PriceMax"] = cleaned_input("Maximum Price", None, int)
+
+    if payload["OdometerMin"] is not None and payload["OdometerMax"] is not None:
+        if payload["OdometerMin"] > payload["OdometerMax"]:
+            print("Error: Minimum KMs cannot be greater than Maximum KMs. Please re-enter.")
+            payload["OdometerMin"] = cleaned_input("Minimum KMs", None, int)
+            payload["OdometerMax"] = cleaned_input("Maximum Price", None, int)
 
     if payload["YearMin"] is not None and payload["YearMax"] is not None:
         if payload["YearMin"] > payload["YearMax"]:
