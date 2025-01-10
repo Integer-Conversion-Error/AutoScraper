@@ -6,6 +6,7 @@ import csv
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,  # type: ignore
                              QLabel, QLineEdit, QPushButton, QComboBox, QTabWidget, 
                              QTreeWidget, QTreeWidgetItem, QFileDialog, QMessageBox,QStatusBar)
+
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget)
 from PyQt5.QtGui import QPalette, QColor # type: ignore
 from PyQt5.QtCore import Qt, QThread, pyqtSignal # type: ignore
@@ -58,10 +59,6 @@ class AutoScraperGUI(QMainWindow):
 
         #self.set_dark_mode()
         self.statusBar().showMessage("Ready")
-
-    
-                             
-
 
     def setup_basic_search_tab(self):
         layout = QGridLayout(self.basic_search_tab)
@@ -123,6 +120,8 @@ class AutoScraperGUI(QMainWindow):
         load_payload_button = QPushButton("Load Payload")
         load_payload_button.clicked.connect(self.load_payload)
 
+
+
         layout.addWidget(fetch_button, current_row, 0, 1, 1)
         layout.addWidget(save_payload_button, current_row, 1, 1, 1)
         layout.addWidget(load_payload_button, current_row, 2, 1, 1)
@@ -132,10 +131,6 @@ class AutoScraperGUI(QMainWindow):
             layout.setColumnStretch(i, 1)
 
         self.basic_search_tab.setLayout(layout)
-
-
-
-
 
     def setup_advanced_search_tab(self):
         layout = QVBoxLayout(self.advanced_search_tab)
@@ -148,6 +143,8 @@ class AutoScraperGUI(QMainWindow):
         self.adv_year_max_input = QLineEdit()
         self.adv_price_min_input = QLineEdit()
         self.adv_price_max_input = QLineEdit()
+
+
         self.adv_km_min_input = QLineEdit()  # New Min KM widget
         self.adv_km_max_input = QLineEdit()  # New Max KM widget
         self.adv_exclusions_input = QLineEdit()
@@ -169,10 +166,12 @@ class AutoScraperGUI(QMainWindow):
         layout.addWidget(self.adv_price_min_input)
         layout.addWidget(QLabel("Price Max:"))
         layout.addWidget(self.adv_price_max_input)
+
         layout.addWidget(QLabel("KM Min:"))  # New Min KM label
         layout.addWidget(self.adv_km_min_input)  # New Min KM widget
         layout.addWidget(QLabel("KM Max:"))  # New Max KM label
         layout.addWidget(self.adv_km_max_input)  # New Max KM widget
+
         layout.addWidget(QLabel("Exclusions (comma-separated):"))
         layout.addWidget(self.adv_exclusions_input)
         layout.addWidget(QLabel("Inclusion:"))
@@ -191,7 +190,6 @@ class AutoScraperGUI(QMainWindow):
         button_layout.addWidget(load_payload_button)
 
         layout.addLayout(button_layout)
-
 
     def setup_results_tab(self):
         allColNames = [
@@ -236,10 +234,13 @@ class AutoScraperGUI(QMainWindow):
                 "Proximity": int(self.adv_proximity_input.text()),
                 "YearMin": self.adv_year_min_input.text() or None,
                 "YearMax": self.adv_year_max_input.text() or None,
+
+
                 "PriceMin": self.adv_price_min_input.text() or "",
                 "PriceMax": self.adv_price_max_input.text() or "",
                 "OdometerMin": self.adv_km_min_input.text() or "",
                 "OdometerMax": self.adv_km_max_input.text() or "",
+
                 "Exclusions": [x.strip() for x in self.adv_exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.adv_inclusion_input.text(),
             }
@@ -251,6 +252,8 @@ class AutoScraperGUI(QMainWindow):
                 "Proximity": int(self.proximity_input.text()),
                 "YearMin": self.year_min_combo.currentText() or None,
                 "YearMax": self.year_max_combo.currentText() or None,
+
+
                 "PriceMin": self.price_min_input.text() or "",
                 "PriceMax": self.price_max_input.text() or "",
                 "OdometerMin": self.km_min_input.text() or "",
@@ -258,7 +261,6 @@ class AutoScraperGUI(QMainWindow):
                 "Exclusions": [x.strip() for x in self.exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.inclusion_input.text(),
             }
-
 
     def fetch_data(self):
         self.fetch_data_common(advanced=False)
@@ -399,10 +401,12 @@ class AutoScraperGUI(QMainWindow):
         self.price_max_input.setText(str(payload.get("PriceMax", "")))
         self.exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.inclusion_input.setText(payload.get("Inclusion", ""))
+
         self.km_min_input.setText(str(payload.get("KMMin", "")))
         self.km_max_input.setText(str(payload.get("KMMax", "")))
         
         
+
         # Set values for advanced search tab
         self.adv_make_input.setText(payload.get("Make", ""))
         self.adv_model_input.setText(payload.get("Model", ""))
@@ -416,8 +420,7 @@ class AutoScraperGUI(QMainWindow):
         self.adv_inclusion_input.setText(payload.get("Inclusion", ""))
         self.adv_km_min_input.setText(str(payload.get("KMMin", "")))
         self.adv_km_max_input.setText(str(payload.get("KMMax", "")))
-        
-        
+
     def on_item_double_clicked(self, item):
         link = item.text(0)
         if link:
