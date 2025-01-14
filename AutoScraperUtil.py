@@ -12,7 +12,7 @@ import webbrowser
 
 import requests
 
-def open_links_from_csv(file_path, column_name = "Link"):
+def showcarsmain(file_path, column_name = "Link"):
     """
     Opens links from a specified column in a CSV file in Chrome tabs.
 
@@ -47,10 +47,10 @@ def open_links_from_csv(file_path, column_name = "Link"):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def showcarsmain(csv_file_path):
-    # Replace with the path to your CSV file
-    link_column_name = 'Link'  # Replace with the actual column name in your CSV
-    open_links_from_csv(csv_file_path, link_column_name)
+# def showcarsmain(csv_file_path):
+#     # Replace with the path to your CSV file
+#     link_column_name = 'Link'  # Replace with the actual column name in your CSV
+#     open_links_from_csv(csv_file_path, link_column_name)
 
 def parse_html_file(file_path,exclusions = []):
     """
