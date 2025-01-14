@@ -273,6 +273,7 @@ def parse_html_content_to_json(html_content):
         json_end = html_content.rfind("}")
 
         if json_start == -1 or json_end == -1:
+            save_json_to_file(html_content)
             raise ValueError("No JSON-like content found in the HTML content.")
 
         # Convert the extracted content into JSON
@@ -673,11 +674,7 @@ def format_time_ymd_hms(seconds=None):
     if seconds is None:
         seconds = time.time()
 
-    # Get the current time zone's offset
-    #current_time = datetime.now()
-    #offset = current_time.utcoffset()
-
-    # Adjust time to the current time zone
+    
     base_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=seconds)
     local_time = base_time.astimezone()
 

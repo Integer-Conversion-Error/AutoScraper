@@ -421,6 +421,8 @@ class AutoScraperGUI(QMainWindow):
         self.adv_km_min_input.setText(str(payload.get("OdometerMin", "")))
         self.adv_km_max_input.setText(str(payload.get("OdometerMax", "")))
 
+
+
     def on_item_double_clicked(self, item):
         link = item.text(0)
         if link:
