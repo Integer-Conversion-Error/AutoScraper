@@ -115,28 +115,20 @@ def extract_vehicle_info(url):
     """
 
     waitlength = 10
-    USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    ]
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    
 
-    ACCEPT_HEADERS = [
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "text/html,application/json;q=0.9,image/webp,*/*;q=0.8",
-        "application/json, text/javascript, */*; q=0.01",
-    ]
+    ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01",
+   
 
-    REFERERS = [
-        "https://www.google.com/",
-        "https://www.bing.com/",
-        "https://www.yahoo.com/",
-        "https://duckduckgo.com/",
-    ]
+    REFERER = "https://www.google.com/"
+        
 
     headers = {
-        "User-Agent": USER_AGENTS[0],
+        "User-Agent": USER_AGENT,
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept": ACCEPT_HEADERS[2],
-        "Referer": REFERERS[0],
+        "Accept": ACCEPT_HEADER,
+        "Referer": REFERER,
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
     }
