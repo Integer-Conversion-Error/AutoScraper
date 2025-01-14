@@ -643,18 +643,8 @@ def read_json_file(file_path = "output.json"):
         print(f"Unexpected error: {e}")
         return None
     
-def format_time(seconds):
-    """
-    Formats time given in seconds into hours, minutes, and seconds.
 
-    :param seconds: int, time in seconds
-    :return: str, formatted time as "h m s"
-    """
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours}h {minutes}m {seconds:.2f}s"
-
+#USED
 def format_time_ymd_hms(seconds=None):
     """
     Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss"
@@ -675,24 +665,8 @@ def format_time_ymd_hms(seconds=None):
 
     return local_time.strftime("%Y-%m-%d_%H-%M-%S")
 
-def remove_duplicates(arr, excl = []):
-    """
-    Removes duplicates from an array while maintaining the order of elements.
 
-    Args:
-        arr (list): The input array.
-
-    Returns:
-        list: A new array with duplicates removed.
-    """
-    seen = set()
-    result = []
-    for item in arr:
-        if item not in seen:
-            result.append("https://www.autotrader.ca" + item)
-            seen.add(item)
-    return result
-
+#USED
 def remove_duplicates_exclusions(arr, excl=[]):
     """
     Removes duplicates from an array of dictionaries while maintaining the order of elements.
@@ -719,7 +693,9 @@ def remove_duplicates_exclusions(arr, excl=[]):
     result = filter_dicts(result,excl)
     return result
 
-def filter_dicts(data, exclusion_strings):
+
+#USED
+def filter_dicts(data, exclusion_strings): 
     """
     Removes dictionaries from a list if any of their values contain any of the exclusion strings.
 

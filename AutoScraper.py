@@ -38,7 +38,7 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
         "Exclusions": []
     }
     params = {**default_params, **params}
-    exclusions = params["Exclusions"]
+    exclusions = transform_strings(params["Exclusions"]) #cover upper/lower-case
     url = "https://www.autotrader.ca/Refinement/Search"
 
     headers = {
@@ -143,7 +143,7 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    rate_limit_wait = 10 # Seconds to wait before retrying
+    rate_limit_wait = 3 # Seconds to wait before retrying
     max_retries = 12       # Maximum retry attempts for rate limiting
 
     try:
