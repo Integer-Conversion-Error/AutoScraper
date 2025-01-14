@@ -1,15 +1,13 @@
 import sys
 import os
-import threading
 import webbrowser
 import csv
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,  # type: ignore
                              QLabel, QLineEdit, QPushButton, QComboBox, QTabWidget, 
-                             QTreeWidget, QTreeWidgetItem, QFileDialog, QMessageBox,QStatusBar)
+                             QTreeWidget, QTreeWidgetItem, QFileDialog, QMessageBox)
 
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget)
-from PyQt5.QtGui import QPalette, QColor # type: ignore
-from PyQt5.QtCore import Qt, QThread, pyqtSignal # type: ignore
+from PyQt5.QtCore import QThread, pyqtSignal # type: ignore
 
 from AutoScraper import fetch_autotrader_data, save_results_to_csv
 from GetUserSelection import get_models_for_make

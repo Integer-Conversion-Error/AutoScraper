@@ -1,25 +1,26 @@
-
 import concurrent
 import requests,json,csv,time,os
-from concurrent.futures import ThreadPoolExecutor
 from GetUserSelection import get_user_responses
 from AutoScraperUtil import *
-
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import requests
-import json
 
-def fetch_autotrader_data(params): 
+start_time = None
+
+def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
     """
     Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
+    Retries fetching pages if no results are returned.
 
     Args:
         params (dict): Dictionary containing search parameters with default values.
+        max_retries (int): Maximum number of retries for empty responses.
+        retry_delay (int): Delay (in seconds) between retries.
 
     Returns:
         list: Combined list of all results from all pages.
     """
+    global start_time
+    start_time = time.time()
     # Set default values for parameters
     default_params = {
         "Make": "",
@@ -27,7 +28,7 @@ def fetch_autotrader_data(params):
         "Proximity": "-1",
         "PriceMin": 0,
         "PriceMax": 999999,
-        "YearMin": "1950", 
+        "YearMin": "1950",
         "YearMax": "2050",
         "Top": 15,
         "Address": "Kanata, ON",
@@ -39,7 +40,7 @@ def fetch_autotrader_data(params):
     params = {**default_params, **params}
     exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
-    
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -47,45 +48,55 @@ def fetch_autotrader_data(params):
         "Accept-Language": "en-US,en;q=0.9",
     }
 
-    # Determine the total number of pages
+    # Function to fetch a single page with retries
     def fetch_page(page):
-        payload = {
-            "Address": params["Address"],
-            "Proximity": params["Proximity"],
-            "Make": params["Make"],
-            "Model": params["Model"],
-            "PriceMin": params["PriceMin"],
-            "PriceMax": params["PriceMax"],
-            "Skip": page * params["Top"],
-            "Top": params["Top"],
-            "IsNew": params["IsNew"],
-            "IsUsed": params["IsUsed"],
-            "WithPhotos": params["WithPhotos"],
-            "YearMax": params["YearMax"],
-            "YearMin": params["YearMin"],
-            "OdometerMin": params["OdometerMin"],
-            "OdometerMax": params["OdometerMax"],
-            "micrositeType": 1,
-        }
-        try:
-            response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            json_response = response.json()
-            search_results_json = json_response.get("SearchResultsDataJson", "")
-            ad_results_json = json_response.get("AdsHtml", "")
-            if not search_results_json:
-                return []
-            parsed_html_page = parse_html_content(ad_results_json, exclusions)
-            search_results = json.loads(search_results_json)
-            return parsed_html_page, search_results.get("maxPage", 1)
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed for page {page}: {e}")
-            return []
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error on page {page}: {e}")
-            return []
+        for attempt in range(max_retries):
+            payload = {
+                "Address": params["Address"],
+                "Proximity": params["Proximity"],
+                "Make": params["Make"],
+                "Model": params["Model"],
+                "PriceMin": params["PriceMin"],
+                "PriceMax": params["PriceMax"],
+                "Skip": page * params["Top"],
+                "Top": params["Top"],
+                "IsNew": params["IsNew"],
+                "IsUsed": params["IsUsed"],
+                "WithPhotos": params["WithPhotos"],
+                "YearMax": params["YearMax"],
+                "YearMin": params["YearMin"],
+                "OdometerMin": params["OdometerMin"],
+                "OdometerMax": params["OdometerMax"],
+                "micrositeType": 1,
+            }
+            try:
+                response = requests.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                json_response = response.json()
+                search_results_json = json_response.get("SearchResultsDataJson", "")
+                ad_results_json = json_response.get("AdsHtml", "")
+                
+                if not search_results_json:
+                    print(f"No results for page {page} (Attempt {attempt + 1}/{max_retries}). Retrying...")
+                    time.sleep(retry_delay)
+                    continue
 
-    # Fetch the first page to determine the number of pages
+                parsed_html_page = parse_html_content(ad_results_json, exclusions)
+                search_results = json.loads(search_results_json)
+                return parsed_html_page, search_results.get("maxPage", 1)
+            
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed for page {page}: {e}. Retrying...")
+                time.sleep(retry_delay)
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error on page {page}: {e}. Retrying...")
+                time.sleep(retry_delay)
+        
+        # If all retries fail, return an empty result
+        print(f"Failed to fetch page {page} after {max_retries} attempts.")
+        return [], 1
+
+    # Fetch the first page to determine the total number of pages
     initial_results, max_page = fetch_page(0)
     all_results = initial_results
 
@@ -99,33 +110,30 @@ def fetch_autotrader_data(params):
             try:
                 page_results, _ = future.result()
                 all_results.extend(page_results)
-                print(f"Page {page} fetched.")
+                print(f"Page {page} fetched successfully.")
             except Exception as e:
                 print(f"Error fetching page {page}: {e}")
 
     return all_results
 
-
-
 def extract_vehicle_info(url):
     """
-    Extracts the vehicle info
-    Detects rate limiting and raises an error if encountered. 
+    Extracts vehicle info from the provided URL.
+    Detects rate limiting and raises an error if encountered.
 
     Args:
         url (str): The URL to fetch data from.
+
+    Returns:
+        dict: Vehicle information extracted from the URL.
+
+    Raises:
+        Exception: If rate limiting or any other error is encountered.
     """
-
-    waitlength = 10
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
-    
-
     ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01"
-   
-
     REFERER = "https://www.google.com/"
-        
-
+    
     headers = {
         "User-Agent": USER_AGENT,
         "Accept-Language": "en-US,en;q=0.9",
@@ -135,26 +143,47 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
 
+    rate_limit_wait = 10 # Seconds to wait before retrying
+    max_retries = 12       # Maximum retry attempts for rate limiting
+
     try:
-        response = requests.get(url, headers=headers, proxies=None)
-        
-        # Check for rate limiting
-        if response.status_code == 429:
-            raise requests.exceptions.RequestException("Rate limited: HTTP 429 Too Many Requests.")
-        response.raise_for_status()
-        while "Request unsuccessful." in response.text:
-            print("Rate limited: Incapsula says Too Many Requests. Waiting for 10 seconds")
-            for x in reversed(range(waitlength)):
-                time.sleep(1)
-                print(f"Retrying in {x} seconds")
+        for attempt in range(max_retries):
             response = requests.get(url, headers=headers, proxies=None)
-        respjson = parse_html_content_to_json(response.text)#read_json_file()
-        altrespjson = extract_vehicle_info_from_json(respjson)
-        return altrespjson
+            
+            # Check for rate limiting via HTTP status code
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    print(f"Rate limited (HTTP 429). Retrying in {rate_limit_wait} seconds... (Attempt {attempt + 1}/{max_retries})")
+                    time.sleep(rate_limit_wait)
+                    continue
+                else:
+                    raise Exception("Rate limited: HTTP 429 Too Many Requests.")
+
+            response.raise_for_status()  # Raise for other HTTP errors
+            
+            # Check for rate limiting patterns in the response text
+            if "Request unsuccessful." in response.text or "Too Many Requests" in response.text:
+                if attempt < max_retries - 1:
+                    print(f"Rate limited (Response Text). Retrying in {rate_limit_wait} seconds... (Attempt {attempt + 1}/{max_retries})")
+                    time.sleep(rate_limit_wait)
+                    continue
+                else:
+                    raise Exception("Rate limited: Response indicates too many requests.")
+            
+            # Parse the response JSON or HTML content
+            respjson = parse_html_content_to_json(response.text)  # Adjust this to your parsing logic
+            altrespjson = extract_vehicle_info_from_json(respjson)
+            return altrespjson
+        
+        # If all retries fail, raise a final exception
+        raise Exception("Failed to fetch data after multiple attempts due to rate limiting.")
+    
     except requests.exceptions.RequestException as e:
-        return f"An error occurred during the request: {e}"
+        raise Exception(f"An HTTP error occurred: {e}")
     except json.JSONDecodeError as e:
-        return f"Failed to parse JSON: {e}"
+        raise Exception(f"Failed to parse JSON: {e}")
+    except Exception as e:
+        raise Exception(f"An unexpected error occurred: {e}")
 
 def extract_vehicle_info_from_json(json_content):
     """
@@ -220,9 +249,6 @@ def extract_vehicle_info_from_json(json_content):
         print(f"An error occurred while extracting vehicle info: {e}")
         return {}
 
-
-
-
 def save_results_to_csv(data, payload, filename="results.csv"):
     """
     Saves fetched data by processing it using external CSV handling function, with parallelized workers.
@@ -232,6 +258,7 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         payload (dict): Payload containing additional filtering criteria.
         filename (str): Name of the CSV file.
     """
+    global start_time
     allColNames = [
         "Link",
         "Make",
@@ -291,7 +318,7 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         else:
             print(f"Failed to fetch data for {link}")
             return None
-    start_time = time.time()
+    
     # Use ThreadPoolExecutor for parallel processing
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Submit tasks
@@ -313,10 +340,9 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         
     elapsed_time = time.time() - start_time
     print(f"Processed all in {elapsed_time:.2f}s")
-    
+    start_time = 0
     print(f"Results saved to {filename}")
     filter_csv(filename, filename, payload=payload)
-
 
 def main():
     """
@@ -384,8 +410,5 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
-
-
 if __name__ == "__main__":
     main()
-
