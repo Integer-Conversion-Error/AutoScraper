@@ -9,9 +9,9 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget)
 from PyQt5.QtCore import QThread, pyqtSignal # type: ignore
 
-from AutoScraper import fetch_autotrader_data, save_results_to_csv
+from AutoScraper import fetch_autotrader_data, save_results_to_csv#, save_results_to_csv
 from GetUserSelection import get_models_for_make
-from AutoScraperUtil import get_all_makes, read_json_file, save_json_to_file, format_time_ymd_hms
+from AutoScraperUtil import format_time_ymd_hms, get_all_makes, get_trims_for_model, read_json_file, save_json_to_file
 
 class FetchDataThread(QThread):
     finished = pyqtSignal(object)
@@ -65,7 +65,12 @@ class AutoScraperGUI(QMainWindow):
         self.make_combo = QComboBox()
         self.make_combo.addItems(get_all_makes())
         self.make_combo.currentTextChanged.connect(self.update_model_dropdown)
+        
         self.model_combo = QComboBox()
+        self.model_combo.currentTextChanged.connect(self.update_trim_dropdown)
+        
+        self.trim_combo = QComboBox()  # New Trim dropdown
+        
         self.address_input = QLineEdit("Kanata, ON")
         self.proximity_input = QLineEdit("-1")
         self.year_min_combo = QComboBox()
@@ -86,6 +91,7 @@ class AutoScraperGUI(QMainWindow):
         full_width_widgets = [
             ("Make:", self.make_combo),
             ("Model:", self.model_combo),
+            ("Trim:", self.trim_combo),  # New Trim dropdown
             ("Address:", self.address_input),
             ("Proximity (km):", self.proximity_input),
             ("Exclusions (comma-separated):", self.exclusions_input),
@@ -106,8 +112,8 @@ class AutoScraperGUI(QMainWindow):
 
         for label_text, min_widget, max_widget in min_max_widgets:
             layout.addWidget(QLabel(label_text), current_row, 0, 1, 1)
-            layout.addWidget(min_widget, current_row, 1,1,1)
-            layout.addWidget(max_widget, current_row, 2,1,1)
+            layout.addWidget(min_widget, current_row, 1, 1, 1)
+            layout.addWidget(max_widget, current_row, 2, 1, 1)
             current_row += 1
 
         # Buttons
@@ -118,8 +124,6 @@ class AutoScraperGUI(QMainWindow):
         load_payload_button = QPushButton("Load Payload")
         load_payload_button.clicked.connect(self.load_payload)
 
-
-
         layout.addWidget(fetch_button, current_row, 0, 1, 1)
         layout.addWidget(save_payload_button, current_row, 1, 1, 1)
         layout.addWidget(load_payload_button, current_row, 2, 1, 1)
@@ -129,6 +133,24 @@ class AutoScraperGUI(QMainWindow):
             layout.setColumnStretch(i, 1)
 
         self.basic_search_tab.setLayout(layout)
+
+    def update_model_dropdown(self):
+        make = self.make_combo.currentText()
+        self.model_combo.clear()
+        if make:
+            models = get_models_for_make(make)
+            self.model_combo.addItems(list(models.keys()))
+        self.update_trim_dropdown()  # Update trims when model is updated
+
+    def update_trim_dropdown(self):
+        make = self.make_combo.currentText()
+        model = self.model_combo.currentText()
+        self.trim_combo.clear()
+        if make and model:
+            trims = get_trims_for_model(make, model)
+            #TODO: Make trims work for actual payload, multithread the loading process, and add an "All" option.
+            print(make,model,trims)
+            self.trim_combo.addItems(list(trims.keys()))
 
     def setup_advanced_search_tab(self):
         layout = QVBoxLayout(self.advanced_search_tab)

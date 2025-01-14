@@ -1,6 +1,6 @@
 import concurrent
 import requests,json,csv,time,os
-from GetUserSelection import get_user_responses
+from GetUserSelection import get_user_responses,cleaned_input
 from AutoScraperUtil import *
 from concurrent.futures import ThreadPoolExecutor, as_completed
 

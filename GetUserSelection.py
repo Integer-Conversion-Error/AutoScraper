@@ -1,5 +1,5 @@
-
-from AutoScraperUtil import cleaned_input, get_makes_input, get_models_input,transform_strings, get_models_for_make
+from tabulate import tabulate
+from AutoScraperUtil import *
 
 def get_keywords_from_user(kw_type = "exclude"):
     """
@@ -112,6 +112,103 @@ def get_user_responses():
     print(payload)
     return payload
 
+def get_makes_input():
+    """
+    Prompts the user for input and validates it against a list of valid strings,
+    displaying popular options in a tabular format with numeration for each cell.
+
+    :return: str, the validated input matching an item from the list
+    """
+    itemTitle = "Make"
+
+    # Fetch popular car makes initially
+    valid_options = get_all_makes(popular=True)
+    popular = True
+    table_len = 8
+    while True:
+        # Display options in tabular format with numeration for each cell
+        cls()
+        if popular:
+            table = []
+            for idx, option in enumerate(valid_options, start=1):
+                table.append([f"{idx}. {option}"])
+
+            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+            print(formatted_table)
+        else:
+            print("Displaying all available options:")
+            table = []
+            for idx, option in enumerate(valid_options, start=1):
+                table.append([f"{idx}. {option}"])
+
+            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+            print(formatted_table)
+
+        user_input = input(f"Enter {itemTitle} number (-1 to see all options): ").strip()
+
+        # Check if the user wants to see all options
+        if user_input == "-1":
+            popular = False
+            valid_options = get_all_makes(popular=False)
+        elif user_input.isdigit():
+            number = int(user_input)
+            if 1 <= number <= len(valid_options):
+                return valid_options[number - 1]
+            else:
+                print("Invalid number. Please choose a valid number from the list.")
+        else:
+            print("Invalid input. Please enter a valid number or -1 to see all options.")
+
+def get_models_input(models_for_make):
+    """
+    Prompts the user to select a model from the available options for a given make.
+    Displays the models in a tabular format with numeration for each cell.
+
+    :param models_for_make: dict, models as keys and counts as values
+    :return: str, the selected model
+    """
+    itemTitle = "Model"
+    valid_options = list(models_for_make.keys())
+    table_len = 8
+    while True:
+        # Display options in tabular format with numeration for each cell
+        cls()
+        table = []
+        for idx, option in enumerate(valid_options, start=1):
+            table.append([f"{idx}. {option}"])
+
+        formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
+        print(formatted_table)
+
+        user_input = input(f"Enter {itemTitle} number: ").strip()
+
+        if user_input.isdigit():
+            number = int(user_input)
+            if 1 <= number <= len(valid_options):
+                return valid_options[number - 1]
+            else:
+                print("Invalid number. Please choose a valid number from the list.")
+        else:
+            print("Invalid input. Please enter a valid number.")
+            
+def cleaned_input(itemTitle, defaultval, expectedtype):
+    """
+    Prompts the user for input, validates it, and ensures it matches the expected type.
+
+    :param itemTitle: str, title of the item being requested
+    :param defaultval: default value to use if input is empty
+    :param expectedtype: type, the expected type of the input
+    :return: value of the correct type
+    """
+    while True:
+        try:
+            user_input = input(f"Enter {itemTitle} (default: {defaultval}): ")
+            if not user_input.strip():
+                return defaultval
+            value = expectedtype(user_input)
+            return value
+        except ValueError:
+            print(f"Invalid input. Please enter a value of type {expectedtype.__name__}.")
 
 if __name__ == "__main__":
     get_user_responses()
