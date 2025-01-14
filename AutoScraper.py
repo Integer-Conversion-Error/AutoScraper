@@ -6,9 +6,13 @@ from GetUserSelection import get_user_responses
 from AutoScraperUtil import *
 
 
-def fetch_autotrader_data(params):
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+import json
+
+def fetch_autotrader_data(params): 
     """
-    Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
+    Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
 
     Args:
         params (dict): Dictionary containing search parameters with default values.
@@ -30,13 +34,12 @@ def fetch_autotrader_data(params):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
-        "Exclusions" : []
+        "Exclusions": []
     }
-    
     params = {**default_params, **params}
     exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
-
+    
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -44,62 +47,64 @@ def fetch_autotrader_data(params):
         "Accept-Language": "en-US,en;q=0.9",
     }
 
-    all_results = []
-    current_page = 1
-    max_page = None
-    skip = 0
-    parsed_html_ad_info = []
-    
-
-    while True:
+    # Determine the total number of pages
+    def fetch_page(page):
         payload = {
             "Address": params["Address"],
-            "Proximity":params["Proximity"],
+            "Proximity": params["Proximity"],
             "Make": params["Make"],
             "Model": params["Model"],
             "PriceMin": params["PriceMin"],
             "PriceMax": params["PriceMax"],
-            "Skip": skip,
+            "Skip": page * params["Top"],
             "Top": params["Top"],
             "IsNew": params["IsNew"],
             "IsUsed": params["IsUsed"],
             "WithPhotos": params["WithPhotos"],
             "YearMax": params["YearMax"],
             "YearMin": params["YearMin"],
-            "OdometerMin":params["OdometerMin"],
-            "OdometerMax":params["OdometerMax"],
+            "OdometerMin": params["OdometerMin"],
+            "OdometerMax": params["OdometerMax"],
             "micrositeType": 1,
         }
-        
-
         try:
             response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
             json_response = response.json()
             search_results_json = json_response.get("SearchResultsDataJson", "")
-            ad_results_json = json_response.get("AdsHtml","")
+            ad_results_json = json_response.get("AdsHtml", "")
             if not search_results_json:
-                print("No more data available.")
-                break
-            parsed_html_page = parse_html_content(ad_results_json,exclusions)
-            parsed_html_ad_info.extend(parsed_html_page)
+                return []
+            parsed_html_page = parse_html_content(ad_results_json, exclusions)
             search_results = json.loads(search_results_json)
-            all_results.extend(search_results.get("compositeIdUrls", []))
-            current_page = search_results.get("currentPage", 0)
-            max_page = search_results.get("maxPage", current_page)
-            print(f"Fetched page {current_page} of {max_page}...")
-            if current_page >= max_page:
-                print("Reached the last page.")
-                break
-            skip += params["Top"]
-            
+            return parsed_html_page, search_results.get("maxPage", 1)
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            break
+            print(f"Request failed for page {page}: {e}")
+            return []
         except json.JSONDecodeError as e:
-            print(f"Failed to decode SearchResultsDataJson: {e}")
-            break
-    return parsed_html_ad_info
+            print(f"JSON decode error on page {page}: {e}")
+            return []
+
+    # Fetch the first page to determine the number of pages
+    initial_results, max_page = fetch_page(0)
+    all_results = initial_results
+
+    # Fetch remaining pages in parallel
+    with ThreadPoolExecutor() as executor:
+        future_to_page = {
+            executor.submit(fetch_page, page): page for page in range(1, max_page)
+        }
+        for future in as_completed(future_to_page):
+            page = future_to_page[future]
+            try:
+                page_results, _ = future.result()
+                all_results.extend(page_results)
+                print(f"Page {page} fetched.")
+            except Exception as e:
+                print(f"Error fetching page {page}: {e}")
+
+    return all_results
+
 
 
 def extract_vehicle_info(url):
