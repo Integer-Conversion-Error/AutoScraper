@@ -1,15 +1,10 @@
 import ast
 import csv
-
 import json
 import os
 from tabulate import tabulate
 from bs4 import BeautifulSoup
-
-
-import csv
 import webbrowser
-
 import requests
 
 def showcarsmain(file_path, column_name = "Link"):
