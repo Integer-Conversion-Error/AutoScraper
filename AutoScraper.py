@@ -339,7 +339,7 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         writer.writerows(results)
         
     elapsed_time = time.time() - start_time
-    print(f"Processed all in {elapsed_time:.2f}s")
+    print(f"Processed all in {elapsed_time:.4f}s")
     start_time = 0
     print(f"Results saved to {filename}")
     filter_csv(filename, filename, payload=payload)
