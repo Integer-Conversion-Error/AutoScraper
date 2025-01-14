@@ -26,8 +26,8 @@ class FetchDataThread(QThread):
     def run(self):
         try:
             results = fetch_autotrader_data(self.payload)
-            print(f"Type of results: {type(results)}")
-            print(f"Content of results: {results[:500] if isinstance(results, str) else results}")
+            #print(f"Type of results: {type(results)}")
+            #print(f"Content of results: {results[:500] if isinstance(results, str) else results}")
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))

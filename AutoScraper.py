@@ -1,8 +1,7 @@
 
-import requests
-import json
-import csv,time,os
-
+import concurrent
+import requests,json,csv,time,os
+from concurrent.futures import ThreadPoolExecutor
 from GetUserSelection import get_user_responses
 from AutoScraperUtil import *
 
@@ -33,9 +32,7 @@ def fetch_autotrader_data(params):
         "WithPhotos": True,
         "Exclusions" : []
     }
-    #measut baris
-
-    # Update default values with provided parameters
+    
     params = {**default_params, **params}
     exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
@@ -115,10 +112,10 @@ def extract_vehicle_info(url):
     """
 
     waitlength = 10
-    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
     
 
-    ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01",
+    ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01"
    
 
     REFERER = "https://www.google.com/"
@@ -219,16 +216,17 @@ def extract_vehicle_info_from_json(json_content):
         return {}
 
 
-def save_results_to_csv(data, payload,filename="results.csv"):
-    """
-    Saves fetched data by processing it using external CSV handling function.
 
+
+def save_results_to_csv(data, payload, filename="results.csv"):
+    """
+    Saves fetched data by processing it using external CSV handling function, with parallelized workers.
+    
     Args:
         data (list): List of links to save.
+        payload (dict): Payload containing additional filtering criteria.
         filename (str): Name of the CSV file.
     """
-    countofcars = 0
-    cartimes = []
     allColNames = [
         "Link",
         "Make",
@@ -249,52 +247,71 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "City Fuel Economy",
         "Hwy Fuel Economy"
     ]
-    sleeptime = 2 
+    
+    def process_link(item):
+        """
+        Worker function to process each link.
+        
+        Args:
+            item (dict): Dictionary containing link information.
+        
+        Returns:
+            list: Processed row for CSV or None if extraction fails.
+        """
+        link = item["link"]
+        
+        car_info = extract_vehicle_info(url=link)
+        if car_info:
+            
+            return [
+                link,
+                car_info.get("Make", ""),
+                car_info.get("Model", ""),
+                car_info.get("Year", ""),
+                car_info.get("Trim", ""),
+                car_info.get("Price", ""),
+                car_info.get("Drivetrain", ""),
+                car_info.get("Kilometres", ""),
+                car_info.get("Status", ""),
+                car_info.get("Body Type", ""),
+                car_info.get("Engine", ""),
+                car_info.get("Cylinder", ""),
+                car_info.get("Transmission", ""),
+                car_info.get("Exterior Colour", ""),
+                car_info.get("Doors", ""),
+                car_info.get("Fuel Type", ""),
+                car_info.get("City Fuel Economy", ""),
+                car_info.get("Hwy Fuel Economy", "")
+            ]
+        else:
+            print(f"Failed to fetch data for {link}")
+            return None
+    start_time = time.time()
+    # Use ThreadPoolExecutor for parallel processing
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit tasks
+        futures = [executor.submit(process_link, item) for item in data]
+        
+        # Collect results
+        results = []
+        for future in concurrent.futures.as_completed(futures):
+            row = future.result()
+            if row:
+                results.append(row)
+    
+    # Write to CSV after all workers finish
+    
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(allColNames)  # Write the header
-        if len(data) <= 2500:
-            sleeptime = 0
-        for item in data:
-            startTime = time.time()
-            link = item["link"]
-            car_info = extract_vehicle_info(url=link)
-            time.sleep(sleeptime)
-            if car_info:
-                # Write the row with additional columns
-                countofcars+=1
-                writer.writerow([link,
-                    car_info.get("Make", ""),
-                    car_info.get("Model", ""),
-                    car_info.get("Year", ""),
-                    car_info.get("Trim", ""),
-                    car_info.get("Price",""),
-                    car_info.get("Drivetrain", ""),
-                    car_info.get("Kilometres", ""),
-                    car_info.get("Status", ""),
-                    car_info.get("Body Type", ""),
-                    car_info.get("Engine", ""),
-                    car_info.get("Cylinder", ""),
-                    car_info.get("Transmission", ""),
-                    car_info.get("Exterior Colour",""),
-                    car_info.get("Doors",""),
-                    car_info.get("Fuel Type", ""),
-                    car_info.get("City Fuel Economy",""),
-                    car_info.get("Hwy Fuel Economy","")
-                ])
-            else: 
-                print(f"No valid data found for {link}")
-                os.abort()
-            opTime = time.time() - startTime
-            averagetime = 0
-            cartimes.append(opTime)
-            for cartime in cartimes:
-                averagetime += cartime
-            averagetime /= float(len(cartimes))
-            cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+        writer.writerows(results)
+        
+    elapsed_time = time.time() - start_time
+    print(f"Processed all in {elapsed_time:.2f}s")
+    
     print(f"Results saved to {filename}")
-    filter_csv(filename,filename,payload=payload)
+    filter_csv(filename, filename, payload=payload)
+
 
 def main():
     """
