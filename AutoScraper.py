@@ -52,6 +52,7 @@ def fetch_autotrader_data(params):
     max_page = None
     skip = 0
     parsed_html_ad_info = []
+    
 
     while True:
         payload = {
@@ -68,8 +69,11 @@ def fetch_autotrader_data(params):
             "WithPhotos": params["WithPhotos"],
             "YearMax": params["YearMax"],
             "YearMin": params["YearMin"],
+            "OdometerMin":params["OdometerMin"],
+            "OdometerMax":params["OdometerMax"],
             "micrositeType": 1,
         }
+        
 
         try:
             response = requests.post(url, headers=headers, json=payload)
@@ -158,77 +162,6 @@ def extract_vehicle_info(url):
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
 
-# def extract_vehicle_info_from_nested_json(json_content):
-#     """
-#     Extracts vehicle information from a nested JSON object structure.
-
-#     Args:
-#         json_content (dict): The JSON content as a dictionary.
-
-#     Returns:
-#         dict: A dictionary containing extracted vehicle details.
-#     """
-#     try:
-#         # Initialize an empty dictionary for vehicle information
-#         vehicle_info = {}
-
-#         # Define all required keys
-#         required_keys = [
-#             "Make",
-#             "Model",
-#             "Trim",
-#             "Price",
-#             "Drivetrain",
-#             "Kilometres",
-#             "Status",
-#             "Body Type",
-#             "Engine",
-#             "Cylinder",
-#             "Transmission",
-#             "Exterior Colour",
-#             "Doors",
-#             "Fuel Type",
-#             "City Fuel Economy",
-#             "Hwy Fuel Economy"
-#         ]
-
-#         # Extract from hero section
-#         hero = json_content.get("hero", {})
-#         vehicle_info.update({
-#             "Make": hero.get("make", ""),
-#             "Model": hero.get("model", ""),
-#             "Trim": hero.get("trim", ""),
-#             "Price": convert_km_to_double(hero.get("price", "")),
-#             "Kilometres": hero.get("mileage", ""),
-#             "Drivetrain": hero.get("drivetrain", ""),
-#         })
-
-#         # Extract specifications
-#         specs = json_content.get("specifications", {}).get("specs", [])
-#         for spec in specs:
-#             key = spec.get("key", "")
-#             value = spec.get("value", "")
-#             if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
-#                 vehicle_info[key] = value
-#             elif "Fuel Economy" in key:
-#                 vehicle_info[key] = value.split("L")[0]
-#             elif "Kilometres" in key:
-#                 vehicle_info[key] = convert_km_to_double(value)
-#             elif "Price" in key:
-#                 vehicle_info[key] = float(value.replace(",",""))
-
-#         # Identify missing keys
-#         # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
-
-#         # if missing_keys:
-#         #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
-
-#         return vehicle_info
-
-#     except Exception as e:
-#         print(f"An error occurred while extracting vehicle info: {e}")
-#         return {}
-
 def extract_vehicle_info_from_json(json_content):
     """
     Extracts vehicle information from a JSON object.
@@ -239,7 +172,7 @@ def extract_vehicle_info_from_json(json_content):
     Returns:
         dict: A dictionary containing extracted vehicle details.
     """
-    save_json_to_file(json_content=json_content)
+    #save_json_to_file(json_content=json_content)
     try:
         # Map of keys to extract from Specifications
         vehicle_info = {}
@@ -256,7 +189,6 @@ def extract_vehicle_info_from_json(json_content):
 
         keys_to_extract = {
             "Kilometres": "Kilometres",
-            # "Year": "Year",
             "Status": "Status",
             "Trim": "Trim",
             "Body Type": "Body Type",
@@ -285,16 +217,10 @@ def extract_vehicle_info_from_json(json_content):
             elif "Kilometres" in key:
                 vehicle_info[keys_to_extract[key]] = convert_km_to_double(value)
             
-
-        # Ensure all required keys are present
         for required_key in keys_to_extract.values():
             if required_key not in vehicle_info:
                 vehicle_info[required_key] = ""
                 
-        
-        # missing_keys = [key for key in keys_to_extract.keys() if key not in vehicle_info or not vehicle_info[key]]
-        # if missing_keys:
-        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
         return vehicle_info
     except Exception as e:
         print(f"An error occurred while extracting vehicle info: {e}")
@@ -377,10 +303,6 @@ def save_results_to_csv(data, payload,filename="results.csv"):
             print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
     print(f"Results saved to {filename}")
     filter_csv(filename,filename,payload=payload)
-
-
-
-
 
 def main():
     """

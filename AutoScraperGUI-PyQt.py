@@ -402,8 +402,8 @@ class AutoScraperGUI(QMainWindow):
         self.exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.inclusion_input.setText(payload.get("Inclusion", ""))
 
-        self.km_min_input.setText(str(payload.get("KMMin", "")))
-        self.km_max_input.setText(str(payload.get("KMMax", "")))
+        self.km_min_input.setText(str(payload.get("OdometerMin", "")))
+        self.km_max_input.setText(str(payload.get("OdometerMax", "")))
         
         
 
@@ -418,8 +418,8 @@ class AutoScraperGUI(QMainWindow):
         self.adv_price_max_input.setText(str(payload.get("PriceMax", "")))
         self.adv_exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.adv_inclusion_input.setText(payload.get("Inclusion", ""))
-        self.adv_km_min_input.setText(str(payload.get("KMMin", "")))
-        self.adv_km_max_input.setText(str(payload.get("KMMax", "")))
+        self.adv_km_min_input.setText(str(payload.get("OdometerMin", "")))
+        self.adv_km_max_input.setText(str(payload.get("OdometerMax", "")))
 
     def on_item_double_clicked(self, item):
         link = item.text(0)
