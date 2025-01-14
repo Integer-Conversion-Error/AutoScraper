@@ -1,15 +1,18 @@
 
-import requests
-import json
-import csv,time,os
-
+import concurrent
+import requests,json,csv,time,os
+from concurrent.futures import ThreadPoolExecutor
 from GetUserSelection import get_user_responses
 from AutoScraperUtil import *
 
 
-def fetch_autotrader_data(params):
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+import json
+
+def fetch_autotrader_data(params): 
     """
-    Continuously fetch data from AutoTrader.ca API with lazy loading (pagination).
+    Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
 
     Args:
         params (dict): Dictionary containing search parameters with default values.
@@ -31,15 +34,12 @@ def fetch_autotrader_data(params):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
-        "Exclusions" : []
+        "Exclusions": []
     }
-    #measut baris
-
-    # Update default values with provided parameters
     params = {**default_params, **params}
     exclusions = params["Exclusions"]
     url = "https://www.autotrader.ca/Refinement/Search"
-
+    
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -47,58 +47,64 @@ def fetch_autotrader_data(params):
         "Accept-Language": "en-US,en;q=0.9",
     }
 
-    all_results = []
-    current_page = 1
-    max_page = None
-    skip = 0
-    parsed_html_ad_info = []
-
-    while True:
+    # Determine the total number of pages
+    def fetch_page(page):
         payload = {
             "Address": params["Address"],
-            "Proximity":params["Proximity"],
+            "Proximity": params["Proximity"],
             "Make": params["Make"],
             "Model": params["Model"],
             "PriceMin": params["PriceMin"],
             "PriceMax": params["PriceMax"],
-            "Skip": skip,
+            "Skip": page * params["Top"],
             "Top": params["Top"],
             "IsNew": params["IsNew"],
             "IsUsed": params["IsUsed"],
             "WithPhotos": params["WithPhotos"],
             "YearMax": params["YearMax"],
             "YearMin": params["YearMin"],
+            "OdometerMin": params["OdometerMin"],
+            "OdometerMax": params["OdometerMax"],
             "micrositeType": 1,
         }
-
         try:
             response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
             json_response = response.json()
             search_results_json = json_response.get("SearchResultsDataJson", "")
-            ad_results_json = json_response.get("AdsHtml","")
+            ad_results_json = json_response.get("AdsHtml", "")
             if not search_results_json:
-                print("No more data available.")
-                break
-            parsed_html_page = parse_html_content(ad_results_json,exclusions)
-            parsed_html_ad_info.extend(parsed_html_page)
+                return []
+            parsed_html_page = parse_html_content(ad_results_json, exclusions)
             search_results = json.loads(search_results_json)
-            all_results.extend(search_results.get("compositeIdUrls", []))
-            current_page = search_results.get("currentPage", 0)
-            max_page = search_results.get("maxPage", current_page)
-            print(f"Fetched page {current_page} of {max_page}...")
-            if current_page >= max_page:
-                print("Reached the last page.")
-                break
-            skip += params["Top"]
-            
+            return parsed_html_page, search_results.get("maxPage", 1)
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            break
+            print(f"Request failed for page {page}: {e}")
+            return []
         except json.JSONDecodeError as e:
-            print(f"Failed to decode SearchResultsDataJson: {e}")
-            break
-    return parsed_html_ad_info
+            print(f"JSON decode error on page {page}: {e}")
+            return []
+
+    # Fetch the first page to determine the number of pages
+    initial_results, max_page = fetch_page(0)
+    all_results = initial_results
+
+    # Fetch remaining pages in parallel
+    with ThreadPoolExecutor() as executor:
+        future_to_page = {
+            executor.submit(fetch_page, page): page for page in range(1, max_page)
+        }
+        for future in as_completed(future_to_page):
+            page = future_to_page[future]
+            try:
+                page_results, _ = future.result()
+                all_results.extend(page_results)
+                print(f"Page {page} fetched.")
+            except Exception as e:
+                print(f"Error fetching page {page}: {e}")
+
+    return all_results
+
 
 
 def extract_vehicle_info(url):
@@ -111,28 +117,20 @@ def extract_vehicle_info(url):
     """
 
     waitlength = 10
-    USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    ]
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+    
 
-    ACCEPT_HEADERS = [
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "text/html,application/json;q=0.9,image/webp,*/*;q=0.8",
-        "application/json, text/javascript, */*; q=0.01",
-    ]
+    ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01"
+   
 
-    REFERERS = [
-        "https://www.google.com/",
-        "https://www.bing.com/",
-        "https://www.yahoo.com/",
-        "https://duckduckgo.com/",
-    ]
+    REFERER = "https://www.google.com/"
+        
 
     headers = {
-        "User-Agent": USER_AGENTS[0],
+        "User-Agent": USER_AGENT,
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept": ACCEPT_HEADERS[2],
-        "Referer": REFERERS[0],
+        "Accept": ACCEPT_HEADER,
+        "Referer": REFERER,
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
     }
@@ -157,77 +155,6 @@ def extract_vehicle_info(url):
         return f"An error occurred during the request: {e}"
     except json.JSONDecodeError as e:
         return f"Failed to parse JSON: {e}"
-
-# def extract_vehicle_info_from_nested_json(json_content):
-#     """
-#     Extracts vehicle information from a nested JSON object structure.
-
-#     Args:
-#         json_content (dict): The JSON content as a dictionary.
-
-#     Returns:
-#         dict: A dictionary containing extracted vehicle details.
-#     """
-#     try:
-#         # Initialize an empty dictionary for vehicle information
-#         vehicle_info = {}
-
-#         # Define all required keys
-#         required_keys = [
-#             "Make",
-#             "Model",
-#             "Trim",
-#             "Price",
-#             "Drivetrain",
-#             "Kilometres",
-#             "Status",
-#             "Body Type",
-#             "Engine",
-#             "Cylinder",
-#             "Transmission",
-#             "Exterior Colour",
-#             "Doors",
-#             "Fuel Type",
-#             "City Fuel Economy",
-#             "Hwy Fuel Economy"
-#         ]
-
-#         # Extract from hero section
-#         hero = json_content.get("hero", {})
-#         vehicle_info.update({
-#             "Make": hero.get("make", ""),
-#             "Model": hero.get("model", ""),
-#             "Trim": hero.get("trim", ""),
-#             "Price": convert_km_to_double(hero.get("price", "")),
-#             "Kilometres": hero.get("mileage", ""),
-#             "Drivetrain": hero.get("drivetrain", ""),
-#         })
-
-#         # Extract specifications
-#         specs = json_content.get("specifications", {}).get("specs", [])
-#         for spec in specs:
-#             key = spec.get("key", "")
-#             value = spec.get("value", "")
-#             if key in required_keys and "Fuel Economy" not in key and "Kilometres" not in key and "Price" not in key:
-#                 vehicle_info[key] = value
-#             elif "Fuel Economy" in key:
-#                 vehicle_info[key] = value.split("L")[0]
-#             elif "Kilometres" in key:
-#                 vehicle_info[key] = convert_km_to_double(value)
-#             elif "Price" in key:
-#                 vehicle_info[key] = float(value.replace(",",""))
-
-#         # Identify missing keys
-#         # missing_keys = [key for key in required_keys if key not in vehicle_info or not vehicle_info[key]]
-
-#         # if missing_keys:
-#         #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
-
-#         return vehicle_info
-
-#     except Exception as e:
-#         print(f"An error occurred while extracting vehicle info: {e}")
-#         return {}
 
 def extract_vehicle_info_from_json(json_content):
     """
@@ -256,7 +183,6 @@ def extract_vehicle_info_from_json(json_content):
 
         keys_to_extract = {
             "Kilometres": "Kilometres",
-            # "Year": "Year",
             "Status": "Status",
             "Trim": "Trim",
             "Body Type": "Body Type",
@@ -285,32 +211,27 @@ def extract_vehicle_info_from_json(json_content):
             elif "Kilometres" in key:
                 vehicle_info[keys_to_extract[key]] = convert_km_to_double(value)
             
-
-        # Ensure all required keys are present
         for required_key in keys_to_extract.values():
             if required_key not in vehicle_info:
                 vehicle_info[required_key] = ""
                 
-        
-        # missing_keys = [key for key in keys_to_extract.keys() if key not in vehicle_info or not vehicle_info[key]]
-        # if missing_keys:
-        #     print(f"Missing keys with no values: {', '.join(missing_keys)}")
         return vehicle_info
     except Exception as e:
         print(f"An error occurred while extracting vehicle info: {e}")
         return {}
 
 
-def save_results_to_csv(data, payload,filename="results.csv"):
-    """
-    Saves fetched data by processing it using external CSV handling function.
 
+
+def save_results_to_csv(data, payload, filename="results.csv"):
+    """
+    Saves fetched data by processing it using external CSV handling function, with parallelized workers.
+    
     Args:
         data (list): List of links to save.
+        payload (dict): Payload containing additional filtering criteria.
         filename (str): Name of the CSV file.
     """
-    countofcars = 0
-    cartimes = []
     allColNames = [
         "Link",
         "Make",
@@ -331,55 +252,70 @@ def save_results_to_csv(data, payload,filename="results.csv"):
         "City Fuel Economy",
         "Hwy Fuel Economy"
     ]
-    sleeptime = 2 
+    
+    def process_link(item):
+        """
+        Worker function to process each link.
+        
+        Args:
+            item (dict): Dictionary containing link information.
+        
+        Returns:
+            list: Processed row for CSV or None if extraction fails.
+        """
+        link = item["link"]
+        
+        car_info = extract_vehicle_info(url=link)
+        if car_info:
+            
+            return [
+                link,
+                car_info.get("Make", ""),
+                car_info.get("Model", ""),
+                car_info.get("Year", ""),
+                car_info.get("Trim", ""),
+                car_info.get("Price", ""),
+                car_info.get("Drivetrain", ""),
+                car_info.get("Kilometres", ""),
+                car_info.get("Status", ""),
+                car_info.get("Body Type", ""),
+                car_info.get("Engine", ""),
+                car_info.get("Cylinder", ""),
+                car_info.get("Transmission", ""),
+                car_info.get("Exterior Colour", ""),
+                car_info.get("Doors", ""),
+                car_info.get("Fuel Type", ""),
+                car_info.get("City Fuel Economy", ""),
+                car_info.get("Hwy Fuel Economy", "")
+            ]
+        else:
+            print(f"Failed to fetch data for {link}")
+            return None
+    start_time = time.time()
+    # Use ThreadPoolExecutor for parallel processing
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit tasks
+        futures = [executor.submit(process_link, item) for item in data]
+        
+        # Collect results
+        results = []
+        for future in concurrent.futures.as_completed(futures):
+            row = future.result()
+            if row:
+                results.append(row)
+    
+    # Write to CSV after all workers finish
+    
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(allColNames)  # Write the header
-        if len(data) <= 2500:
-            sleeptime = 0
-        for item in data:
-            startTime = time.time()
-            link = item["link"]
-            car_info = extract_vehicle_info(url=link)
-            time.sleep(sleeptime)
-            if car_info:
-                # Write the row with additional columns
-                countofcars+=1
-                writer.writerow([link,
-                    car_info.get("Make", ""),
-                    car_info.get("Model", ""),
-                    car_info.get("Year", ""),
-                    car_info.get("Trim", ""),
-                    car_info.get("Price",""),
-                    car_info.get("Drivetrain", ""),
-                    car_info.get("Kilometres", ""),
-                    car_info.get("Status", ""),
-                    car_info.get("Body Type", ""),
-                    car_info.get("Engine", ""),
-                    car_info.get("Cylinder", ""),
-                    car_info.get("Transmission", ""),
-                    car_info.get("Exterior Colour",""),
-                    car_info.get("Doors",""),
-                    car_info.get("Fuel Type", ""),
-                    car_info.get("City Fuel Economy",""),
-                    car_info.get("Hwy Fuel Economy","")
-                ])
-            else: 
-                print(f"No valid data found for {link}")
-                os.abort()
-            opTime = time.time() - startTime
-            averagetime = 0
-            cartimes.append(opTime)
-            for cartime in cartimes:
-                averagetime += cartime
-            averagetime /= float(len(cartimes))
-            cls()
-            print(f"{len(cartimes)}/{len(data)}\tTotal time: {opTime:.2f}s\tAverage time: {averagetime:.2f}\tETA:{format_time(averagetime*((len(data)) - len(cartimes)))}")
+        writer.writerows(results)
+        
+    elapsed_time = time.time() - start_time
+    print(f"Processed all in {elapsed_time:.2f}s")
+    
     print(f"Results saved to {filename}")
-    filter_csv(filename,filename,payload=payload)
-
-
-
+    filter_csv(filename, filename, payload=payload)
 
 
 def main():

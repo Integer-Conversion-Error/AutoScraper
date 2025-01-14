@@ -26,8 +26,8 @@ class FetchDataThread(QThread):
     def run(self):
         try:
             results = fetch_autotrader_data(self.payload)
-            print(f"Type of results: {type(results)}")
-            print(f"Content of results: {results[:500] if isinstance(results, str) else results}")
+            #print(f"Type of results: {type(results)}")
+            #print(f"Content of results: {results[:500] if isinstance(results, str) else results}")
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))
@@ -419,7 +419,9 @@ class AutoScraperGUI(QMainWindow):
         self.adv_exclusions_input.setText(",".join(payload.get("Exclusions", [])))
         self.adv_inclusion_input.setText(payload.get("Inclusion", ""))
         self.adv_km_min_input.setText(str(payload.get("OdometerMin", "")))
-        self.adv_km_max_input.setText(str(payload.get("OdometerMin", "")))
+        self.adv_km_max_input.setText(str(payload.get("OdometerMax", "")))
+
+
 
     def on_item_double_clicked(self, item):
         link = item.text(0)
