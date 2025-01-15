@@ -253,12 +253,31 @@ class AutoScraperGUI(QMainWindow):
         self.current_csv_file = None  # To keep track of the currently loaded CSV file
 
     def load_csv_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Load CSV File", "", "CSV Files (*.csv)")
+        # Set the base directory to ~/Documents/AutoScraper/Results
+        base_directory = os.path.expanduser("~/Documents/AutoScraper/Results")
+        
+        # Open the file dialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load CSV File",
+            base_directory,
+            "CSV Files (*.csv)"
+        )
+        
         if file_path:
-            self.current_csv_file = file_path
+            # The load_csv_to_tree method now handles setting self.current_csv_file
             self.load_csv_to_tree(file_path)
 
-    def load_csv_to_tree(self, csv_filename):
+    def load_csv_to_tree(self, csv_filename=None):
+        if csv_filename is None:
+            # If no filename is provided, open a file dialog
+            base_directory = os.path.expanduser("~/Documents/AutoScraper/Results")
+            csv_filename, _ = QFileDialog.getOpenFileName(
+                self, "Load CSV File", base_directory, "CSV Files (*.csv)"
+            )
+            if not csv_filename:  # User cancelled the dialog
+                return
+
         self.results_tree.clear()
         
         # Define column names
@@ -281,11 +300,15 @@ class AutoScraperGUI(QMainWindow):
                         item.setText(i, str(row.get(col_name, "")))
             
             # Resize columns to content
-            for i in range(1,len(allColNames)):
+            for i in range(len(allColNames)):
                 self.results_tree.resizeColumnToContents(i)
-            self.current_csv_file = csv_filename
+            
             self.tab_widget.setCurrentWidget(self.results_tab)
             QMessageBox.information(self, "Success", f"CSV file loaded: {csv_filename}")
+
+            # Store the current CSV file path
+            self.current_csv_file = csv_filename
+
         except Exception as e:
             QMessageBox.warning(self, "Warning", f"Failed to load CSV: {str(e)}")
 
@@ -364,7 +387,7 @@ class AutoScraperGUI(QMainWindow):
         self.results_tree.clear()
         for result in results:
             if isinstance(result, dict):
-                result["link"] = "https://www.autotrader.ca" + result["link"]
+                #result["link"] = "https://www.autotrader.ca" + result["link"]
                 item = QTreeWidgetItem(self.results_tree)
                 item.setText(0, str(result.get("link", "")))
                 item.setText(1, str(result.get("Make", "")))
@@ -384,20 +407,22 @@ class AutoScraperGUI(QMainWindow):
         payload = self.get_payload(self.tab_widget.currentIndex() == 1)  # Check if we're on the advanced tab
 
         # Create folder and filename for results
-        foldernamestr = f"Results/{payload['Make']}_{payload['Model']}"
-        if not os.path.exists(foldernamestr):
-            os.makedirs(foldernamestr)
-        filenamestr = (
-            f"{foldernamestr}/{payload['YearMin']}-{payload['YearMax']}_"
+        base_directory = os.path.expanduser("~/Documents/AutoScraper")
+        results_directory = os.path.join(base_directory, "Results", payload['Make'], payload['Model'])
+        os.makedirs(results_directory, exist_ok=True)
+
+        filename = (
+            f"{payload['YearMin']}-{payload['YearMax']}_"
             f"{payload['PriceMin']}-{payload['PriceMax']}_{format_time_ymd_hms()}.csv"
         )
+        full_path = os.path.join(results_directory, filename)
 
         # Save results to CSV
         try:
             if isinstance(results, list) and all(isinstance(item, dict) for item in results):
-                save_results_to_csv(results, payload, filename=filenamestr)
-                self.load_csv_to_tree(filenamestr)
-                QMessageBox.information(self, "Success", f"Results saved to {filenamestr}")
+                save_results_to_csv(results, payload, filename=full_path)
+                self.load_csv_to_tree(full_path)
+                QMessageBox.information(self, "Success", f"Results saved to {full_path}")
                 
             else:
                 raise ValueError("Results are not in the expected format (list of dictionaries)")

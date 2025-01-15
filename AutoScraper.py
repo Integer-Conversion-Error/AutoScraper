@@ -122,7 +122,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
             except Exception as e:
                 print(f"Error fetching page {page}: {e}")
 
-    return all_results
+    return remove_duplicates_exclusions(all_results,params["Exclusions"])
 
 def extract_vehicle_info(url):
     """
