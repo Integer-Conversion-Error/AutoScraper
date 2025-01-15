@@ -240,6 +240,55 @@ class AutoScraperGUI(QMainWindow):
         self.results_tree.itemDoubleClicked.connect(self.on_item_double_clicked)
         layout.addWidget(self.results_tree)
 
+        # Add buttons for loading and saving CSV
+        button_layout = QHBoxLayout()
+        load_csv_button = QPushButton("Load CSV")
+        load_csv_button.clicked.connect(self.load_csv_file)
+        save_csv_button = QPushButton("Save CSV")
+        save_csv_button.clicked.connect(self.save_csv_file)
+        button_layout.addWidget(load_csv_button)
+        button_layout.addWidget(save_csv_button)
+        layout.addLayout(button_layout)
+
+        self.current_csv_file = None  # To keep track of the currently loaded CSV file
+
+    def load_csv_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Load CSV File", "", "CSV Files (*.csv)")
+        if file_path:
+            self.current_csv_file = file_path
+            self.load_csv_to_tree(file_path)
+
+    def load_csv_to_tree(self, csv_filename):
+        self.results_tree.clear()
+        
+        # Define column names
+        allColNames = [
+            "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain", "Kilometres", "Status",
+            "Body Type", "Engine", "Cylinder", "Transmission", "Exterior Colour", "Doors",
+            "Fuel Type", "City Fuel Economy", "Hwy Fuel Economy"
+        ]
+        
+        # Set the column headers
+        self.results_tree.setColumnCount(len(allColNames))
+        self.results_tree.setHeaderLabels(allColNames)
+        
+        try:
+            with open(csv_filename, 'r', newline='', encoding='utf-8') as csvfile:
+                csv_reader = csv.DictReader(csvfile)
+                for row in csv_reader:
+                    item = QTreeWidgetItem(self.results_tree)
+                    for i, col_name in enumerate(allColNames):
+                        item.setText(i, str(row.get(col_name, "")))
+            
+            # Resize columns to content
+            for i in range(1,len(allColNames)):
+                self.results_tree.resizeColumnToContents(i)
+            self.current_csv_file = csv_filename
+            self.tab_widget.setCurrentWidget(self.results_tab)
+            QMessageBox.information(self, "Success", f"CSV file loaded: {csv_filename}")
+        except Exception as e:
+            QMessageBox.warning(self, "Warning", f"Failed to load CSV: {str(e)}")
+
     def update_model_dropdown(self):
         make = self.make_combo.currentText()
         self.model_combo.clear()
@@ -358,35 +407,7 @@ class AutoScraperGUI(QMainWindow):
         # Update the GUI to show we're done fetching
         self.statusBar().showMessage("Data fetching completed")
 
-    def load_csv_to_tree(self, csv_filename):
-        self.results_tree.clear()
-        
-        # Define column names
-        allColNames = [
-            "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain", "Kilometres", "Status",
-            "Body Type", "Engine", "Cylinder", "Transmission", "Exterior Colour", "Doors",
-            "Fuel Type", "City Fuel Economy", "Hwy Fuel Economy"
-        ]
-        
-        # Set the column headers
-        self.results_tree.setColumnCount(len(allColNames))
-        self.results_tree.setHeaderLabels(allColNames)
-        
-        try:
-            with open(csv_filename, 'r', newline='', encoding='utf-8') as csvfile:
-                csv_reader = csv.DictReader(csvfile)
-                for row in csv_reader:
-                    item = QTreeWidgetItem(self.results_tree)
-                    for i, col_name in enumerate(allColNames):
-                        item.setText(i, str(row.get(col_name, "")))
-            
-            # Resize columns to content
-            for i in range(1,len(allColNames)):
-                self.results_tree.resizeColumnToContents(i)
-            
-            self.tab_widget.setCurrentWidget(self.results_tab)
-        except Exception as e:
-            QMessageBox.warning(self, "Warning", f"Failed to load CSV: {str(e)}")
+    
             
             
     def on_fetch_error(self, error_message):
@@ -401,18 +422,46 @@ class AutoScraperGUI(QMainWindow):
 
     def save_payload_common(self, advanced):
         payload = self.get_payload(advanced)
+        base_directory = os.path.expanduser("~/Documents/AutoScraper")
+        specific_directory = os.path.join(base_directory, "Queries")
+        
+        # Create the directory if it doesn't exist
+        os.makedirs(specific_directory, exist_ok=True)
+
+        # Create a QFileDialog instance
+        dialog = QFileDialog(self)
+        dialog.setDirectory(specific_directory)
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setNameFilter("JSON Files (*.json)")
+        dialog.setDefaultSuffix("json")
+        
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Payload", "", "JSON Files (*.json)")
         if file_path:
             save_json_to_file(payload, file_path)
             QMessageBox.information(self, "Success", f"Payload saved to {file_path}")
 
     def load_payload(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Load Payload", "", "JSON Files (*.json)")
+        # Expand the user's home directory and create the full path
+        default_dir = os.path.expanduser("~/Documents/AutoScraper/Queries")
+        
+        # Ensure the directory exists
+        os.makedirs(default_dir, exist_ok=True)
+
+        # Open the file dialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load Payload",
+            default_dir,
+            "JSON Files (*.json)"
+        )
+
         if file_path:
             payload = read_json_file(file_path)
             if payload:
                 self.set_payload_values(payload)
                 QMessageBox.information(self, "Success", f"Payload loaded from {file_path}")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to load payload. The file might be empty")
 
     def set_payload_values(self, payload):
         # Set values for basic search tab
@@ -449,7 +498,69 @@ class AutoScraperGUI(QMainWindow):
         self.adv_km_min_input.setText(str(payload.get("OdometerMin", "")))
         self.adv_km_max_input.setText(str(payload.get("OdometerMax", "")))
 
+    def save_csv_file(self):
+        if self.results_tree.topLevelItemCount() == 0:
+            QMessageBox.warning(self, "Warning", "No data to save.")
+            return
 
+        # Extract car make and model from the results
+        car_make = ""
+        car_model = ""
+        for i in range(self.results_tree.topLevelItemCount()):
+            item = self.results_tree.topLevelItem(i)
+            print(self.results_tree.headerItem().text(1),self.results_tree.headerItem().text(2))
+            make = item.text(1)
+            model = item.text(2)
+            print(make,model)
+            if make and model:
+                car_make = make
+                car_model = model
+                break
+
+        if not car_make or not car_model:
+            QMessageBox.warning(self, "Warning", "Unable to determine car make and model from results.")
+            return
+
+        # Define the specific directory structure
+        base_directory = os.path.expanduser("~/Documents/AutoScraper")
+        specific_directory = os.path.join(base_directory, "Results", car_make, car_model)
+
+        # Create the directory if it doesn't exist
+        os.makedirs(specific_directory, exist_ok=True)
+
+        # Create a QFileDialog instance
+        dialog = QFileDialog(self)
+        dialog.setDirectory(specific_directory)
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setNameFilter("CSV Files (*.csv)")
+        dialog.setDefaultSuffix("csv")
+
+        if dialog.exec_() == QFileDialog.Accepted:
+            file_path = dialog.selectedFiles()[0]
+            try:
+                with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    # Write header
+                    header = [self.results_tree.headerItem().text(i) for i in range(self.results_tree.columnCount())]
+                    writer.writerow(header)
+                    # Write data
+                    for i in range(self.results_tree.topLevelItemCount()):
+                        row = [self.results_tree.topLevelItem(i).text(j) for j in range(self.results_tree.columnCount())]
+                        writer.writerow(row)
+
+                QMessageBox.information(self, "Success", f"Results saved to {file_path}")
+
+                # Ask if the user wants to delete the original file
+                if self.current_csv_file and self.current_csv_file != file_path:
+                    try:
+                        os.remove(self.current_csv_file)
+                        QMessageBox.information(self, "Success", f"Placeholder file deleted: {self.current_csv_file}")
+                        self.current_csv_file = file_path
+                    except Exception as e:
+                        QMessageBox.warning(self, "Warning", f"Failed to delete placeholder file: {str(e)}")
+
+            except Exception as e:
+                QMessageBox.warning(self, "Warning", f"Failed to save CSV: {str(e)}")
 
     def on_item_double_clicked(self, item):
         link = item.text(0)
