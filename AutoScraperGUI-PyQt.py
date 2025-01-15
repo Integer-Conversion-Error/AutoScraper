@@ -23,6 +23,7 @@ class FetchDataThread(QThread):
 
     def run(self):
         try:
+            print(self.payload)
             results = fetch_autotrader_data(self.payload)
             #print(f"Type of results: {type(results)}")
             #print(f"Content of results: {results[:500] if isinstance(results, str) else results}")
@@ -148,8 +149,9 @@ class AutoScraperGUI(QMainWindow):
         self.trim_combo.clear()
         if make and model:
             trims = get_trims_for_model(make, model)
+            trims.update({"All":1})
             #TODO: Make trims work for actual payload, multithread the loading process, and add an "All" option.
-            print(make,model,trims)
+            #print(make,model,trims)
             self.trim_combo.addItems(list(trims.keys()))
 
     def setup_advanced_search_tab(self):
@@ -250,11 +252,12 @@ class AutoScraperGUI(QMainWindow):
             return {
                 "Make": self.adv_make_input.text(),
                 "Model": self.adv_model_input.text(),
+                
                 "Address": self.adv_address_input.text(),
                 "Proximity": int(self.adv_proximity_input.text()),
                 "YearMin": self.adv_year_min_input.text() or None,
                 "YearMax": self.adv_year_max_input.text() or None,
-
+                
 
                 "PriceMin": self.adv_price_min_input.text() or "",
                 "PriceMax": self.adv_price_max_input.text() or "",
@@ -265,9 +268,10 @@ class AutoScraperGUI(QMainWindow):
                 "Inclusion": self.adv_inclusion_input.text(),
             }
         else:
-            return {
+            returnpayload = {
                 "Make": self.make_combo.currentText(),
                 "Model": self.model_combo.currentText(),
+                "Trim": self.trim_combo.currentText(),
                 "Address": self.address_input.text(),
                 "Proximity": int(self.proximity_input.text()),
                 "YearMin": self.year_min_combo.currentText() or None,
@@ -281,6 +285,8 @@ class AutoScraperGUI(QMainWindow):
                 "Exclusions": [x.strip() for x in self.exclusions_input.text().split(",") if x.strip()],
                 "Inclusion": self.inclusion_input.text(),
             }
+            #print(returnpayload)
+            return returnpayload
 
     def fetch_data(self):
         self.fetch_data_common(advanced=False)
@@ -375,7 +381,7 @@ class AutoScraperGUI(QMainWindow):
                         item.setText(i, str(row.get(col_name, "")))
             
             # Resize columns to content
-            for i in range(len(allColNames)):
+            for i in range(1,len(allColNames)):
                 self.results_tree.resizeColumnToContents(i)
             
             self.tab_widget.setCurrentWidget(self.results_tab)
@@ -413,6 +419,8 @@ class AutoScraperGUI(QMainWindow):
         self.make_combo.setCurrentText(payload.get("Make", ""))
         self.update_model_dropdown()
         self.model_combo.setCurrentText(payload.get("Model", ""))
+        self.update_trim_dropdown()
+        self.trim_combo.setCurrentText(payload.get("Trim","All"))
         self.address_input.setText(payload.get("Address", ""))
         self.proximity_input.setText(str(payload.get("Proximity", "")))
         self.year_min_combo.setCurrentText(str(payload.get("YearMin", "")))

@@ -212,7 +212,7 @@ def cls():
     else:  # For Linux and MacOS
         os.system('clear')
 
-def read_payload_from_file(filename = "ff2019.txt"):
+def read_payload_from_file(filename):
     """
     Read a payload from a file in JSON format.
 
@@ -407,7 +407,7 @@ def get_trims_for_model(make,model):
         data = response.json()
 
         # Extract and return models from the response
-        print(data)
+        #print(data)
         return data.get("Trims", {})
     except requests.exceptions.RequestException as e:
         print(f"An error occurred while making the request: {e}")

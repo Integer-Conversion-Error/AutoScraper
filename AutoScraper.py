@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 start_time = None
 
-def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
+def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
     """
     Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
     Retries fetching pages if no results are returned.
@@ -35,12 +35,15 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
+        "WithPrice":True,
         "Exclusions": []
     }
     params = {**default_params, **params}
+    if params["Trim"] == "All":
+        params.update({"Trim":None})
     exclusions = transform_strings(params["Exclusions"]) #cover upper/lower-case
     url = "https://www.autotrader.ca/Refinement/Search"
-
+    print("FETCHDATA BLOCK: ",params)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -51,11 +54,13 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
     # Function to fetch a single page with retries
     def fetch_page(page):
         for attempt in range(max_retries):
+            
             payload = {
                 "Address": params["Address"],
                 "Proximity": params["Proximity"],
                 "Make": params["Make"],
                 "Model": params["Model"],
+                "Trim": params["Trim"],
                 "PriceMin": params["PriceMin"],
                 "PriceMax": params["PriceMax"],
                 "Skip": page * params["Top"],
@@ -69,6 +74,7 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
                 "OdometerMax": params["OdometerMax"],
                 "micrositeType": 1,
             }
+            
             try:
                 response = requests.post(url, headers=headers, json=payload)
                 response.raise_for_status()
@@ -99,7 +105,7 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
     # Fetch the first page to determine the total number of pages
     initial_results, max_page = fetch_page(0)
     all_results = initial_results
-
+    pagesCompleted = 0
     # Fetch remaining pages in parallel
     with ThreadPoolExecutor() as executor:
         future_to_page = {
@@ -109,8 +115,10 @@ def fetch_autotrader_data(params, max_retries=3, retry_delay=1):
             page = future_to_page[future]
             try:
                 page_results, _ = future.result()
-                all_results.extend(page_results)
-                print(f"Page {page} fetched successfully.")
+                all_results.extend(page_results) 
+                pagesCompleted += 1
+                cls()
+                print(f"{pagesCompleted} out of {max_page} total pages completed")
             except Exception as e:
                 print(f"Error fetching page {page}: {e}")
 
@@ -143,7 +151,7 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    rate_limit_wait = 3 # Seconds to wait before retrying
+    rate_limit_wait = 1 # Seconds to wait before retrying
     max_retries = 12       # Maximum retry attempts for rate limiting
 
     try:
@@ -318,10 +326,11 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         else:
             print(f"Failed to fetch data for {link}")
             return None
-    
+    rows_processed = 0
     # Use ThreadPoolExecutor for parallel processing
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Submit tasks
+        
         futures = [executor.submit(process_link, item) for item in data]
         
         # Collect results
@@ -330,6 +339,9 @@ def save_results_to_csv(data, payload, filename="results.csv"):
             row = future.result()
             if row:
                 results.append(row)
+                rows_processed += 1
+                cls()
+                print(f"{rows_processed} rows out of {len(data)} total rows processed")
     
     # Write to CSV after all workers finish
     
