@@ -6,6 +6,35 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 start_time = None
 
+MBit_LIMIT = 2
+RATE_LIMIT = MBit_LIMIT / 8 # MB per second
+TOKEN_BUCKET_SIZE = RATE_LIMIT * 1024 * 1024  # Convert MB to bytes
+tokens = TOKEN_BUCKET_SIZE
+last_update = time.time()
+
+def update_tokens():
+    global tokens, last_update
+    now = time.time()
+    tokens += (now - last_update) * RATE_LIMIT * 1024 * 1024  # Convert MB to bytes
+    tokens = min(tokens, TOKEN_BUCKET_SIZE)
+    last_update = now
+
+def consume_tokens(amount):
+    global tokens
+    update_tokens()
+    if tokens >= amount:
+        tokens -= amount
+        return True
+    return False
+
+def rate_limited_request(method, url, **kwargs):
+    while True:
+        response = method(url, **kwargs)
+        content_length = int(response.headers.get('Content-Length', 0))
+        if consume_tokens(content_length):
+            return response
+        time.sleep(0.1)  # Wait a bit before trying again
+
 def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
     """
     Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
@@ -77,7 +106,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
             }
             
             try:
-                response = requests.post(url, headers=headers, json=payload)
+                response = rate_limited_request(requests.post, url, headers=headers, json=payload)
                 response.raise_for_status()
                 json_response = response.json()
                 search_results_json = json_response.get("SearchResultsDataJson", "")
@@ -152,14 +181,14 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    rate_limit_wait = 3 # Seconds to wait before retrying
+    rate_limit_wait = 10 # Seconds to wait before retrying
     max_retries = 12       # Maximum retry attempts for rate limiting
 
     try:
         time.sleep(0.1)
         
         for attempt in range(max_retries):
-            response = requests.get(url, headers=headers, proxies=None)
+            response = rate_limited_request(requests.get, url, headers=headers, proxies=None)
             
             # Check for rate limiting via HTTP status code
             if response.status_code == 429:
