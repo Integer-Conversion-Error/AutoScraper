@@ -53,6 +53,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
 
     # Function to fetch a single page with retries
     def fetch_page(page):
+        time.sleep(0.1)
         for attempt in range(max_retries):
             
             payload = {
@@ -151,10 +152,12 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    rate_limit_wait = 1 # Seconds to wait before retrying
+    rate_limit_wait = 3 # Seconds to wait before retrying
     max_retries = 12       # Maximum retry attempts for rate limiting
 
     try:
+        time.sleep(0.1)
+        
         for attempt in range(max_retries):
             response = requests.get(url, headers=headers, proxies=None)
             
@@ -177,7 +180,8 @@ def extract_vehicle_info(url):
                     continue
                 else:
                     raise Exception("Rate limited: Response indicates too many requests.")
-            
+            print_response_size(response)
+            time.sleep(1)
             # Parse the response JSON or HTML content
             respjson = parse_html_content_to_json(response.text)  # Adjust this to your parsing logic
             altrespjson = extract_vehicle_info_from_json(respjson)

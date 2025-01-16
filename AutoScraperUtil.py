@@ -503,6 +503,26 @@ def remove_duplicates_exclusions(arr, excl=[]):
     result = filter_dicts(result,excl)
     return result
 
+def print_response_size(response):
+    try:
+        # Ensure the response is a Response object
+        if not isinstance(response, requests.Response):
+            raise ValueError("Input must be a requests.Response object")
+        
+        # Get the size of the response content in bytes
+        size_in_bytes = len(response.content)
+        
+        # Convert to kilobytes for easier reading
+        size_in_kb = size_in_bytes / 1024
+        
+        # Print the size
+        print(f"The size of the response from {response.url} is:")
+        print(f"{size_in_bytes} bytes")
+        print(f"{size_in_kb:.2f} KB")
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 #USED
 def filter_dicts(data, exclusion_strings): 
     """
