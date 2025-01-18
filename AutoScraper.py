@@ -35,7 +35,7 @@ def rate_limited_request(method, url, **kwargs):
             return response
         time.sleep(0.1)  # Wait a bit before trying again
 
-def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
+def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
     """
     Fetch data from AutoTrader.ca API in series by processing pages sequentially.
     Retries fetching pages if no results are returned.
