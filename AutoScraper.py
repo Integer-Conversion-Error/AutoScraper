@@ -37,7 +37,7 @@ def rate_limited_request(method, url, **kwargs):
 
 def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
     """
-    Fetch data from AutoTrader.ca API in parallel by dividing the task into pages.
+    Fetch data from AutoTrader.ca API in series by processing pages sequentially.
     Retries fetching pages if no results are returned.
 
     Args:
@@ -64,15 +64,15 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
         "IsNew": True,
         "IsUsed": True,
         "WithPhotos": True,
-        "WithPrice":True,
+        "WithPrice": True,
         "Exclusions": []
     }
     params = {**default_params, **params}
     if params["Trim"] == "All":
-        params.update({"Trim":None})
-    exclusions = transform_strings(params["Exclusions"]) #cover upper/lower-case
+        params.update({"Trim": None})
+    exclusions = transform_strings(params["Exclusions"])  # Cover upper/lower-case
     url = "https://www.autotrader.ca/Refinement/Search"
-    print("FETCHDATA BLOCK: ",params)
+    print("FETCHDATA BLOCK: ", params)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -82,9 +82,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
 
     # Function to fetch a single page with retries
     def fetch_page(page):
-        time.sleep(0.1)
         for attempt in range(max_retries):
-            
             payload = {
                 "Address": params["Address"],
                 "Proximity": params["Proximity"],
@@ -111,7 +109,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
                 json_response = response.json()
                 search_results_json = json_response.get("SearchResultsDataJson", "")
                 ad_results_json = json_response.get("AdsHtml", "")
-                
+
                 if not search_results_json:
                     print(f"No results for page {page} (Attempt {attempt + 1}/{max_retries}). Retrying...")
                     time.sleep(retry_delay)
@@ -135,24 +133,18 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
     # Fetch the first page to determine the total number of pages
     initial_results, max_page = fetch_page(0)
     all_results = initial_results
-    pagesCompleted = 0
-    # Fetch remaining pages in parallel
-    with ThreadPoolExecutor() as executor:
-        future_to_page = {
-            executor.submit(fetch_page, page): page for page in range(1, max_page)
-        }
-        for future in as_completed(future_to_page):
-            page = future_to_page[future]
-            try:
-                page_results, _ = future.result()
-                all_results.extend(page_results) 
-                pagesCompleted += 1
-                cls()
-                print(f"{pagesCompleted} out of {max_page} total pages completed")
-            except Exception as e:
-                print(f"Error fetching page {page}: {e}")
+    pages_completed = 1
 
-    return remove_duplicates_exclusions(all_results,params["Exclusions"])
+    # Sequentially fetch remaining pages
+    for page in range(1, max_page):
+        page_results, _ = fetch_page(page)
+        all_results.extend(page_results)
+        pages_completed += 1
+        cls()
+        print(f"{pages_completed} out of {max_page} total pages completed")
+
+    return remove_duplicates_exclusions(all_results, params["Exclusions"])
+
 
 def extract_vehicle_info(url):
     """
@@ -288,11 +280,12 @@ def extract_vehicle_info_from_json(json_content):
         return vehicle_info
     except Exception as e:
         print(f"An error occurred while extracting vehicle info: {e}")
+        print(vehicle_info)
         return {}
 
 def save_results_to_csv(data, payload, filename="results.csv"):
     """
-    Saves fetched data by processing it using external CSV handling function, with parallelized workers.
+    Saves fetched data by processing it using external CSV handling function, sequentially.
     
     Args:
         data (list): List of links to save.
@@ -335,7 +328,6 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         
         car_info = extract_vehicle_info(url=link)
         if car_info:
-            
             return [
                 link,
                 car_info.get("Make", ""),
@@ -359,25 +351,20 @@ def save_results_to_csv(data, payload, filename="results.csv"):
         else:
             print(f"Failed to fetch data for {link}")
             return None
+
+    results = []
     rows_processed = 0
-    # Use ThreadPoolExecutor for parallel processing
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit tasks
-        
-        futures = [executor.submit(process_link, item) for item in data]
-        
-        # Collect results
-        results = []
-        for future in concurrent.futures.as_completed(futures):
-            row = future.result()
-            if row:
-                results.append(row)
-                rows_processed += 1
-                cls()
-                print(f"{rows_processed} rows out of {len(data)} total rows processed")
-    
-    # Write to CSV after all workers finish
-    
+
+    # Process data sequentially
+    for item in data:
+        row = process_link(item)
+        if row:
+            results.append(row)
+            rows_processed += 1
+            cls()
+            print(f"{rows_processed} rows out of {len(data)} total rows processed")
+
+    # Write to CSV after processing all data
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(allColNames)  # Write the header
@@ -388,6 +375,7 @@ def save_results_to_csv(data, payload, filename="results.csv"):
     start_time = 0
     print(f"Results saved to {filename}")
     filter_csv(filename, filename, payload=payload)
+
 
 def main():
     """
