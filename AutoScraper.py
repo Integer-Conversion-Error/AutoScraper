@@ -121,6 +121,7 @@ def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
             
             except requests.exceptions.RequestException as e:
                 print(f"Request failed for page {page}: {e}. Retrying...")
+                print(response.text)
                 time.sleep(retry_delay)
             except json.JSONDecodeError as e:
                 print(f"JSON decode error on page {page}: {e}. Retrying...")
