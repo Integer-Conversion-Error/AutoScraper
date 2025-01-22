@@ -33,7 +33,7 @@ def rate_limited_request(method, url, **kwargs):
         content_length = int(response.headers.get('Content-Length', 0))
         if consume_tokens(content_length):
             return response
-        time.sleep(0.1)  # Wait a bit before trying again
+        time.sleep(1)  # Wait a bit before trying again
 
 def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
     """
@@ -82,7 +82,7 @@ def fetch_autotrader_data(params, max_retries=5, retry_delay=1):
 
     # Function to fetch a single page with retries
     def fetch_page(page):
-        time.sleep(0.1)
+        time.sleep(1)
         for attempt in range(max_retries):
             
             payload = {
