@@ -592,8 +592,11 @@ class AutoScraperGUI(QMainWindow):
         if link:
             webbrowser.open(link)
 
-if __name__ == "__main__":
+def GUI_main():
     app = QApplication(sys.argv)
     window = AutoScraperGUI()
     window.show()
     sys.exit(app.exec_())
+    
+if __name__ == "__main__":
+    GUI_main()

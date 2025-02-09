@@ -6,34 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 start_time = None
 
-MBit_LIMIT = 2
-RATE_LIMIT = MBit_LIMIT / 8 # MB per second
-TOKEN_BUCKET_SIZE = RATE_LIMIT * 1024 * 1024  # Convert MB to bytes
-tokens = TOKEN_BUCKET_SIZE
-last_update = time.time()
 
-def update_tokens():
-    global tokens, last_update
-    now = time.time()
-    tokens += (now - last_update) * RATE_LIMIT * 1024 * 1024  # Convert MB to bytes
-    tokens = min(tokens, TOKEN_BUCKET_SIZE)
-    last_update = now
-
-def consume_tokens(amount):
-    global tokens
-    update_tokens()
-    if tokens >= amount:
-        tokens -= amount
-        return True
-    return False
-
-def rate_limited_request(method, url, **kwargs):
-    while True:
-        response = method(url, **kwargs)
-        content_length = int(response.headers.get('Content-Length', 0))
-        if consume_tokens(content_length):
-            return response
-        time.sleep(0.1)  # Wait a bit before trying again
 
 def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
     """
@@ -59,7 +32,7 @@ def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
         "PriceMax": 999999,
         "YearMin": "1950",
         "YearMax": "2050",
-        "Top": 15,
+        "Top": 100,
         "Address": "Kanata, ON",
         "IsNew": True,
         "IsUsed": True,
@@ -104,7 +77,7 @@ def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
             }
             
             try:
-                response = rate_limited_request(requests.post, url, headers=headers, json=payload)
+                response = requests.post( url=url, headers=headers, json=payload)
                 response.raise_for_status()
                 json_response = response.json()
                 search_results_json = json_response.get("SearchResultsDataJson", "")
@@ -138,6 +111,7 @@ def fetch_autotrader_data(params, max_retries=25, retry_delay=5):
 
     # Sequentially fetch remaining pages
     for page in range(1, max_page):
+        time.sleep(3)
         page_results, _ = fetch_page(page)
         all_results.extend(page_results)
         pages_completed += 1
@@ -178,10 +152,10 @@ def extract_vehicle_info(url):
     max_retries = 12       # Maximum retry attempts for rate limiting
 
     try:
-        time.sleep(0.1)
+        
         
         for attempt in range(max_retries):
-            response = rate_limited_request(requests.get, url, headers=headers, proxies=None)
+            response = requests.get(url, headers=headers, proxies=None)
             
             # Check for rate limiting via HTTP status code
             if response.status_code == 429:
@@ -203,7 +177,7 @@ def extract_vehicle_info(url):
                 else:
                     raise Exception("Rate limited: Response indicates too many requests.")
             print_response_size(response)
-            time.sleep(1)
+            time.sleep(2)
             # Parse the response JSON or HTML content
             respjson = parse_html_content_to_json(response.text)  # Adjust this to your parsing logic
             altrespjson = extract_vehicle_info_from_json(respjson)

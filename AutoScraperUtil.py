@@ -580,14 +580,16 @@ def filter_csv(input_file, output_file, payload):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def keep_if_contains(input_file, output_file, required_string = None):
+
+
+def keep_if_contains(input_file, output_file, required_string=None):
     """
-    Removes rows from a CSV file if none of the columns contain the specified string.
+    Removes rows from a CSV file if none of the columns contain the specified string (case-insensitive).
 
     Parameters:
         input_file (str): Path to the input CSV file.
         output_file (str): Path to the output CSV file with filtered rows.
-        required_string (str): String that must be present in at least one column to keep the row.
+        required_string (str): String that must be present in at least one column (in any case) to keep the row.
 
     Returns:
         None
@@ -597,21 +599,27 @@ def keep_if_contains(input_file, output_file, required_string = None):
         with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
             reader = csv.reader(infile)
             header = next(reader)  # Get the header row
-            rows = list(reader)  # Get the remaining rows
+            rows = list(reader)    # Get the remaining rows
 
-        # Filter rows
         filtered_rows = []
-        for row in rows:
-            if any(required_string in cell for cell in row) or required_string == None:
-                filtered_rows.append(row)
+
+        # If required_string is None, we keep all rows.
+        if required_string is None:
+            filtered_rows = rows
+        else:
+            # Convert the required string to lowercase once
+            required_lower = required_string.lower()
+
+            # Filter rows: if any cell in the row contains the required string (case-insensitive), keep it.
+            for row in rows:
+                if any(required_lower in cell.lower() for cell in row):
+                    filtered_rows.append(row)
 
         # Write the updated rows to the output CSV file
         with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
-            writer.writerow(header)  # Write the header row
+            writer.writerow(header)        # Write the header row
             writer.writerows(filtered_rows)  # Write the filtered rows
-
-        #print(f"Filtered CSV saved to {output_file}")
 
     except FileNotFoundError:
         print(f"Error: The file {input_file} does not exist.")
