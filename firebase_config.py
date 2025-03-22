@@ -179,14 +179,18 @@ def get_payload(user_id, payload_id):
     try:
         db = get_firestore_db()
         if not db:
+            print(f"Debug - get_payload: Database connection failed")
             return None
         
+        print(f"Debug - get_payload: Fetching document for User: {user_id}, Payload ID: {payload_id}")
         payload_ref = db.collection('users').document(user_id).collection('payloads').document(payload_id)
         payload = payload_ref.get()
         
         if not payload.exists:
+            print(f"Debug - get_payload: Document does not exist")
             return None
             
+        print(f"Debug - get_payload: Document found, contains keys: {list(payload.to_dict().keys())}")
         return payload.to_dict()
     except Exception as e:
         print(f"Error retrieving payload: {e}")

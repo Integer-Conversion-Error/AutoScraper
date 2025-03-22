@@ -180,10 +180,12 @@ def list_payloads():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+# In your load_payload_api function in app.py
 @app.route('/api/load_payload', methods=['POST'])
 @login_required
 def load_payload_api():
     file_path = request.json.get('file_path')
+    doc_id = request.json.get('doc_id')  # Get the document ID directly
     user_id = session.get('user_id')
     
     if not file_path:
@@ -194,8 +196,9 @@ def load_payload_api():
     
     # Check if it's a Firebase path
     if file_path.startswith("Firebase/"):
-        # Extract the document ID from the path
-        doc_id = file_path.split("/")[-1]
+        # Use the doc_id directly
+        if not doc_id:
+            return jsonify({"success": False, "error": "No document ID provided"})
         
         # Get the payload from Firebase
         payload = get_payload(user_id, doc_id)
@@ -235,7 +238,7 @@ def fetch_data_api():
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
         full_path = f"{folder_path}/{file_name}"
         
-        save_results_to_csv(results, payload=payload, filename=full_path,max_workers=500)
+        save_results_to_csv(results, payload=payload, filename=full_path,max_workers=1000)
         
         return jsonify({
             "success": True, 
