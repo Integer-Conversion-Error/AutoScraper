@@ -16,3 +16,4 @@ html_test_output.html
 
 *.pyc
 __pycache__/GetUserSelection.cpython-310.pyc
+autoscraper.log

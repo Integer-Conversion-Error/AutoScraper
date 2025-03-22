@@ -492,7 +492,10 @@ def remove_duplicates_exclusions(arr, excl=[]):
     seen = set()
     result = []
     for item in arr:
-        full_link = "https://www.autotrader.ca" + item["link"]
+        if item["link"][:4] != "http":
+            full_link =  "https://www.autotrader.ca" +item["link"] 
+        else:
+            full_link = item["link"]
         if full_link not in seen and full_link not in excl:
             # Add the full_link to the item dictionary before appending
             item_with_full_link = item.copy()
