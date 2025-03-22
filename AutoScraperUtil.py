@@ -1,18 +1,13 @@
 import ast
 import csv
-
 import json
 import os
-from tabulate import tabulate
+
 from bs4 import BeautifulSoup
-
-
-import csv
 import webbrowser
-
 import requests
 
-def open_links_from_csv(file_path, column_name = "Link"):
+def showcarsmain(file_path, column_name = "Link"):
     """
     Opens links from a specified column in a CSV file in Chrome tabs.
 
@@ -47,60 +42,7 @@ def open_links_from_csv(file_path, column_name = "Link"):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def showcarsmain(csv_file_path):
-    # Replace with the path to your CSV file
-    link_column_name = 'Link'  # Replace with the actual column name in your CSV
-    open_links_from_csv(csv_file_path, link_column_name)
-
-def parse_html_file(file_path,exclusions = []):
-    """
-    DEPRECATED: Parses the HTML file and extracts links and their corresponding listing details.
-
-    :param file_path: str, path to the HTML file
-    :return: list of dictionaries, each containing a link and associated listing details
-    """
-    with open(file_path, 'r', encoding='utf-8') as file:
-        soup = BeautifulSoup(file, 'html.parser')
-
-    listings = []
-
-    # Find all listing containers
-    for result_item in soup.find_all('div', class_='result-item'):
-        listing = {}
-        excluded = False
-        # Extract link
-        link_tag = result_item.find('a', class_='inner-link')
-        if link_tag and link_tag.get('href'):
-            listing['link'] = link_tag['href']
-
-        # Extract title
-        title_tag = result_item.find('span', class_='title-with-trim')
-        if title_tag:
-            if any(exclusion in title_tag.get_text(strip=True) for exclusion in exclusions):
-                excluded = True
-            listing['title'] = title_tag.get_text(strip=True)
-
-        # Extract price
-        price_tag = result_item.find('span', class_='price-amount')
-        if price_tag:
-            listing['price'] = price_tag.get_text(strip=True)
-
-        # Extract mileage
-        mileage_tag = result_item.find('span', class_='odometer-proximity')
-        if mileage_tag:
-            listing['mileage'] = mileage_tag.get_text(strip=True)
-
-        # Extract location
-        location_tag = result_item.find('span', class_='proximity-text', attrs={'class': None})
-        if location_tag:
-            listing['location'] = location_tag.get_text(strip=True)
-
-        # Add the listing if it has a link
-        if 'link' in listing and not excluded:
-            listings.append(listing)
-    
-    return listings
-
+#used
 def parse_html_content(html_content, exclusions=[]):
     """
     Parses the HTML content and extracts links and their corresponding listing details.
@@ -151,96 +93,22 @@ def parse_html_content(html_content, exclusions=[]):
             listings.append(listing)
     
     return listings
-
-def string_after_second_last(string, char):
-    # Find the last occurrence
-    last_index = string.rfind(char)
-    if last_index == -1:
-        return ""  # Character not found
-    # Find the second last occurrence
-    second_last_index = string.rfind(char, 0, last_index)
-    if second_last_index == -1:
-        return ""  # Second last occurrence does not exist
-    # Return the substring after the second last occurrence
-    return string[second_last_index + 1:-1]+".html"
-    
+ 
 def convert_km_to_double(km_string):
     """
-    Converts a string like "109,403 km" to a float.
+    Converts a string like "109,403 km" to an int.
 
     Args:
         km_string (str): The input string representing kilometres.
 
     Returns:
-        float: The numeric value of kilometres.
+        int: The numeric value of kilometres.
     """
     try:
-        return float(km_string.replace(",", "").replace(" km", ""))
+        return int(km_string.replace(",", "").replace(" km", ""))
     except ValueError:
         print(f"Invalid format: {km_string}")
-        return 0.0
-
-def extract_vehicle_info_from_html(html_content):
-    """
-    Extracts vehicle information from the JSON-like script elements within an HTML page.
-
-    Args:
-        html_content (str): The full HTML content as a string.
-
-    Returns:
-        list: A list of dictionaries containing vehicle details or an empty list if none found.
-    """
-    try:
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(html_content, 'html.parser')
-
-        # Find all <script> tags containing JSON data
-        script_tags = soup.find_all('script', type='application/ld+json')
-
-        vehicles = []
-
-        for script_tag in script_tags:
-            try:
-                if script_tag.string:
-                    # Parse the JSON content
-                    json_content = json.loads(script_tag.string)
-
-                    # Map driveWheelConfiguration to Drivetrain enumeration
-                    drive_config = json_content.get("driveWheelConfiguration", "")
-                    drivetrain = "Unknown"
-                    if "AllWheelDriveConfiguration" in drive_config:
-                        drivetrain = "AWD"
-                    elif "FourWheelDriveConfiguration" in drive_config:
-                        drivetrain = "4WD"
-                    elif "FrontWheelDriveConfiguration" in drive_config:
-                        drivetrain = "FWD"
-                    elif "RearWheelDriveConfiguration" in drive_config:
-                        drivetrain = "RWD"
-
-                    # Extract relevant vehicle information
-                    vehicle_info = {
-                        "Make": json_content.get("brand", {}).get("name", ""),
-                        "Model": json_content.get("model", ""),
-                        "Kilometres": json_content.get("mileageFromOdometer", {}).get("value", ""),
-                        "Price": json_content.get("offers", {}).get("price", ""),
-                        "Status": json_content.get("itemCondition", ""),
-                        "Trim": json_content.get("vehicleConfiguration", ""),
-                        "Body Type": json_content.get("bodyType", ""),
-                        "Engine": json_content.get("vehicleEngine", {}).get("engineType", ""),
-                        "Cylinder": json_content.get("vehicleEngine", {}).get("cylinder", ""),
-                        "Transmission": json_content.get("vehicleTransmission", ""),
-                        "Drivetrain": drivetrain,
-                        "Fuel Type": json_content.get("vehicleEngine", {}).get("fuelType", "")
-                    }
-                    vehicles.append(vehicle_info)
-            except json.JSONDecodeError as e:
-                print(f"Failed to decode JSON in one of the script tags: {e}")
-                continue
-
-        return vehicles
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
+        return 0
 
 def file_initialisation():
     """
@@ -316,34 +184,6 @@ def save_html_to_file(html_content, file_name="output.html"):
     except Exception as e:
         print(f"An error occurred while saving HTML to file: {e}")
 
-def process_line(line):
-    """
-    Process the input string `line` by extracting the portion after the first `=`,
-    stripping whitespace, and performing cleanup operations.
-
-    Parameters:
-        line (str): The input string to process.
-
-    Returns:
-        str: The cleaned and processed string.
-    """
-    # Extract the part after the first `=` and strip leading/trailing whitespace
-    raw_data = line.split("=", 1)[1].strip()
-
-    # Remove the trailing semicolon, if present
-    if raw_data.endswith(";"):
-        raw_data = raw_data[:-1]
-
-    # Perform cleanup operations
-    cleaned_data = (
-        raw_data
-        .replace("undefined", "null")
-        .replace("\n", "")
-        .replace("\t", "")
-    )
-
-    return cleaned_data
-
 def parse_string_to_json(input_string):
     """
     Parses a string representing a dictionary into a JSON object and returns it as a Python dictionary.
@@ -372,7 +212,7 @@ def cls():
     else:  # For Linux and MacOS
         os.system('clear')
 
-def read_payload_from_file(filename = "ff2019.txt"):
+def read_payload_from_file(filename):
     """
     Read a payload from a file in JSON format.
 
@@ -390,25 +230,7 @@ def read_payload_from_file(filename = "ff2019.txt"):
         print(f"File {filename} not found.")
         return None
 
-def cleaned_input(itemTitle, defaultval, expectedtype):
-    """
-    Prompts the user for input, validates it, and ensures it matches the expected type.
-
-    :param itemTitle: str, title of the item being requested
-    :param defaultval: default value to use if input is empty
-    :param expectedtype: type, the expected type of the input
-    :return: value of the correct type
-    """
-    while True:
-        try:
-            user_input = input(f"Enter {itemTitle} (default: {defaultval}): ")
-            if not user_input.strip():
-                return defaultval
-            value = expectedtype(user_input)
-            return value
-        except ValueError:
-            print(f"Invalid input. Please enter a value of type {expectedtype.__name__}.")
-
+#USED
 def extract_car_makes_from_html(html_content, popular = True):
     """
     Extracts all car makes from the optgroup element within an HTML page.
@@ -441,6 +263,7 @@ def extract_car_makes_from_html(html_content, popular = True):
         print(f"An error occurred while parsing HTML: {e}")
         return []
 
+#USED
 def get_html_from_url(url):
     """
     Fetches the HTML content of a given URL with a custom User-Agent.
@@ -462,6 +285,7 @@ def get_html_from_url(url):
         print(f"An error occurred while fetching the URL: {e}")
         return None
 
+#USED
 def get_all_makes(popular=True):
     url = "https://www.autotrader.ca/"
     html_content = get_html_from_url(url)
@@ -475,53 +299,7 @@ def get_all_makes(popular=True):
     else:
         print("Failed to fetch HTML content.")
 
-def get_makes_input():
-    """
-    Prompts the user for input and validates it against a list of valid strings,
-    displaying popular options in a tabular format with numeration for each cell.
-
-    :return: str, the validated input matching an item from the list
-    """
-    itemTitle = "Make"
-
-    # Fetch popular car makes initially
-    valid_options = get_all_makes(popular=True)
-    popular = True
-    table_len = 8
-    while True:
-        # Display options in tabular format with numeration for each cell
-        cls()
-        if popular:
-            table = []
-            for idx, option in enumerate(valid_options, start=1):
-                table.append([f"{idx}. {option}"])
-
-            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
-            print(formatted_table)
-        else:
-            print("Displaying all available options:")
-            table = []
-            for idx, option in enumerate(valid_options, start=1):
-                table.append([f"{idx}. {option}"])
-
-            formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
-            print(formatted_table)
-
-        user_input = input(f"Enter {itemTitle} number (-1 to see all options): ").strip()
-
-        # Check if the user wants to see all options
-        if user_input == "-1":
-            popular = False
-            valid_options = get_all_makes(popular=False)
-        elif user_input.isdigit():
-            number = int(user_input)
-            if 1 <= number <= len(valid_options):
-                return valid_options[number - 1]
-            else:
-                print("Invalid number. Please choose a valid number from the list.")
-        else:
-            print("Invalid input. Please enter a valid number or -1 to see all options.")
-
+#USED
 def get_models_for_make(make):
     """
     Fetches all models for a given car make by sending a POST request to the AutoTrader API.
@@ -579,38 +357,66 @@ def get_models_for_make(make):
         print(f"Failed to parse JSON response: {e}")
         return {}
 
-def get_models_input(models_for_make):
+#USED    
+def get_trims_for_model(make,model):
     """
-    Prompts the user to select a model from the available options for a given make.
-    Displays the models in a tabular format with numeration for each cell.
+    Fetches all models for a given car make by sending a POST request to the AutoTrader API.
 
-    :param models_for_make: dict, models as keys and counts as values
-    :return: str, the selected model
+    Args:
+        make (str): The car make for which models are to be fetched.
+
+    Returns:
+        dict: A dictionary of models and their respective counts, or an empty dictionary if none found.
     """
-    itemTitle = "Model"
-    valid_options = list(models_for_make.keys())
-    table_len = 8
-    while True:
-        # Display options in tabular format with numeration for each cell
-        cls()
-        table = []
-        for idx, option in enumerate(valid_options, start=1):
-            table.append([f"{idx}. {option}"])
+    try:
+        url = "https://www.autotrader.ca/Refinement/Refine"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'AllowMvt': 'true'
+        }
+        # Using cookies from the response
+        # cookies = {
+        #     'atOptUser': 'db0860a4-b562-4270-9ed0-b2d2875c873c',
+        #     'nlbi_820541_1646237': 'Z30UdORIkUeQlTEnZpjQsQAAAACqH714EnL/JlzmRPTWgXMX'
+        # }
+        payload = {
+            "IsDealer": True,
+            "IsPrivate": True,
+            "InMarketType": "basicSearch",
+            "Address": "Rockland",
+            "Proximity": -1,
+            "Make": make,
+            "Model": model,
+            "IsNew": True,
+            "IsUsed": True,
+            "IsCpo": True,
+            "IsDamaged": False,
+            "WithPhotos": True,
+            "WithPrice": True,
+            "HasDigitalRetail": False
+        }
 
-        formatted_table = tabulate([table[i:i+table_len] for i in range(0, len(table), table_len)], tablefmt="plain")
-        print(formatted_table)
+        # Sending POST request with headers and cookies
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses
 
-        user_input = input(f"Enter {itemTitle} number: ").strip()
+        data = response.json()
 
-        if user_input.isdigit():
-            number = int(user_input)
-            if 1 <= number <= len(valid_options):
-                return valid_options[number - 1]
-            else:
-                print("Invalid number. Please choose a valid number from the list.")
-        else:
-            print("Invalid input. Please enter a valid number.")
+        # Extract and return models from the response
+        #print(data)
+        return data.get("Trims", {})
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while making the request: {e}")
+        return {}
+    except ValueError as e:
+        print(f"Failed to parse JSON response: {e}")
+        return {}
 
+#USED
 def transform_strings(input_list):
     """
     Takes a list of strings and returns a list of strings where each original string
@@ -626,6 +432,7 @@ def transform_strings(input_list):
         transformed.append(string.capitalize())
     return transformed
 
+#USED
 def read_json_file(file_path = "output.json"):
     """
     Reads the contents of a JSON file and returns it as a Python dictionary.
@@ -648,18 +455,7 @@ def read_json_file(file_path = "output.json"):
         print(f"Unexpected error: {e}")
         return None
     
-def format_time(seconds):
-    """
-    Formats time given in seconds into hours, minutes, and seconds.
-
-    :param seconds: int, time in seconds
-    :return: str, formatted time as "h m s"
-    """
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours}h {minutes}m {seconds:.2f}s"
-
+#USED
 def format_time_ymd_hms(seconds=None):
     """
     Formats time given in seconds into a string formatted as "yyyy-mm-dd_hh-mm-ss"
@@ -680,24 +476,7 @@ def format_time_ymd_hms(seconds=None):
 
     return local_time.strftime("%Y-%m-%d_%H-%M-%S")
 
-def remove_duplicates(arr, excl = []):
-    """
-    Removes duplicates from an array while maintaining the order of elements.
-
-    Args:
-        arr (list): The input array.
-
-    Returns:
-        list: A new array with duplicates removed.
-    """
-    seen = set()
-    result = []
-    for item in arr:
-        if item not in seen:
-            result.append("https://www.autotrader.ca" + item)
-            seen.add(item)
-    return result
-
+#USED
 def remove_duplicates_exclusions(arr, excl=[]):
     """
     Removes duplicates from an array of dictionaries while maintaining the order of elements.
@@ -713,7 +492,10 @@ def remove_duplicates_exclusions(arr, excl=[]):
     seen = set()
     result = []
     for item in arr:
-        full_link = "https://www.autotrader.ca" + item["link"]
+        if item["link"][:4] != "http":
+            full_link =  "https://www.autotrader.ca" +item["link"] 
+        else:
+            full_link = item["link"]
         if full_link not in seen and full_link not in excl:
             # Add the full_link to the item dictionary before appending
             item_with_full_link = item.copy()
@@ -724,7 +506,28 @@ def remove_duplicates_exclusions(arr, excl=[]):
     result = filter_dicts(result,excl)
     return result
 
-def filter_dicts(data, exclusion_strings):
+def print_response_size(response):
+    try:
+        # Ensure the response is a Response object
+        if not isinstance(response, requests.Response):
+            raise ValueError("Input must be a requests.Response object")
+        
+        # Get the size of the response content in bytes
+        size_in_bytes = len(response.content)
+        
+        # Convert to kilobytes for easier reading
+        size_in_kb = size_in_bytes / 1024
+        
+        # Print the size
+        print(f"The size of the response from {response.url} is:")
+        print(f"{size_in_bytes} bytes")
+        print(f"{size_in_kb:.2f} KB")
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+#USED
+def filter_dicts(data, exclusion_strings): 
     """
     Removes dictionaries from a list if any of their values contain any of the exclusion strings.
 
@@ -780,14 +583,16 @@ def filter_csv(input_file, output_file, payload):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def keep_if_contains(input_file, output_file, required_string = None):
+
+
+def keep_if_contains(input_file, output_file, required_string=None):
     """
-    Removes rows from a CSV file if none of the columns contain the specified string.
+    Removes rows from a CSV file if none of the columns contain the specified string (case-insensitive).
 
     Parameters:
         input_file (str): Path to the input CSV file.
         output_file (str): Path to the output CSV file with filtered rows.
-        required_string (str): String that must be present in at least one column to keep the row.
+        required_string (str): String that must be present in at least one column (in any case) to keep the row.
 
     Returns:
         None
@@ -797,21 +602,27 @@ def keep_if_contains(input_file, output_file, required_string = None):
         with open(input_file, mode='r', newline='', encoding='utf-8') as infile:
             reader = csv.reader(infile)
             header = next(reader)  # Get the header row
-            rows = list(reader)  # Get the remaining rows
+            rows = list(reader)    # Get the remaining rows
 
-        # Filter rows
         filtered_rows = []
-        for row in rows:
-            if any(required_string in cell for cell in row) or required_string == None:
-                filtered_rows.append(row)
+
+        # If required_string is None, we keep all rows.
+        if required_string is None:
+            filtered_rows = rows
+        else:
+            # Convert the required string to lowercase once
+            required_lower = required_string.lower()
+
+            # Filter rows: if any cell in the row contains the required string (case-insensitive), keep it.
+            for row in rows:
+                if any(required_lower in cell.lower() for cell in row):
+                    filtered_rows.append(row)
 
         # Write the updated rows to the output CSV file
         with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
-            writer.writerow(header)  # Write the header row
+            writer.writerow(header)        # Write the header row
             writer.writerows(filtered_rows)  # Write the filtered rows
-
-        #print(f"Filtered CSV saved to {output_file}")
 
     except FileNotFoundError:
         print(f"Error: The file {input_file} does not exist.")
