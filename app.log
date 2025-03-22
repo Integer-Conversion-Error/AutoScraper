@@ -1,0 +1,218 @@
+2025-03-22 04:45:45,712 - INFO - Firebase initialization: Successful
+2025-03-22 04:45:45,713 - INFO - Server running at http://localhost:5000
+2025-03-22 04:45:45,727 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-22 04:45:45,727 - INFO - [33mPress CTRL+C to quit[0m
+2025-03-22 04:45:45,729 - INFO -  * Restarting with stat
+2025-03-22 04:45:46,513 - INFO - Firebase initialization: Successful
+2025-03-22 04:45:46,514 - INFO - Server running at http://localhost:5000
+2025-03-22 04:45:46,519 - WARNING -  * Debugger is active!
+2025-03-22 04:45:46,525 - INFO -  * Debugger PIN: 125-446-830
+2025-03-22 04:47:15,314 - DEBUG - GET /login No user
+2025-03-22 04:47:15,321 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:15] "GET /login HTTP/1.1" 200 -
+2025-03-22 04:47:15,659 - DEBUG - GET /favicon.ico No user
+2025-03-22 04:47:15,660 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:15] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-03-22 04:47:18,264 - DEBUG - POST /login No user
+2025-03-22 04:47:18,266 - DEBUG - Converted retries value: 3 -> Retry(total=3, connect=None, read=None, redirect=None, status=None)
+2025-03-22 04:47:18,266 - DEBUG - Making request: GET https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com
+2025-03-22 04:47:18,268 - DEBUG - Looking up "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com" in the cache
+2025-03-22 04:47:18,269 - DEBUG - No cache entry available
+2025-03-22 04:47:18,269 - DEBUG - No cache entry available
+2025-03-22 04:47:18,270 - DEBUG - Starting new HTTPS connection (1): www.googleapis.com:443
+2025-03-22 04:47:18,374 - DEBUG - https://www.googleapis.com:443 "GET /robot/v1/metadata/x509/securetoken@system.gserviceaccount.com HTTP/1.1" 200 1730
+2025-03-22 04:47:18,376 - DEBUG - Updating cache with response from "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+2025-03-22 04:47:18,376 - DEBUG - Caching b/c date exists and max-age > 0
+2025-03-22 04:47:18,378 - DEBUG - Login successful for example@example.ca
+2025-03-22 04:47:18,378 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:18,386 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,386 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,425 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:18,582 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,582 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:18,583 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:18,589 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,589 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,590 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:18,718 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,719 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:18,731 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,731 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:18,732 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:18,739 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,740 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,741 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:18,900 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,901 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:18,901 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:18,908 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,908 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:18,909 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:18] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,055 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,056 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:19,071 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,071 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,072 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,080 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,080 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,081 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,213 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,214 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:19,225 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,226 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,227 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,234 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,234 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,235 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,411 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,411 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,412 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,420 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,421 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,422 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,547 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,548 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:19,562 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,563 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,563 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,569 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,570 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,571 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,736 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,737 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:19,753 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,753 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,755 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,761 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,761 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,762 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:19,904 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,905 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:19,920 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,920 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:19,921 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:19,928 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,928 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:19,929 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:19] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,073 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,073 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,074 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,082 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,082 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,083 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,234 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,234 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,235 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,240 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,241 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,241 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,391 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,392 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,392 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,396 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,397 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,398 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,543 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,544 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:20,561 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,562 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,562 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,572 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,572 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,573 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,720 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,721 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,721 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,726 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,727 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,728 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:20,871 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,872 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:20,873 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:20,877 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,877 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:20,878 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:20] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,040 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,040 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,041 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,048 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,048 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,049 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,196 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,196 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,197 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,203 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,204 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,204 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,373 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,373 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,374 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,381 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,381 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,382 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,522 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,523 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:21,546 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,546 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,547 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,552 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,552 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,553 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,697 - DEBUG - GET /api/auth/check vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,698 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[33mGET /api/auth/check HTTP/1.1[0m" 404 -
+2025-03-22 04:47:21,735 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,735 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,736 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,744 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,744 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,745 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:21,901 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,901 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:21,901 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:21,907 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,908 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:21,908 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:21] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:22,051 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,052 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:22,052 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:22] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:22,058 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,059 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,060 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:22] "GET / HTTP/1.1" 200 -
+2025-03-22 04:47:22,214 - DEBUG - GET /login vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,214 - DEBUG - Already logged in, redirecting to index
+2025-03-22 04:47:22,215 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:22] "[32mGET /login HTTP/1.1[0m" 302 -
+2025-03-22 04:47:22,221 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,221 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:47:22,223 - INFO - 127.0.0.1 - - [22/Mar/2025 04:47:22] "GET / HTTP/1.1" 200 -
+2025-03-22 04:54:41,262 - INFO -  * Detected change in 'E:\\Old.OneDrive\\OneDrive\\Desktop\\Self Improvement\\Coding\\AutoScraper\\app_simple.py', reloading
+2025-03-22 04:54:41,355 - INFO -  * Restarting with stat
+2025-03-22 04:54:42,210 - INFO - Firebase initialization: Successful
+2025-03-22 04:54:42,210 - INFO - Server running at http://localhost:5000
+2025-03-22 04:54:42,216 - WARNING -  * Debugger is active!
+2025-03-22 04:54:42,222 - INFO -  * Debugger PIN: 125-446-830
+2025-03-22 04:56:12,767 - DEBUG - GET / No user
+2025-03-22 04:56:12,768 - DEBUG - Not authenticated, redirecting to login
+2025-03-22 04:56:12,769 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:12] "[32mGET / HTTP/1.1[0m" 302 -
+2025-03-22 04:56:12,780 - DEBUG - GET /login No user
+2025-03-22 04:56:12,822 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:12] "GET /login HTTP/1.1" 200 -
+2025-03-22 04:56:12,985 - DEBUG - GET /api/auth/check No user
+2025-03-22 04:56:12,985 - DEBUG - Auth check: False
+2025-03-22 04:56:12,986 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:12] "GET /api/auth/check HTTP/1.1" 200 -
+2025-03-22 04:56:13,003 - DEBUG - GET /favicon.ico No user
+2025-03-22 04:56:13,004 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:13] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-03-22 04:56:15,749 - DEBUG - POST /login No user
+2025-03-22 04:56:15,751 - DEBUG - Converted retries value: 3 -> Retry(total=3, connect=None, read=None, redirect=None, status=None)
+2025-03-22 04:56:15,751 - DEBUG - Making request: GET https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com
+2025-03-22 04:56:15,753 - DEBUG - Looking up "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com" in the cache
+2025-03-22 04:56:15,754 - DEBUG - No cache entry available
+2025-03-22 04:56:15,754 - DEBUG - No cache entry available
+2025-03-22 04:56:15,754 - DEBUG - Starting new HTTPS connection (1): www.googleapis.com:443
+2025-03-22 04:56:15,877 - DEBUG - https://www.googleapis.com:443 "GET /robot/v1/metadata/x509/securetoken@system.gserviceaccount.com HTTP/1.1" 200 1730
+2025-03-22 04:56:15,879 - DEBUG - Updating cache with response from "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+2025-03-22 04:56:15,879 - DEBUG - Caching b/c date exists and max-age > 0
+2025-03-22 04:56:15,881 - DEBUG - Login successful for example@example.ca
+2025-03-22 04:56:15,882 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:15] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-03-22 04:56:15,887 - DEBUG - GET / vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:56:15,888 - DEBUG - Rendering index for user: vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:56:15,923 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:15] "GET / HTTP/1.1" 200 -
+2025-03-22 04:56:16,060 - DEBUG - GET /favicon.ico vppslmbF9zZXLS5SAHLZu2HAj4c2
+2025-03-22 04:56:16,061 - INFO - 127.0.0.1 - - [22/Mar/2025 04:56:16] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
