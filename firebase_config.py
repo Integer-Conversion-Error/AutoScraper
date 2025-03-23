@@ -245,3 +245,125 @@ def delete_payload(user_id, payload_id):
         return {'success': True}
     except Exception as e:
         return {'success': False, 'error': str(e)}
+    
+    
+    
+# Add these functions to firebase_config.py
+
+def save_results(user_id, results, metadata):
+    """
+    Save search results to Firestore.
+    
+    Args:
+        user_id (str): The ID of the user who owns the results
+        results (list): The list of result dictionaries
+        metadata (dict): Metadata about the search (make, model, etc.)
+        
+    Returns:
+        dict: Success status and document ID
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            return {'success': False, 'error': 'Database connection failed'}
+        
+        # Create a reference to the results collection for this user
+        results_ref = db.collection('users').document(user_id).collection('results')
+        
+        # Add necessary metadata
+        results_with_metadata = {
+            'results': results,
+            'metadata': metadata,
+            'created_at': firestore.SERVER_TIMESTAMP,
+            'result_count': len(results)
+        }
+        
+        # Save the results
+        doc_ref = results_ref.add(results_with_metadata)
+        return {'success': True, 'doc_id': doc_ref[1].id}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+def get_user_results(user_id):
+    """
+    Get all results for a specific user.
+    
+    Args:
+        user_id (str): The user's ID
+        
+    Returns:
+        list: List of result documents with metadata
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            return []
+        
+        results_ref = db.collection('users').document(user_id).collection('results')
+        results = results_ref.order_by('created_at', direction=firestore.Query.DESCENDING).get()
+        
+        result_list = []
+        for result_doc in results:
+            data = result_doc.to_dict()
+            metadata = data.get('metadata', {})
+            result_list.append({
+                'id': result_doc.id,
+                'metadata': metadata,
+                'created_at': data.get('created_at'),
+                'result_count': data.get('result_count', 0)
+            })
+        
+        return result_list
+    except Exception as e:
+        print(f"Error retrieving results: {e}")
+        return []
+
+def get_result(user_id, result_id):
+    """
+    Get a specific result by ID.
+    
+    Args:
+        user_id (str): The user's ID
+        result_id (str): The result document ID
+        
+    Returns:
+        dict: The result data with metadata
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            return None
+        
+        result_ref = db.collection('users').document(user_id).collection('results').document(result_id)
+        result = result_ref.get()
+        
+        if not result.exists:
+            return None
+            
+        return result.to_dict()
+    except Exception as e:
+        print(f"Error retrieving result: {e}")
+        return None
+
+def delete_result(user_id, result_id):
+    """
+    Delete a result.
+    
+    Args:
+        user_id (str): The user's ID
+        result_id (str): The result document ID
+        
+    Returns:
+        dict: Success status
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            return {'success': False, 'error': 'Database connection failed'}
+        
+        result_ref = db.collection('users').document(user_id).collection('results').document(result_id)
+        result_ref.delete()
+        
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}

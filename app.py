@@ -1,6 +1,8 @@
+# Update the imports in app.py to include csv
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
 import json
+import csv  # Add this import
 import secrets
 from datetime import timedelta
 from functools import wraps
@@ -26,9 +28,12 @@ from firebase_config import (
     get_user_payloads,
     get_payload,
     update_payload,
-    delete_payload
+    delete_payload,
+    save_results,           # Add these new imports
+    get_user_results,       # Add these new imports
+    get_result,             # Add these new imports
+    delete_result           # Add these new imports
 )
-
 # Initialize Firebase
 firebase_initialized = initialize_firebase()
 
@@ -219,8 +224,13 @@ def load_payload_api():
 @login_required
 def fetch_data_api():
     payload = request.json.get('payload')
+    user_id = session.get('user_id')
+    
     if not payload:
         return jsonify({"success": False, "error": "No payload provided"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
     
     try:
         results = fetch_autotrader_data(payload)
@@ -238,13 +248,41 @@ def fetch_data_api():
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
         full_path = f"{folder_path}/{file_name}"
         
-        save_results_to_csv(results, payload=payload, filename=full_path,max_workers=1000)
+        # Save results to CSV
+        save_results_to_csv(results, payload=payload, filename=full_path, max_workers=1000)
         
-        return jsonify({
+        # Read the CSV to get the processed results
+        processed_results = []
+        with open(full_path, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                processed_results.append(dict(row))
+        
+        # Save to Firebase
+        metadata = {
+            'make': make,
+            'model': model,
+            'yearMin': payload.get('YearMin', ''),
+            'yearMax': payload.get('YearMax', ''),
+            'priceMin': payload.get('PriceMin', ''),
+            'priceMax': payload.get('PriceMax', ''),
+            'file_name': file_name,
+            'timestamp': format_time_ymd_hms()
+        }
+        
+        # Save to Firebase
+        firebase_result = save_results(user_id, processed_results, metadata)
+        
+        response_data = {
             "success": True, 
             "file_path": full_path,
-            "result_count": len(results)
-        })
+            "result_count": len(processed_results)
+        }
+        
+        if firebase_result.get('success'):
+            response_data["doc_id"] = firebase_result.get('doc_id')
+        
+        return jsonify(response_data)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
@@ -260,6 +298,88 @@ def open_links_api():
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+    
+    
+# Add these API endpoints to app.py
+
+@app.route('/api/list_results')
+@login_required
+def list_results():
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Get results from Firebase
+        results = get_user_results(user_id)
+        
+        return jsonify({"success": True, "results": results})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/get_result', methods=['POST'])
+@login_required
+def get_result_api():
+    result_id = request.json.get('result_id')
+    user_id = session.get('user_id')
+    
+    if not result_id:
+        return jsonify({"success": False, "error": "No result ID provided"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Get the result from Firebase
+        result = get_result(user_id, result_id)
+        
+        if not result:
+            return jsonify({"success": False, "error": "Result not found"})
+        
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/delete_result', methods=['POST'])
+@login_required
+def delete_result_api():
+    result_id = request.json.get('result_id')
+    user_id = session.get('user_id')
+    
+    if not result_id:
+        return jsonify({"success": False, "error": "No result ID provided"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Delete the result from Firebase
+        result = delete_result(user_id, result_id)
+        
+        if not result.get('success'):
+            return jsonify({"success": False, "error": result.get('error', 'Failed to delete result')})
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    
+    
+@app.route('/favicon.ico')
+def favicon():
+    """
+    Serves the favicon.ico file from the static folder.
+    If the file doesn't exist, it returns a 404 Not Found response.
+    """
+    from flask import send_from_directory
+    
+    try:
+        return send_from_directory(os.path.join(app.root_path, 'static'),
+                                   'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    except FileNotFoundError:
+        # Log that favicon wasn't found
+        print("Favicon.ico not found in static directory")
+        return '', 404  # Return empty response with 404 status code
 
 if __name__ == '__main__':
     # Create necessary directories for legacy support

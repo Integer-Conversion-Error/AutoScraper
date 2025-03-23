@@ -234,7 +234,7 @@ def extract_vehicle_info(url):
         "Upgrade-Insecure-Requests": "1",
     }
     proxy = get_proxy_from_file()
-    initial_delay = 2  # Seconds to wait initially
+    initial_delay = .25  # Seconds to wait initially
     max_retries = 12   # Maximum retry attempts for rate limiting
     retry_delay = initial_delay
 
@@ -248,7 +248,7 @@ def extract_vehicle_info(url):
                     logger.warning(f"Rate limited (HTTP 429). Retrying in {retry_delay} seconds... (Attempt {attempt + 1}/{max_retries})")
                     time.sleep(retry_delay)
                     # Exponential backoff with max of 60 seconds
-                    retry_delay = min(retry_delay * 2, 60)
+                    retry_delay = min(retry_delay * 2, 10)
                     continue
                 else:
                     raise Exception("Rate limited: HTTP 429 Too Many Requests.")
@@ -261,13 +261,13 @@ def extract_vehicle_info(url):
                     logger.warning(f"Rate limited (Response Text). Retrying in {retry_delay} seconds... (Attempt {attempt + 1}/{max_retries})")
                     time.sleep(retry_delay)
                     # Exponential backoff with max of 60 seconds
-                    retry_delay = min(retry_delay * 2, 60)
+                    retry_delay = min(retry_delay * 2, 10)
                     continue
                 else:
                     raise Exception("Rate limited: Response indicates too many requests.")
             
             logger.debug(f"Successfully fetched vehicle info for {url}")
-            time.sleep(1)  # Brief pause to be nice to the server
+            # time.sleep(1)  # Brief pause to be nice to the server
             
             # Parse the response JSON or HTML content
             respjson = parse_html_content_to_json(response.text)
