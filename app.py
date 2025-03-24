@@ -381,6 +381,101 @@ def favicon():
         print("Favicon.ico not found in static directory")
         return '', 404  # Return empty response with 404 status code
 
+# Add these API endpoints to app.py
+
+@app.route('/api/rename_payload', methods=['POST'])
+@login_required
+def rename_payload_api():
+    payload_id = request.json.get('payload_id')
+    new_name = request.json.get('new_name')
+    user_id = session.get('user_id')
+    
+    if not payload_id or not new_name:
+        return jsonify({"success": False, "error": "Missing payload ID or new name"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Get the current payload
+        payload = get_payload(user_id, payload_id)
+        if not payload:
+            return jsonify({"success": False, "error": "Payload not found"})
+        
+        # Add a custom_name field instead of overwriting existing data
+        payload_data = payload.copy()
+        payload_data['custom_name'] = new_name
+        
+        # Save the updated payload
+        result = update_payload(user_id, payload_id, payload_data)
+        
+        if result.get('success'):
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": result.get('error', 'Failed to rename payload')})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/delete_payload', methods=['POST'])
+@login_required
+def delete_payload_api():
+    payload_id = request.json.get('payload_id')
+    user_id = session.get('user_id')
+    
+    if not payload_id:
+        return jsonify({"success": False, "error": "No payload ID provided"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Delete the payload from Firebase
+        result = delete_payload(user_id, payload_id)
+        
+        if result.get('success'):
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": result.get('error', 'Failed to delete payload')})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/rename_result', methods=['POST'])
+@login_required
+def rename_result_api():
+    result_id = request.json.get('result_id')
+    new_name = request.json.get('new_name')
+    user_id = session.get('user_id')
+    
+    if not result_id or not new_name:
+        return jsonify({"success": False, "error": "Missing result ID or new name"})
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"})
+    
+    try:
+        # Get the current result
+        result_data = get_result(user_id, result_id)
+        
+        if not result_data:
+            return jsonify({"success": False, "error": "Result not found"})
+        
+        # Update the metadata with the custom name
+        metadata = result_data.get('metadata', {})
+        metadata['custom_name'] = new_name
+        
+        # Get the results array
+        results = result_data.get('results', [])
+        
+        # Save the updated result
+        update_result = save_results(user_id, results, metadata, result_id)
+        
+        if update_result.get('success'):
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": update_result.get('error', 'Failed to rename result')})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 if __name__ == '__main__':
     # Create necessary directories for legacy support
     if not os.path.exists("Queries"):

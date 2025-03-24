@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoScraper Web Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .loading {
+            display: none;
+        }
+        .form-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+        .keyword-badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        #loadingCard {
+            display: none;
+        }
+        
+        /* Custom styling for dropdowns with metadata */
+        .custom-select option {
+            display: flex;
+            justify-content: space-between;
+            padding-right: 10px;
+        }
+        
+        .custom-select option .metadata {
+            color: #767676;
+            font-style: italic;
+            font-size: 0.9em;
+            margin-left: 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        
+        .option-main-text {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+        
+        /* Styling for when hovering over or selecting an option */
+        .custom-select option:hover .metadata,
+        .custom-select option:checked .metadata {
+            color: #d9d9d9;
+        }
+        
+        /* Add ellipsis for overflowing option text */
+        .text-truncate-option {
+            max-width: 95%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-car-front"></i> AutoScraper Web
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}" id="logoutLink"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div id="notification" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="notification-content">
+                    Notification message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Search Parameters</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchForm">
+                    <div class="form-section">
+                        <h5><i class="bi bi-car-front"></i> Vehicle Selection</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="makeSelect" class="form-label">Make</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="makeSelect" required>
+                                        <option value="">Select Make</option>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" id="showAllMakes">Show All</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modelSelect" class="form-label">Model</label>
+                                <select class="form-select" id="modelSelect">
+                                    <option value="">Select Model (Choose Make First)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-geo-alt"></i> Location</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="address" value="Kanata, ON">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="proximity" class="form-label">Distance (km, -1 for unlimited)</label>
+                                <input type="number" class="form-control" id="proximity" value="-1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-calendar"></i> Year Range</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="yearMin" class="form-label">Minimum Year</label>
+                                <input type="number" class="form-control" id="yearMin" placeholder="e.g. 2015">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="yearMax" class="form-label">Maximum Year</label>
+                                <input type="number" class="form-control" id="yearMax" placeholder="e.g. 2023">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-currency-dollar"></i> Price Range</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="priceMin" class="form-label">Minimum Price ($)</label>
+                                <input type="number" class="form-control" id="priceMin" placeholder="e.g. 5000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="priceMax" class="form-label">Maximum Price ($)</label>
+                                <input type="number" class="form-control" id="priceMax" placeholder="e.g. 25000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-speedometer2"></i> Mileage</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="odometerMin" class="form-label">Minimum KMs</label>
+                                <input type="number" class="form-control" id="odometerMin" placeholder="e.g. 0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="odometerMax" class="form-label">Maximum KMs</label>
+                                <input type="number" class="form-control" id="odometerMax" placeholder="e.g. 100000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-filter"></i> Filter Options</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="" id="isNew" checked>
+                                    <label class="form-check-label" for="isNew">
+                                        Include New Vehicles
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="" id="isUsed" checked>
+                                    <label class="form-check-label" for="isUsed">
+                                        Include Used Vehicles
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="" id="withPhotos" checked>
+                                    <label class="form-check-label" for="withPhotos">
+                                        Only With Photos
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="exclusionKeyword" class="form-label">Exclusion Keywords</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="exclusionKeyword" placeholder="e.g. salvage, rebuilt, damaged">
+                                <button class="btn btn-outline-secondary" type="button" id="addExclusionBtn">Add</button>
+                            </div>
+                            <div id="exclusionsList" class="mt-2"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="inclusion" class="form-label">Required Inclusion String</label>
+                            <input type="text" class="form-control" id="inclusion" placeholder="e.g. leather, navigation">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button class="btn btn-primary me-md-2" type="button" id="createPayloadBtn">
+                            <i class="bi bi-plus-circle"></i> Create Payload
+                        </button>
+                        <button class="btn btn-success" type="button" id="fetchDataBtn">
+                            <i class="bi bi-search"></i> Fetch Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-save"></i> Payload Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="payloadSelect" class="form-label">Load Saved Payload</label>
+                            <select class="form-select custom-select" id="payloadSelect">
+                                <option value="">Select a saved payload</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
+                            <button class="btn btn-info" type="button" id="loadPayloadBtn">
+                                <i class="bi bi-download"></i> Load
+                            </button>
+                            <button class="btn btn-secondary" type="button" id="savePayloadBtn">
+                                <i class="bi bi-upload"></i> Save Current
+                            </button>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <button class="btn btn-outline-primary" type="button" id="renamePayloadBtn">
+                                <i class="bi bi-pencil"></i> Rename
+                            </button>
+                            <button class="btn btn-outline-danger" type="button" id="deletePayloadBtn">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Current Search Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsInfo">
+                            <p>No search performed yet.</p>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-success" type="button" id="openLinksBtn" disabled>
+                                <i class="bi bi-box-arrow-up-right"></i> Open Links in Browser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Management Section -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-table"></i> Saved Results Management</h5>
+                        <button class="btn btn-sm btn-light float-end" id="refreshResultsBtn">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="resultSelect" class="form-label">View Saved Results</label>
+                            <select class="form-select custom-select" id="resultSelect">
+                                <option value="">Select a saved result</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
+                            <button class="btn btn-primary" type="button" id="viewResultBtn">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            <button class="btn btn-danger" type="button" id="deleteResultBtn">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-outline-primary" type="button" id="renameResultBtn">
+                                <i class="bi bi-pencil"></i> Rename
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for displaying results -->
+        <div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="resultsModalLabel">Vehicle Results</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="resultsTableContainer" class="table-responsive">
+                            <!-- Table will be inserted here dynamically -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="openSelectedLinksBtn">
+                            <i class="bi bi-box-arrow-up-right"></i> Open Selected Links
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal for renaming payloads -->
+        <div class="modal fade" id="renamePayloadModal" tabindex="-1" aria-labelledby="renamePayloadModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="renamePayloadModalLabel">Rename Payload</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="renamePayloadForm">
+                            <div class="mb-3">
+                                <label for="payloadCurrentName" class="form-label">Current Name:</label>
+                                <input type="text" class="form-control" id="payloadCurrentName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="payloadNewName" class="form-label">New Name:</label>
+                                <input type="text" class="form-control" id="payloadNewName" required>
+                            </div>
+                            <input type="hidden" id="payloadIdToRename">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmRenamePayloadBtn">Rename</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for renaming results -->
+        <div class="modal fade" id="renameResultModal" tabindex="-1" aria-labelledby="renameResultModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="renameResultModalLabel">Rename Result</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="renameResultForm">
+                            <div class="mb-3">
+                                <label for="resultCurrentName" class="form-label">Current Name:</label>
+                                <input type="text" class="form-control" id="resultCurrentName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="resultNewName" class="form-label">New Name:</label>
+                                <input type="text" class="form-control" id="resultNewName" required>
+                            </div>
+                            <div class="text-muted small" id="resultMetadataDisplay">
+                                <!-- Metadata will be displayed here -->
+                            </div>
+                            <input type="hidden" id="resultIdToRename">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmRenameResultBtn">Rename</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</body>
+<script>
+// Global variables
+let currentPayload = null;
+let resultsFilePath = null;
+let exclusions = [];
+let currentResultId = null;
+let payloadsData = [];
+let resultsData = [];
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyC5XgDpWOkgXHHJs28DyQvC6JtTB1BpUWw",
+    authDomain: "autoscraper-32bb0.firebaseapp.com",
+    projectId: "autoscraper-32bb0",
+    storageBucket: "autoscraper-32bb0.firebasestorage.app",
+    messagingSenderId: "694443728322",
+    appId: "1:694443728322:web:63770ddc18446c0a74ca5b",
+    measurementId: "G-0NVZC6JPBN"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Override Firebase's auth state observer to prevent unwanted redirects
+const origOnAuthStateChanged = firebase.auth().onAuthStateChanged;
+firebase.auth().onAuthStateChanged = function(callback) {
+    const wrappedCallback = (user) => {
+        console.log("Auth state changed but ignoring for server session");
+        // Don't call the original callback to prevent redirects
+    };
+    return origOnAuthStateChanged.call(firebase.auth(), wrappedCallback);
+};
+
+// =======================================
+// UTILITY FUNCTIONS
+// =======================================
+
+// Function to make authenticated API requests
+async function fetchWithAuth(url, options = {}) {
+    try {
+        console.log(`Making request to: ${url}`);
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+        };
+        
+        // Get current Firebase user if available
+        const user = firebase.auth().currentUser;
+        if (user) {
+            try {
+                const token = await user.getIdToken();
+                defaultHeaders['Authorization'] = `Bearer ${token}`;
+            } catch (error) {
+                console.warn("Could not get Firebase token:", error);
+            }
+        }
+        
+        // Merge default headers with provided options
+        const mergedOptions = {
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...(options.headers || {})
+            }
+        };
+        
+        // Make the request
+        const response = await fetch(url, mergedOptions);
+        
+        if (!response.ok) {
+            console.error(`HTTP error! Status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API request failed:', error);
+        showNotification(`API request failed: ${error.message}`, 'danger');
+        throw error;
+    }
+}
+
+// Function to show notification
+function showNotification(message, type = 'primary') {
+    const notification = document.getElementById('notification');
+    notification.classList.remove('bg-primary', 'bg-success', 'bg-danger', 'bg-warning');
+    notification.classList.add(`bg-${type}`);
+    document.getElementById('notification-content').textContent = message;
+    
+    const toast = new bootstrap.Toast(notification);
+    toast.show();
+}
+
+// Function to show loading
+function showLoading(message = 'Processing your request...') {
+    const loadingMessage = document.getElementById('loadingMessage');
+    const loadingCard = document.getElementById('loadingCard');
+    
+    if (loadingMessage) {
+        loadingMessage.textContent = message;
+    }
+    
+    if (loadingCard) {
+        loadingCard.style.display = 'block';
+    } else {
+        console.log('Loading started: ' + message);
+    }
+}
+
+// Function to hide loading
+function hideLoading() {
+    const loadingCard = document.getElementById('loadingCard');
+    
+    if (loadingCard) {
+        loadingCard.style.display = 'none';
+    } else {
+        console.log('Loading complete');
+    }
+}
+
+// Apply custom styling to select elements with metadata
+function applyCustomSelectStyling(selectId) {
+    const select = document.getElementById(selectId);
+    
+    // Create a MutationObserver to watch for changes to the select
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                const options = select.querySelectorAll('option');
+                
+                options.forEach(option => {
+                    if (option.value) {
+                        const metadata = option.getAttribute('data-metadata');
+                        if (metadata) {
+                            // Create a span for the metadata that will float right
+                            option.innerHTML = `<span class="option-main-text">${option.textContent}</span><span class="metadata">${metadata}</span>`;
+                        }
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing the select element
+    observer.observe(select, { childList: true });
+    
+    // Apply styling to initial options
+    const options = select.querySelectorAll('option');
+    options.forEach(option => {
+        if (option.value) {
+            const metadata = option.getAttribute('data-metadata');
+            if (metadata) {
+                // Create a span for the metadata that will float right
+                option.innerHTML = `<span class="option-main-text">${option.textContent}</span><span class="metadata">${metadata}</span>`;
+            }
+        }
+    });
+}
+
+// Function to update payload display
+function updatePayloadDisplay() {
+    const payloadElement = document.getElementById('currentPayload');
+    
+    // If the element doesn't exist, just log a message and return
+    if (!payloadElement) {
+        console.log('Note: currentPayload element not found in the DOM');
+        return;
+    }
+    
+    if (currentPayload) {
+        payloadElement.textContent = JSON.stringify(currentPayload, null, 2);
+    } else {
+        payloadElement.textContent = 'No payload created yet.';
+    }
+}
+
+// =======================================
+// EXCLUSION KEYWORDS FUNCTIONS
+// =======================================
+
+// Function to update exclusions list
+function updateExclusionsList() {
+    const exclusionsListEl = document.getElementById('exclusionsList');
+    exclusionsListEl.innerHTML = '';
+    
+    exclusions.forEach((exclusion, index) => {
+        const badge = document.createElement('span');
+        badge.classList.add('badge', 'bg-secondary', 'keyword-badge');
+        badge.innerHTML = `${exclusion} <i class="bi bi-x-circle" data-index="${index}" style="cursor: pointer;"></i>`;
+        exclusionsListEl.appendChild(badge);
+    });
+
+    // Add click event to remove badges
+    document.querySelectorAll('#exclusionsList .bi-x-circle').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            exclusions.splice(index, 1);
+            updateExclusionsList();
+        });
+    });
+}
+
+// =======================================
+// VEHICLE MAKE/MODEL FUNCTIONS
+// =======================================
+
+// Function to load makes
+function loadMakes(popular = true) {
+    showLoading('Loading makes...');
+    console.log("Loading makes...");
+    
+    fetchWithAuth(`/api/makes?popular=${popular}`)
+        .then(data => {
+            console.log("Makes loaded:", data);
+            const makeSelect = document.getElementById('makeSelect');
+            makeSelect.innerHTML = '<option value="">Select Make</option>';
+            
+            data.forEach(make => {
+                const option = document.createElement('option');
+                option.value = make;
+                option.textContent = make;
+                makeSelect.appendChild(option);
+            });
+            
+            hideLoading();
+        })
+        .catch(error => {
+            console.error('Error loading makes:', error);
+            showNotification('Failed to load makes. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// =======================================
+// PAYLOAD MANAGEMENT FUNCTIONS
+// =======================================
+
+// Enhanced function to load saved payloads with metadata
+function loadSavedPayloads() {
+    showLoading('Loading saved payloads...');
+    
+    fetchWithAuth('/api/list_payloads')
+        .then(data => {
+            if (data.success) {
+                const payloadSelect = document.getElementById('payloadSelect');
+                payloadSelect.innerHTML = '<option value="">Select a saved payload</option>';
+                payloadsData = data.payloads || [];
+                
+                payloadsData.forEach(payload => {
+                    const option = document.createElement('option');
+                    option.value = payload.id;
+                    
+                    // Extract metadata for display
+                    const payloadData = payload.payload || {};
+                    const make = payloadData.Make || 'Unknown';
+                    const model = payloadData.Model || 'Unknown';
+                    const yearMin = payloadData.YearMin || '';
+                    const yearMax = payloadData.YearMax || '';
+                    const priceMin = payloadData.PriceMin || '';
+                    const priceMax = payloadData.PriceMax || '';
+                    
+                    // Use custom_name if available, otherwise generate a name
+                    const displayName = payloadData.custom_name || `${make} ${model}`;
+                    const metadata = `${yearMin}-${yearMax}, $${priceMin}-$${priceMax}`;
+                    
+                    // Set the display text without nested spans
+                    option.textContent = displayName;
+                    
+                    // Store metadata as a data attribute
+                    option.setAttribute('data-metadata', metadata);
+                    
+                    payloadSelect.appendChild(option);
+                });
+                
+                // Apply custom styling
+                applyCustomSelectStyling('payloadSelect');
+                
+                hideLoading();
+            } else {
+                showNotification('Failed to load saved payloads: ' + data.error, 'danger');
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading saved payloads:', error);
+            showNotification('Failed to load saved payloads. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to populate form with payload data
+function populateFormWithPayload(payload) {
+    console.log("Populating form with payload:", payload);
+    
+    if (!payload) {
+        console.error("No payload data provided to populateFormWithPayload");
+        return;
+    }
+    
+    // Make sure we have the expected properties
+    const make = payload.Make || "";
+    const model = payload.Model || "";
+    
+    // Select the make
+    const makeSelect = document.getElementById('makeSelect');
+    if (makeSelect) {
+        console.log(`Setting make to: ${make}`);
+        makeSelect.value = make;
+        
+        // If we have a valid make, load the associated models
+        if (make) {
+            console.log("Loading models for make:", make);
+            
+            // Show loading notification
+            showNotification('Loading models for ' + make + '...', 'info');
+            
+            // Fetch models for this make
+            fetchWithAuth(`/api/models/${make}`)
+                .then(data => {
+                    console.log("Models loaded:", data);
+                    const modelSelect = document.getElementById('modelSelect');
+                    
+                    // Clear existing options
+                    modelSelect.innerHTML = '<option value="">Select Model</option>';
+                    
+                    // Add new options
+                    const models = Object.keys(data);
+                    models.forEach(modelName => {
+                        const option = document.createElement('option');
+                        option.value = modelName;
+                        option.textContent = `${modelName} (${data[modelName]})`;
+                        modelSelect.appendChild(option);
+                    });
+                    
+                    // Now select the model from payload
+                    if (model) {
+                        console.log(`Setting model to: ${model}`);
+                        modelSelect.value = model;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading models:', error);
+                    showNotification('Failed to load models for ' + make, 'danger');
+                });
+        }
+    }
+    
+    // Fill other form fields
+    const fieldsToPopulate = [
+        { id: 'address', value: payload.Address || '' },
+        { id: 'proximity', value: payload.Proximity !== undefined ? payload.Proximity : -1 },
+        { id: 'yearMin', value: payload.YearMin || '' },
+        { id: 'yearMax', value: payload.YearMax || '' },
+        { id: 'priceMin', value: payload.PriceMin || '' },
+        { id: 'priceMax', value: payload.PriceMax || '' },
+        { id: 'odometerMin', value: payload.OdometerMin || '' },
+        { id: 'odometerMax', value: payload.OdometerMax || '' }
+    ];
+    
+    // Set values for text fields
+    fieldsToPopulate.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) {
+            console.log(`Setting ${field.id} to:`, field.value);
+            element.value = field.value;
+        } else {
+            console.warn(`Element with id ${field.id} not found`);
+        }
+    });
+    
+    // Set checkbox values
+    const checkboxes = [
+        { id: 'isNew', value: payload.IsNew !== undefined ? payload.IsNew : true },
+        { id: 'isUsed', value: payload.IsUsed !== undefined ? payload.IsUsed : true },
+        { id: 'withPhotos', value: payload.WithPhotos !== undefined ? payload.WithPhotos : true }
+    ];
+    
+    checkboxes.forEach(checkbox => {
+        const element = document.getElementById(checkbox.id);
+        if (element) {
+            console.log(`Setting ${checkbox.id} to:`, checkbox.value);
+            element.checked = checkbox.value;
+        } else {
+            console.warn(`Element with id ${checkbox.id} not found`);
+        }
+    });
+    
+    // Set inclusion value
+    const inclusionElement = document.getElementById('inclusion');
+    if (inclusionElement) {
+        inclusionElement.value = payload.Inclusion || '';
+    }
+    
+    // Handle exclusions
+    exclusions = Array.isArray(payload.Exclusions) ? [...payload.Exclusions] : [];
+    console.log("Setting exclusions:", exclusions);
+    updateExclusionsList();
+}
+
+// Function to set up the load payload button
+function setupLoadPayloadButton() {
+    console.log("Setting up load payload button...");
+    
+    // Get the button element
+    const loadPayloadBtn = document.getElementById('loadPayloadBtn');
+    
+    if (!loadPayloadBtn) {
+        console.error("Load payload button not found!");
+        return;
+    }
+    
+    // Remove existing listeners by cloning and replacing the element
+    const newLoadBtn = loadPayloadBtn.cloneNode(true);
+    loadPayloadBtn.parentNode.replaceChild(newLoadBtn, loadPayloadBtn);
+    
+    // Add new event listener
+    newLoadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log("Load payload button clicked (new handler)");
+        
+        const payloadSelect = document.getElementById('payloadSelect');
+        const filePath = payloadSelect.value;
+        
+        if (!filePath) {
+            showNotification('Please select a payload to load', 'warning');
+            return;
+        }
+        
+        // Get the selected option element
+        const selectedOption = payloadSelect.options[payloadSelect.selectedIndex];
+        
+        // Get the document ID from the data-id attribute
+        const docId = selectedOption.getAttribute('data-id');
+        console.log(`Loading payload with path: ${filePath}, docId: ${docId}`);
+        
+        showLoading('Loading payload...');
+        
+        fetchWithAuth('/api/load_payload', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                file_path: filePath,
+                doc_id: docId  // Include the document ID in the request
+            }),
+        })
+            .then(data => {
+                console.log("Load payload response:", data);
+                
+                if (data.success) {
+                    currentPayload = data.payload;
+                    
+                    // Call the display function only if element exists
+                    if (document.getElementById('currentPayload')) {
+                        updatePayloadDisplay();
+                    }
+                    
+                    // Update form with loaded payload data
+                    populateFormWithPayload(data.payload);
+                    
+                    showNotification('Payload loaded successfully', 'success');
+                } else {
+                    showNotification('Failed to load payload: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error loading payload:', error);
+                showNotification('Failed to load payload. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+    
+    console.log("Load payload button event listener attached");
+}
+
+// Setup rename payload functionality
+function setupRenamePayloadButton() {
+    const renameBtn = document.getElementById('renamePayloadBtn');
+    const modalElement = document.getElementById('renamePayloadModal');
+    if (!modalElement) {
+        console.error("Rename payload modal not found!");
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    renameBtn.addEventListener('click', function() {
+        const payloadId = document.getElementById('payloadSelect').value;
+        
+        if (!payloadId) {
+            showNotification('Please select a payload to rename', 'warning');
+            return;
+        }
+        
+        // Find the selected payload data
+        const payload = payloadsData.find(p => p.id === payloadId);
+        if (!payload) {
+            showNotification('Selected payload not found', 'danger');
+            return;
+        }
+        
+        // Set current values in the form
+        document.getElementById('payloadCurrentName').value = payload.name || `${payload.payload?.Make || 'Unknown'} ${payload.payload?.Model || 'Unknown'}`;
+        document.getElementById('payloadNewName').value = '';
+        document.getElementById('payloadIdToRename').value = payloadId;
+        
+        // Show the modal
+        modal.show();
+    });
+    
+    // Handle the rename confirmation
+    document.getElementById('confirmRenamePayloadBtn').addEventListener('click', function() {
+        const payloadId = document.getElementById('payloadIdToRename').value;
+        const newName = document.getElementById('payloadNewName').value.trim();
+        
+        if (!newName) {
+            showNotification('Please enter a new name', 'warning');
+            return;
+        }
+        
+        showLoading('Renaming payload...');
+        
+        fetchWithAuth('/api/rename_payload', {
+            method: 'POST',
+            body: JSON.stringify({
+                payload_id: payloadId,
+                new_name: newName
+            })
+        })
+            .then(data => {
+                if (data.success) {
+                    modal.hide();
+                    showNotification('Payload renamed successfully', 'success');
+                    loadSavedPayloads();
+                } else {
+                    showNotification('Failed to rename payload: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error renaming payload:', error);
+                showNotification('Failed to rename payload. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+}
+
+// Setup delete payload functionality
+function setupDeletePayloadButton() {
+    const deleteBtn = document.getElementById('deletePayloadBtn');
+    
+    deleteBtn.addEventListener('click', function() {
+        const payloadId = document.getElementById('payloadSelect').value;
+        
+        if (!payloadId) {
+            showNotification('Please select a payload to delete', 'warning');
+            return;
+        }
+        
+        if (!confirm('Are you sure you want to delete this payload? This action cannot be undone.')) {
+            return;
+        }
+        
+        showLoading('Deleting payload...');
+        
+        fetchWithAuth('/api/delete_payload', {
+            method: 'POST',
+            body: JSON.stringify({
+                payload_id: payloadId
+            })
+        })
+            .then(data => {
+                if (data.success) {
+                    showNotification('Payload deleted successfully', 'success');
+                    loadSavedPayloads();
+                } else {
+                    showNotification('Failed to delete payload: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error deleting payload:', error);
+                showNotification('Failed to delete payload. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+}
+
+// =======================================
+// RESULTS MANAGEMENT FUNCTIONS
+// =======================================
+
+// Enhanced function to load saved results with metadata
+function loadSavedResults() {
+    showLoading('Loading saved results...');
+    
+    fetchWithAuth('/api/list_results')
+        .then(data => {
+            if (data.success) {
+                const resultSelect = document.getElementById('resultSelect');
+                resultSelect.innerHTML = '<option value="">Select a saved result</option>';
+                resultsData = data.results || [];
+                
+                resultsData.forEach(result => {
+                    const option = document.createElement('option');
+                    option.value = result.id;
+                    
+                    // Create a descriptive name from metadata
+                    const metadata = result.metadata || {};
+                    const make = metadata.make || 'Unknown';
+                    const model = metadata.model || 'Unknown';
+                    const yearMin = metadata.yearMin || '';
+                    const yearMax = metadata.yearMax || '';
+                    const priceMin = metadata.priceMin || '';
+                    const priceMax = metadata.priceMax || '';
+                    const count = result.result_count || 0;
+                    const timestamp = metadata.timestamp || '';
+                    
+                    // If there's a custom name, use it as the main display text
+                    const customName = metadata.custom_name || '';
+                    const mainName = customName || `${make} ${model}`;
+                    const metadataText = `${yearMin}-${yearMax}, $${priceMin}-$${priceMax}, ${count} results, ${timestamp}`;
+                    
+                    // Set the display text with custom formatting
+                    option.innerText = mainName;
+                    
+                    // Store metadata as a data attribute
+                    option.setAttribute('data-metadata', metadataText);
+                    
+                    resultSelect.appendChild(option);
+                });
+                
+                // Apply custom styling to display metadata
+                applyCustomSelectStyling('resultSelect');
+                
+                hideLoading();
+            } else {
+                showNotification('Failed to load saved results: ' + data.error, 'danger');
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading saved results:', error);
+            showNotification('Failed to load saved results. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to refresh results list without showing loading indicator
+function refreshResultsList() {
+    console.log("Refreshing results list...");
+    
+    // Save the currently selected value to restore it after refresh
+    const resultSelect = document.getElementById('resultSelect');
+    const currentSelection = resultSelect.value;
+    
+    fetchWithAuth('/api/list_results')
+        .then(data => {
+            if (data.success) {
+                const resultSelect = document.getElementById('resultSelect');
+                
+                // Store current options for comparison
+                const currentOptions = Array.from(resultSelect.options).map(opt => opt.value);
+                
+                // Prepare new options
+                let newOptionsHTML = '<option value="">Select a saved result</option>';
+                let newOptions = [''];
+                
+                data.results.forEach(result => {
+                    const metadata = result.metadata || {};
+                    const make = metadata.make || 'Unknown';
+                    const model = metadata.model || 'Unknown';
+                    const yearMin = metadata.yearMin || '';
+                    const yearMax = metadata.yearMax || '';
+                    const priceMin = metadata.priceMin || '';
+                    const priceMax = metadata.priceMax || '';
+                    const count = result.result_count || 0;
+                    const timestamp = metadata.timestamp || '';
+                    
+                    const optionText = `${make} ${model} (${yearMin}-${yearMax}, $${priceMin}-$${priceMax}) - ${count} results - ${timestamp}`;
+                    newOptionsHTML += `<option value="${result.id}">${optionText}</option>`;
+                    newOptions.push(result.id);
+                });
+                
+                // Check if there are any changes to the options
+                const hasChanges = newOptions.length !== currentOptions.length || 
+                                  newOptions.some((opt, i) => opt !== currentOptions[i]);
+                
+                // Only update DOM if there are changes
+                if (hasChanges) {
+                    resultSelect.innerHTML = newOptionsHTML;
+                    
+                    // Restore previously selected value if it still exists
+                    if (currentSelection && newOptions.includes(currentSelection)) {
+                        resultSelect.value = currentSelection;
+                    }
+                    
+                    // Show notification only if there's a meaningful change
+                    if (newOptions.length > currentOptions.length) {
+                        const newCount = newOptions.length - currentOptions.length;
+                        showNotification(`${newCount} new result${newCount > 1 ? 's' : ''} added`, 'info');
+                    }
+                    
+                    console.log("Results list refreshed with changes");
+                } else {
+                    console.log("Results list refreshed (no changes)");
+                }
+            } else {
+                console.error('Failed to refresh results list:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing results list:', error);
+        });
+}
+
+// Function to view selected result
+function viewSelectedResult() {
+    const resultId = document.getElementById('resultSelect').value;
+    
+    if (!resultId) {
+        showNotification('Please select a result to view', 'warning');
+        return;
+    }
+    
+    currentResultId = resultId;
+    showLoading('Loading result data...');
+    
+    fetchWithAuth('/api/get_result', {
+        method: 'POST',
+        body: JSON.stringify({ result_id: resultId }),
+    })
+        .then(data => {
+            if (data.success) {
+                displayResults(data.result);
+                hideLoading();
+            } else {
+                showNotification('Failed to load result: ' + data.error, 'danger');
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading result:', error);
+            showNotification('Failed to load result. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to display results in a table
+function displayResults(result) {
+    const resultsTable = document.getElementById('resultsTableContainer');
+    const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+    
+    const metadata = result.metadata || {};
+    const make = metadata.make || 'Unknown';
+    const model = metadata.model || 'Unknown';
+    const yearMin = metadata.yearMin || '';
+    const yearMax = metadata.yearMax || '';
+    
+    // Update modal title
+    document.getElementById('resultsModalLabel').textContent = 
+        `Results: ${make} ${model} (${yearMin}-${yearMax})`;
+    
+    // Get results array
+    const vehicles = result.results || [];
+    
+    // Create table
+    let tableHTML = `
+        <table class="table table-striped table-hover" id="vehicleResultsTable">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAllVehicles"></th>
+                    <th>Year</th>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Trim</th>
+                    <th>Price</th>
+                    <th>Kilometers</th>
+                    <th>Drivetrain</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    vehicles.forEach((vehicle, index) => {
+        tableHTML += `
+            <tr>
+                <td><input type="checkbox" class="vehicle-checkbox" data-link="${vehicle.Link || ''}"></td>
+                <td>${vehicle.Year || ''}</td>
+                <td>${vehicle.Make || ''}</td>
+                <td>${vehicle.Model || ''}</td>
+                <td>${vehicle.Trim || ''}</td>
+                <td>${vehicle.Price || ''}</td>
+                <td>${vehicle.Kilometres || ''}</td>
+                <td>${vehicle.Drivetrain || ''}</td>
+                <td>
+                    <a href="${vehicle.Link || '#'}" target="_blank" class="btn btn-sm btn-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> View
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += `
+            </tbody>
+        </table>
+    `;
+    
+    resultsTable.innerHTML = tableHTML;
+    
+    // Set up select all checkbox
+    document.getElementById('selectAllVehicles').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.vehicle-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+    
+    // Show the modal
+    resultsModal.show();
+}
+
+// Function to delete selected result
+function deleteSelectedResult() {
+    const resultId = document.getElementById('resultSelect').value;
+    
+    if (!resultId) {
+        showNotification('Please select a result to delete', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this result? This action cannot be undone.')) {
+        return;
+    }
+    
+    showLoading('Deleting result...');
+    
+    fetchWithAuth('/api/delete_result', {
+        method: 'POST',
+        body: JSON.stringify({ result_id: resultId }),
+    })
+        .then(data => {
+            if (data.success) {
+                showNotification('Result deleted successfully', 'success');
+                loadSavedResults();
+            } else {
+                showNotification('Failed to delete result: ' + data.error, 'danger');
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting result:', error);
+            showNotification('Failed to delete result. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to open selected vehicle links
+function openSelectedVehicleLinks() {
+    const checkboxes = document.querySelectorAll('.vehicle-checkbox:checked');
+    
+    if (checkboxes.length === 0) {
+        showNotification('Please select at least one vehicle', 'warning');
+        return;
+    }
+    
+    // Limit the number of links to open to prevent browser overload
+    const maxLinksToOpen = 15;
+    const selectedLinks = [];
+    
+    checkboxes.forEach(checkbox => {
+        const link = checkbox.getAttribute('data-link');
+        if (link) {
+            selectedLinks.push(link);
+        }
+    });
+    
+    const linksToOpen = selectedLinks.slice(0, maxLinksToOpen);
+    
+    if (linksToOpen.length < selectedLinks.length) {
+        showNotification(`Opening first ${maxLinksToOpen} of ${selectedLinks.length} selected links to prevent browser overload`, 'warning');
+    }
+    
+    // Open links in new tabs
+    linksToOpen.forEach(link => {
+        window.open(link, '_blank');
+    });
+}
+
+// Function to open links from CSV file
+function openLinksFromCsv(filePath) {
+    showLoading('Opening links...');
+    
+    fetchWithAuth('/api/open_links', {
+        method: 'POST',
+        body: JSON.stringify({ file_path: filePath }),
+    })
+        .then(data => {
+            if (data.success) {
+                showNotification('Links opened in browser', 'success');
+            } else {
+                showNotification('Failed to open links: ' + data.error, 'danger');
+            }
+            hideLoading();
+        })
+        .catch(error => {
+            console.error('Error opening links:', error);
+            showNotification('Failed to open links. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to download a CSV file
+function downloadCsvFile(filePath) {
+    showLoading('Preparing CSV download...');
+    
+    // Create a hidden anchor element to trigger the download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = `/api/download_csv?file_path=${encodeURIComponent(filePath)}`;
+    downloadLink.download = filePath.split('/').pop() || 'results.csv';
+    
+    // Add auth token to the request
+    firebase.auth().currentUser.getIdToken()
+        .then(token => {
+            // Create a fetch request with the token
+            return fetch(downloadLink.href, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create a URL for the blob
+            const url = URL.createObjectURL(blob);
+            
+            // Update the link href to the blob URL
+            downloadLink.href = url;
+            
+            // Trigger the download
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            
+            // Clean up
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(url);
+            
+            showNotification('CSV file downloaded successfully', 'success');
+            hideLoading();
+        })
+        .catch(error => {
+            console.error('Error downloading CSV:', error);
+            showNotification('Failed to download CSV. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Function to download a result as CSV
+function downloadResultAsCsv(resultId) {
+    showLoading('Preparing CSV download...');
+    
+    fetchWithAuth('/api/get_result', {
+        method: 'POST',
+        body: JSON.stringify({ result_id: resultId }),
+    })
+        .then(data => {
+            if (data.success) {
+                const result = data.result;
+                const vehicles = result.results || [];
+                const metadata = result.metadata || {};
+                
+                if (vehicles.length === 0) {
+                    showNotification('No vehicles found in this result', 'warning');
+                    hideLoading();
+                    return;
+                }
+                
+                // Get all possible headers from the vehicles
+                const headers = Object.keys(vehicles.reduce((acc, vehicle) => {
+                    Object.keys(vehicle).forEach(key => {
+                        acc[key] = true;
+                    });
+                    return acc;
+                }, {}));
+                
+                // Create CSV content
+                let csvContent = headers.join(',') + '\n';
+                
+                // Add vehicle data
+                vehicles.forEach(vehicle => {
+                    const row = headers.map(header => {
+                        const value = vehicle[header] || '';
+                        // Escape commas and quotes in values
+                        return `"${String(value).replace(/"/g, '""')}"`;
+                    });
+                    csvContent += row.join(',') + '\n';
+                });
+                
+                // Create a Blob with the CSV content
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                
+                // Create a filename based on metadata
+                const make = metadata.make || 'unknown';
+                const model = metadata.model || 'unknown';
+                const timestamp = metadata.timestamp || new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `${make}_${model}_${timestamp}.csv`;
+                
+                // Create a download link
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = filename;
+                
+                // Trigger the download
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                
+                // Clean up
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+                
+                showNotification('CSV file downloaded successfully', 'success');
+                hideLoading();
+            } else {
+                showNotification('Failed to get result data: ' + data.error, 'danger');
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Error downloading result as CSV:', error);
+            showNotification('Failed to download CSV. Please try again.', 'danger');
+            hideLoading();
+        });
+}
+
+// Setup rename result functionality
+function setupRenameResultButton() {
+    const renameBtn = document.getElementById('renameResultBtn');
+    const modalElement = document.getElementById('renameResultModal');
+    if (!modalElement) {
+        console.error("Rename result modal not found!");
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    renameBtn.addEventListener('click', function() {
+        const resultId = document.getElementById('resultSelect').value;
+        
+        if (!resultId) {
+            showNotification('Please select a result to rename', 'warning');
+            return;
+        }
+        
+        // Find the selected result data
+        const result = resultsData.find(r => r.id === resultId);
+        if (!result) {
+            showNotification('Selected result not found', 'danger');
+            return;
+        }
+        
+        // Get metadata
+        const metadata = result.metadata || {};
+        const make = metadata.make || 'Unknown';
+        const model = metadata.model || 'Unknown';
+        const yearMin = metadata.yearMin || '';
+        const yearMax = metadata.yearMax || '';
+        const priceMin = metadata.priceMin || '';
+        const priceMax = metadata.priceMax || '';
+        const count = result.result_count || 0;
+        const timestamp = metadata.timestamp || '';
+        
+        // Current name is either the custom name or a generated one
+        const currentName = metadata.custom_name || `${make} ${model}`;
+        
+        // Set current values in the form
+        document.getElementById('resultCurrentName').value = currentName;
+        document.getElementById('resultNewName').value = '';
+        document.getElementById('resultIdToRename').value = resultId;
+        
+        // Display metadata in the form
+        document.getElementById('resultMetadataDisplay').innerHTML = `
+            <p>Make/Model: ${make} ${model}</p>
+            <p>Year Range: ${yearMin}-${yearMax}</p>
+            <p>Price Range: $${priceMin}-$${priceMax}</p>
+            <p>Results: ${count}</p>
+            <p>Created: ${timestamp}</p>
+        `;
+        
+        // Show the modal
+        modal.show();
+    });
+    
+    // Handle the rename confirmation
+    document.getElementById('confirmRenameResultBtn').addEventListener('click', function() {
+        const resultId = document.getElementById('resultIdToRename').value;
+        const newName = document.getElementById('resultNewName').value.trim();
+        
+        if (!newName) {
+            showNotification('Please enter a new name', 'warning');
+            return;
+        }
+        
+        showLoading('Renaming result...');
+        
+        fetchWithAuth('/api/rename_result', {
+            method: 'POST',
+            body: JSON.stringify({
+                result_id: resultId,
+                new_name: newName
+            })
+        })
+            .then(data => {
+                if (data.success) {
+                    modal.hide();
+                    showNotification('Result renamed successfully', 'success');
+                    loadSavedResults();
+                } else {
+                    showNotification('Failed to rename result: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error renaming result:', error);
+                showNotification('Failed to rename result. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+}
+
+// =======================================
+// INITIALIZATION
+// =======================================
+
+// Wait for document to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, initializing...");
+    
+    // Initialize all dropdowns
+    const dropdownTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+    dropdownTriggerList.map(function(dropdownTriggerEl) {
+        return new bootstrap.Dropdown(dropdownTriggerEl);
+    });
+    
+    // Add a slight delay to ensure all elements are rendered
+    setTimeout(() => {
+        // Load makes on page load
+        loadMakes(true);
+        
+        // Load saved payloads
+        loadSavedPayloads();
+        
+        // Load saved results (only once on page load)
+        loadSavedResults();
+        
+        // Set up manual refresh button
+        document.getElementById('refreshResultsBtn').addEventListener('click', function() {
+            showNotification('Refreshing results list...', 'info');
+            refreshResultsList();
+        });
+        
+        // Setup rename/delete functionality
+        setupRenamePayloadButton();
+        setupDeletePayloadButton();
+        setupRenameResultButton();
+    }, 100);
+
+    // Add exclusion keyword
+    document.getElementById('addExclusionBtn').addEventListener('click', function() {
+        const keyword = document.getElementById('exclusionKeyword').value.trim();
+        if (keyword && !exclusions.includes(keyword)) {
+            exclusions.push(keyword);
+            updateExclusionsList();
+            document.getElementById('exclusionKeyword').value = '';
+        }
+    });
+
+    // Allow pressing Enter to add exclusion
+    document.getElementById('exclusionKeyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('addExclusionBtn').click();
+        }
+    });
+    
+    // Create payload button
+    document.getElementById('createPayloadBtn').addEventListener('click', function() {
+        const form = document.getElementById('searchForm');
+        
+        // Basic validation
+        if (!document.getElementById('makeSelect').value) {
+            showNotification('Please select a Make', 'warning');
+            return;
+        }
+        
+        // Create payload from form
+        const payload = {
+            Make: document.getElementById('makeSelect').value,
+            Model: document.getElementById('modelSelect').value,
+            Address: document.getElementById('address').value,
+            Proximity: parseInt(document.getElementById('proximity').value),
+            YearMin: document.getElementById('yearMin').value ? parseInt(document.getElementById('yearMin').value) : null,
+            YearMax: document.getElementById('yearMax').value ? parseInt(document.getElementById('yearMax').value) : null,
+            PriceMin: document.getElementById('priceMin').value ? parseInt(document.getElementById('priceMin').value) : null,
+            PriceMax: document.getElementById('priceMax').value ? parseInt(document.getElementById('priceMax').value) : null,
+            OdometerMin: document.getElementById('odometerMin').value ? parseInt(document.getElementById('odometerMin').value) : null,
+            OdometerMax: document.getElementById('odometerMax').value ? parseInt(document.getElementById('odometerMax').value) : null,
+            IsNew: document.getElementById('isNew').checked,
+            IsUsed: document.getElementById('isUsed').checked,
+            WithPhotos: document.getElementById('withPhotos').checked,
+            Exclusions: exclusions,
+            Inclusion: document.getElementById('inclusion').value,
+            Skip: 0,
+            Top: 15,
+            micrositeType: 1
+        };
+        
+        // Validation
+        if (payload.YearMin !== null && payload.YearMax !== null && payload.YearMin > payload.YearMax) {
+            showNotification('Minimum Year cannot be greater than Maximum Year', 'warning');
+            return;
+        }
+        
+        if (payload.PriceMin !== null && payload.PriceMax !== null && payload.PriceMin > payload.PriceMax) {
+            showNotification('Minimum Price cannot be greater than Maximum Price', 'warning');
+            return;
+        }
+        
+        if (payload.OdometerMin !== null && payload.OdometerMax !== null && payload.OdometerMin > payload.OdometerMax) {
+            showNotification('Minimum KMs cannot be greater than Maximum KMs', 'warning');
+            return;
+        }
+        
+        showLoading('Creating payload...');
+        
+        fetchWithAuth('/api/create_payload', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        })
+            .then(data => {
+                if (data.success) {
+                    currentPayload = data.payload;
+                    updatePayloadDisplay();
+                    showNotification('Payload created successfully', 'success');
+                } else {
+                    showNotification('Failed to create payload: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error creating payload:', error);
+                showNotification('Failed to create payload. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+    
+    // Fetch data button
+    const fetchDataBtn = document.getElementById('fetchDataBtn');
+    if (fetchDataBtn) {
+        fetchDataBtn.addEventListener('click', function() {
+            console.log("Fetch data button clicked");
+            
+            if (!currentPayload) {
+                showNotification('No payload to use. Please create a payload first.', 'warning');
+                return;
+            }
+            
+            // Log the payload to help with debugging
+            console.log("Current payload for fetching data:", JSON.stringify(currentPayload, null, 2));
+            
+            // Check for required fields in the payload
+            if (!currentPayload.Make) {
+                showNotification('Payload must include a Make. Please create a valid payload.', 'warning');
+                return;
+            }
+            
+            showLoading('Fetching data from AutoTrader...');
+            
+            // Create a copy of the payload and ensure all required properties are present
+            const sanitizedPayload = {
+                Make: currentPayload.Make || "",
+                Model: currentPayload.Model || "",
+                Address: currentPayload.Address || "Kanata, ON",
+                Proximity: currentPayload.Proximity !== undefined ? currentPayload.Proximity : -1,
+                YearMin: currentPayload.YearMin || null,
+                YearMax: currentPayload.YearMax || null,
+                PriceMin: currentPayload.PriceMin || null,
+                PriceMax: currentPayload.PriceMax || null,
+                OdometerMin: currentPayload.OdometerMin || null,
+                OdometerMax: currentPayload.OdometerMax || null,
+                IsNew: currentPayload.IsNew !== undefined ? currentPayload.IsNew : true,
+                IsUsed: currentPayload.IsUsed !== undefined ? currentPayload.IsUsed : true,
+                WithPhotos: currentPayload.WithPhotos !== undefined ? currentPayload.WithPhotos : true,
+                Exclusions: Array.isArray(currentPayload.Exclusions) ? currentPayload.Exclusions : [],
+                Inclusion: currentPayload.Inclusion || "",
+                Skip: 0,
+                Top: 15,
+                micrositeType: 1
+            };
+            
+            fetchWithAuth('/api/fetch_data', {
+                method: 'POST',
+                body: JSON.stringify({ payload: sanitizedPayload }),
+            })
+                .then(data => {
+                    console.log("Fetch data response:", data);
+                    
+                    if (data.success) {
+                        resultsFilePath = data.file_path;
+                        currentResultId = data.doc_id || null;
+                        
+                        // Update results info
+                        document.getElementById('resultsInfo').innerHTML = `
+                            <div class="alert alert-success">
+                                <p><strong><i class="bi bi-check-circle"></i> Found:</strong> ${data.result_count} listings</p>
+                                <p><strong><i class="bi bi-file-earmark-text"></i> Saved to:</strong> ${data.file_path}</p>
+                            </div>
+                        `;
+                        
+                        // Enable open links button
+                        document.getElementById('openLinksBtn').disabled = false;
+                        
+                        // Enable download CSV button if it exists
+                        const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+                        if (downloadCsvBtn) {
+                            downloadCsvBtn.disabled = false;
+                        }
+                        
+                        showNotification(`Found ${data.result_count} listings`, 'success');
+                        
+                        // Refresh the results list once after fetch completes
+                        setTimeout(() => {
+                            refreshResultsList();
+                        }, 2000);
+                    } else {
+                        document.getElementById('resultsInfo').innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><i class="bi bi-exclamation-triangle"></i> Error: ${data.error}</p>
+                            </div>
+                        `;
+                        showNotification('Failed to fetch data: ' + data.error, 'danger');
+                    }
+                    hideLoading();
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    showNotification('Failed to fetch data. Please try again.', 'danger');
+                    hideLoading();
+                });
+        });
+    } else {
+        console.error("Fetch data button not found");
+    }
+    
+    // Save payload button
+    document.getElementById('savePayloadBtn').addEventListener('click', function() {
+        if (!currentPayload) {
+            showNotification('No payload to save. Please create a payload first.', 'warning');
+            return;
+        }
+        
+        showLoading('Saving payload...');
+        
+        fetchWithAuth('/api/save_payload', {
+            method: 'POST',
+            body: JSON.stringify({ payload: currentPayload }),
+        })
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Payload saved as ${data.file_path}`, 'success');
+                    loadSavedPayloads();
+                } else {
+                    showNotification('Failed to save payload: ' + data.error, 'danger');
+                }
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error saving payload:', error);
+                showNotification('Failed to save payload. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+    
+    // Download current CSV button
+    const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+    if (downloadCsvBtn) {
+        downloadCsvBtn.addEventListener('click', function() {
+            if (!resultsFilePath) {
+                showNotification('No results file available. Please fetch data first.', 'warning');
+                return;
+            }
+            
+            downloadCsvFile(resultsFilePath);
+        });
+    }
+    
+    // Download selected result button in modal
+    const downloadSelectedResultBtn = document.getElementById('downloadSelectedResultBtn');
+    if (downloadSelectedResultBtn) {
+        downloadSelectedResultBtn.addEventListener('click', function() {
+            const resultId = currentResultId || document.getElementById('resultSelect').value;
+            
+            if (!resultId) {
+                showNotification('No result selected to download', 'warning');
+                return;
+            }
+            
+            downloadResultAsCsv(resultId);
+        });
+    }
+    
+    // View result button
+    document.getElementById('viewResultBtn').addEventListener('click', function() {
+        viewSelectedResult();
+    });
+    
+    // Delete result button
+    document.getElementById('deleteResultBtn').addEventListener('click', function() {
+        deleteSelectedResult();
+    });
+    
+    // Open links button
+    document.getElementById('openLinksBtn').addEventListener('click', function() {
+        if (!resultsFilePath) {
+            showNotification('No results file available. Please fetch data first.', 'warning');
+            return;
+        }
+        
+        openLinksFromCsv(resultsFilePath);
+    });
+    
+    // Open selected links button in modal
+    document.getElementById('openSelectedLinksBtn').addEventListener('click', openSelectedVehicleLinks);
+    
+    // Load payload from dropdown
+    setupLoadPayloadButton();
+    
+    // Model changes
+    document.getElementById('makeSelect').addEventListener('change', function() {
+        const make = this.value;
+        const modelSelect = document.getElementById('modelSelect');
+        
+        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        
+        if (!make) return;
+        
+        showLoading('Loading models...');
+        console.log(`Loading models for make: ${make}`);
+        
+        fetchWithAuth(`/api/models/${make}`)
+            .then(data => {
+                console.log("Models loaded:", data);
+                const models = Object.keys(data);
+                
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = `${model} (${data[model]})`;
+                    modelSelect.appendChild(option);
+                });
+                
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error loading models:', error);
+                showNotification('Failed to load models. Please try again.', 'danger');
+                hideLoading();
+            });
+    });
+    
+    // Show all makes button
+    document.getElementById('showAllMakes').addEventListener('click', function() {
+        loadMakes(false);
+    });
+});</script>
+</body>
+</html>

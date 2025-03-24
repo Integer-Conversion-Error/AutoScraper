@@ -79,7 +79,7 @@ def verify_id_token(id_token):
         dict: The decoded token information
     """
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        decoded_token = auth.verify_id_token(id_token,clock_skew_seconds=3)
         return {'success': True, 'user': decoded_token}
     except Exception as e:
         return {'success': False, 'error': str(e)}
