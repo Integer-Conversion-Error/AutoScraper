@@ -80,17 +80,20 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     url = "https://www.autotrader.ca/Refinement/Search"
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
-    
-    headers = {
+
+    # Create a session object
+    session = requests.Session()
+    session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Accept-Language": "en-US,en;q=0.9",
-    }
+    })
+    session.proxies.update(proxy) # Add proxies to the session
 
-    def fetch_page(page):
+    def fetch_page(page, session):
         """
-        Fetch a single page with exponential backoff retry logic.
+        Fetch a single page using a session with exponential backoff retry logic.
         
         Args:
             page (int): Page number to fetch.
@@ -122,7 +125,8 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
             }
             
             try:
-                response = requests.post(url=url, headers=headers, json=payload, timeout=30, proxies=proxy)
+                # Use the session object for the request
+                response = session.post(url=url, json=payload, timeout=30) # Headers and proxies are now part of the session
                 response.raise_for_status()
                 json_response = response.json()
                 search_results_json = json_response.get("SearchResultsDataJson", "")
@@ -154,21 +158,21 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         logger.error(f"Failed to fetch page {page} after {max_retries} attempts.")
         return [], 1
 
-    # Fetch the first page to determine the total number of pages
-    initial_results, max_page = fetch_page(0)
+    # Fetch the first page using the session to determine the total number of pages
+    initial_results, max_page = fetch_page(0, session)
     all_results = initial_results
-    
+
     logger.info(f"Found {max_page} pages to fetch.")
     
     # Create a list to hold the remaining pages to fetch
     pages_to_fetch = list(range(1, max_page))
     pages_completed = 1  # We already fetched page 0
     
-    # Process remaining pages concurrently
+    # Process remaining pages concurrently using the session
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all page fetch tasks
-        future_to_page = {executor.submit(fetch_page, page): page for page in pages_to_fetch}
-        
+        # Submit all page fetch tasks, passing the session
+        future_to_page = {executor.submit(fetch_page, page, session): page for page in pages_to_fetch}
+
         # Process results as they complete
         for future in concurrent.futures.as_completed(future_to_page):
             page = future_to_page[future]
@@ -217,31 +221,30 @@ def extract_vehicle_info(url):
     Returns:
         dict: Vehicle information extracted from the URL.
     """
-    # Check if URL is in cache
-    if url in vehicle_info_cache:
-        return vehicle_info_cache[url]
-    
-    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
-    ACCEPT_HEADER = "application/json, text/javascript, */*; q=0.01"
-    REFERER = "https://www.google.com/"
-    
-    headers = {
-        "User-Agent": USER_AGENT,
+    # Manual cache dictionary removed; relying on @lru_cache on the wrapper function.
+
+    # Create a session object for this function scope
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept": ACCEPT_HEADER,
-        "Referer": REFERER,
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": "https://www.google.com/",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
-    }
+    })
     proxy = get_proxy_from_file()
+    session.proxies.update(proxy) # Add proxies to the session
+
     initial_delay = .25  # Seconds to wait initially
     max_retries = 12   # Maximum retry attempts for rate limiting
     retry_delay = initial_delay
 
     try:
         for attempt in range(max_retries):
-            response = requests.get(url, headers=headers, proxies=proxy, timeout=30)
-            
+            # Use the session object for the request
+            response = session.get(url, timeout=30) # Headers and proxies are now part of the session
+
             # Check for rate limiting via HTTP status code
             if response.status_code == 429:
                 if attempt < max_retries - 1:
@@ -272,12 +275,11 @@ def extract_vehicle_info(url):
             # Parse the response JSON or HTML content
             respjson = parse_html_content_to_json(response.text)
             car_info = extract_vehicle_info_from_json(respjson)
-            
-            # Store in cache
-            vehicle_info_cache[url] = car_info
-            
+
+            # Caching is handled by @lru_cache on extract_vehicle_info_cached
+
             return car_info
-        
+
         # If all retries fail, raise a final exception
         raise Exception("Failed to fetch data after multiple attempts due to rate limiting.")
     
