@@ -168,14 +168,20 @@ def list_payloads():
         formatted_payloads = []
         for payload_data in payloads:
             payload = payload_data['payload']
-            make = payload.get('Make', 'Unknown')
-            model = payload.get('Model', 'Unknown')
-            year_min = payload.get('YearMin', '')
-            year_max = payload.get('YearMax', '')
-            price_min = payload.get('PriceMin', '')
-            price_max = payload.get('PriceMax', '')
             
-            formatted_name = f"Firebase/{make}_{model}/{year_min}-{year_max}_{price_min}-{price_max}"
+            # Use custom_name if available, otherwise create a formatted name
+            if 'custom_name' in payload:
+                formatted_name = payload['custom_name']
+            else:
+                make = payload.get('Make', 'Unknown')
+                model = payload.get('Model', 'Unknown')
+                year_min = payload.get('YearMin', '')
+                year_max = payload.get('YearMax', '')
+                price_min = payload.get('PriceMin', '')
+                price_max = payload.get('PriceMax', '')
+                
+                formatted_name = f"{make} {model} ({year_min}-{year_max}, ${price_min}-${price_max})"
+            
             formatted_payloads.append({
                 "name": formatted_name,
                 "id": payload_data['id']
@@ -459,20 +465,32 @@ def rename_result_api():
         if not result_data:
             return jsonify({"success": False, "error": "Result not found"})
         
+        # Create a copy of the original document to preserve all fields
+        new_result_data = result_data.copy()
+        
         # Update the metadata with the custom name
-        metadata = result_data.get('metadata', {})
-        metadata['custom_name'] = new_name
+        if 'metadata' not in new_result_data:
+            new_result_data['metadata'] = {}
+        new_result_data['metadata']['custom_name'] = new_name
         
         # Get the results array
-        results = result_data.get('results', [])
+        results = new_result_data.get('results', [])
         
-        # Save the updated result
-        update_result = save_results(user_id, results, metadata, result_id)
+        # Get the updated metadata
+        metadata = new_result_data.get('metadata', {})
         
-        if update_result.get('success'):
+        # First delete the existing result
+        delete_result_response = delete_result(user_id, result_id)
+        if not delete_result_response.get('success'):
+            return jsonify({"success": False, "error": delete_result_response.get('error', 'Failed to delete existing result')})
+        
+        # Then create a new result with the updated metadata
+        create_result = save_results(user_id, results, metadata)
+        
+        if create_result.get('success'):
             return jsonify({"success": True})
         else:
-            return jsonify({"success": False, "error": update_result.get('error', 'Failed to rename result')})
+            return jsonify({"success": False, "error": create_result.get('error', 'Failed to rename result')})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
