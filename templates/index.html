@@ -83,8 +83,16 @@
                             <i class="bi bi-person-circle"></i> {{ username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#" id="settingsBtn"><i class="bi bi-gear"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}" id="logoutLink"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                         </ul>
+                    </li>
+                    <!-- Add token display -->
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <span class="navbar-text text-white" id="tokenCountDisplay">
+                            <i class="bi bi-coin"></i> Tokens: <span id="tokenValue">...</span>
+                        </span>
                     </li>
                 </ul>
             </div>
@@ -432,9 +440,50 @@
     </div>
 </div>
 
-<!-- 2. Add new buttons to the Payload Management card -->
+<!-- User Settings Modal -->
+<div class="modal fade" id="userSettingsModal" tabindex="-1" aria-labelledby="userSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userSettingsModalLabel">User Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userSettingsLoading" class="text-center" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="userSettingsForm">
+                    <div class="mb-3">
+                        <label for="userTokensInput" class="form-label">Search Tokens</label>
+                        <div class="input-group">
+                            <button class="btn btn-outline-secondary" type="button" id="decreaseTokensBtn">-</button>
+                            <input type="number" class="form-control text-center" id="userTokensInput" min="0" value="0">
+                            <button class="btn btn-outline-secondary" type="button" id="increaseTokensBtn">+</button>
+                        </div>
+                        <div class="form-text">1 token = 100 listings scanned during search.</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" value="" id="canUseAiCheckbox">
+                        <label class="form-check-label" for="canUseAiCheckbox">
+                            Allow AI Analysis
+                        </label>
+                    </div>
+                    <div id="userSettingsError" class="alert alert-danger" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveUserSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End User Settings Modal -->
 
 
+<!-- Name Payload Modal -->
 <div class="modal fade" id="namePayloadModal" tabindex="-1" aria-labelledby="namePayloadModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -471,6 +520,7 @@
         let resultsFilePath = null;
         let exclusions = [];
         let currentResultId = null;
+        let currentUserSettings = { search_tokens: 0, can_use_ai: false }; // Store current settings
         
         // Firebase configuration
         const firebaseConfig = {
@@ -947,23 +997,23 @@
             if (fetchDataBtn) {
                 fetchDataBtn.addEventListener('click', function() {
                     console.log("Fetch data button clicked");
-                    
+
                     if (!currentPayload) {
                         showNotification('No payload to use. Please create a payload first.', 'warning');
                         return;
                     }
-                    
+
                     // Log the payload to help with debugging
                     console.log("Current payload for fetching data:", JSON.stringify(currentPayload, null, 2));
-                    
+
                     // Check for required fields in the payload
                     if (!currentPayload.Make) {
                         showNotification('Payload must include a Make. Please create a valid payload.', 'warning');
                         return;
                     }
-                    
-                    showLoading('Fetching data from AutoTrader...');
-                    
+
+                    showLoading('Fetching data from AutoTrader (checking tokens)...');
+
                     // Create a copy of the payload and ensure all required properties are present
                     const sanitizedPayload = {
                         Make: currentPayload.Make || "",
@@ -985,51 +1035,74 @@
                         Top: 15,
                         micrositeType: 1
                     };
-                    
-                    fetchWithAuth('/api/fetch_data', {
+
+                    // Use fetch directly to handle non-200 responses gracefully
+                    fetch('/api/fetch_data', {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add Authorization header if needed (fetchWithAuth logic can be adapted)
+                        },
                         body: JSON.stringify({ payload: sanitizedPayload }),
                     })
-                        .then(data => {
-                            console.log("Fetch data response:", data);
-                            
-                            if (data.success) {
-                                resultsFilePath = data.file_path;
-                                currentResultId = data.doc_id || null;
-                                
-                                // Update results info
-                                document.getElementById('resultsInfo').innerHTML = `
-                                    <div class="alert alert-success">
-                                        <p><strong><i class="bi bi-check-circle"></i> Found:</strong> ${data.result_count} listings</p>
-                                        <p><strong><i class="bi bi-file-earmark-text"></i> Saved to:</strong> ${data.file_path}</p>
-                                    </div>
-                                `;
-                                
-                                // Enable buttons
-                                document.getElementById('openLinksBtn').disabled = false;
-                                document.getElementById('downloadCsvBtn').disabled = false;
-                                
-                                showNotification(`Found ${data.result_count} listings`, 'success');
-                                
-                                // Refresh the results list once after fetch completes
-                                setTimeout(() => {
-                                    refreshResultsList();
-                                }, 2000);
-                            } else {
-                                document.getElementById('resultsInfo').innerHTML = `
-                                    <div class="alert alert-danger">
-                                        <p><i class="bi bi-exclamation-triangle"></i> Error: ${data.error}</p>
-                                    </div>
-                                `;
-                                showNotification('Failed to fetch data: ' + data.error, 'danger');
+                    .then(async response => {
+                        const data = await response.json(); // Attempt to parse JSON regardless of status
+                        console.log("Fetch data response:", response.status, data);
+
+                        if (response.ok && data.success) {
+                            resultsFilePath = data.file_path;
+                            currentResultId = data.doc_id || null;
+
+                            // Update results info including token info
+                            document.getElementById('resultsInfo').innerHTML = `
+                                <div class="alert alert-success">
+                                    <p><strong><i class="bi bi-check-circle"></i> Found:</strong> ${data.result_count} listings</p>
+                                    <p><strong><i class="bi bi-file-earmark-text"></i> Saved to:</strong> ${data.file_path || 'Firebase Only'}</p>
+                                    <p><strong><i class="bi bi-coin"></i> Tokens Charged:</strong> ${data.tokens_charged}</p>
+                                    <p><strong><i class="bi bi-wallet2"></i> Tokens Remaining:</strong> ${data.tokens_remaining}</p>
+                                </div>
+                            `;
+                            updateTokenDisplay(data.tokens_remaining); // Update navbar display
+
+                            // Enable buttons
+                            document.getElementById('openLinksBtn').disabled = !data.file_path; // Disable if no local file
+                            document.getElementById('downloadCsvBtn').disabled = !data.file_path; // Disable if no local file
+
+                            showNotification(`Found ${data.result_count} listings. Cost: ${data.tokens_charged} tokens.`, 'success');
+
+                            // Refresh the results list once after fetch completes
+                            setTimeout(() => {
+                                refreshResultsList();
+                            }, 2000);
+
+                        } else {
+                            // Handle specific errors like insufficient tokens (402)
+                            let errorMessage = data.error || `HTTP error! Status: ${response.status}`;
+                            if (response.status === 402) { // Insufficient Tokens
+                                errorMessage = `Insufficient Tokens: ${data.error || 'Not enough tokens for this search.'}`;
+                                // Optionally, prompt user to add tokens or open settings
+                                // showNotification(errorMessage + ' Manage tokens in Settings.', 'warning');
                             }
-                            hideLoading();
-                        })
-                        .catch(error => {
-                            console.error('Error fetching data:', error);
-                            showNotification('Failed to fetch data. Please try again.', 'danger');
-                            hideLoading();
-                        });
+
+                            document.getElementById('resultsInfo').innerHTML = `
+                                <div class="alert alert-danger">
+                                    <p><i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}</p>
+                                </div>
+                            `;
+                            showNotification('Failed to fetch data: ' + errorMessage, 'danger');
+                        }
+                        hideLoading();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        document.getElementById('resultsInfo').innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><i class="bi bi-exclamation-triangle"></i> Network or server error during fetch.</p>
+                            </div>
+                        `;
+                        showNotification('Failed to fetch data. Network or server error.', 'danger');
+                        hideLoading();
+                    });
                 });
             } else {
                 console.error("Fetch data button not found");
@@ -1145,9 +1218,19 @@
             
             // Load payload from dropdown
             setupLoadPayloadButton();
+
+            // Setup Settings Button
+            document.getElementById('settingsBtn').addEventListener('click', openUserSettingsModal);
+            document.getElementById('saveUserSettingsBtn').addEventListener('click', saveUserSettings);
+            document.getElementById('increaseTokensBtn').addEventListener('click', () => adjustTokens(1));
+            document.getElementById('decreaseTokensBtn').addEventListener('click', () => adjustTokens(-1));
+
+            // Initial fetch of user settings to display token count
+            fetchUserSettings(true); // Pass true to update display initially
+
         });
 
-        // Function to make authenticated API requests
+        // Function to make authenticated API requests (modified to handle non-JSON responses better)
         async function fetchWithAuth(url, options = {}) {
             try {
                 console.log(`Making request to: ${url}`);
@@ -1182,12 +1265,21 @@
                     console.error(`HTTP error! Status: ${response.status}`);
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                
-                return await response.json();
+                // Try parsing as JSON, but handle errors
+                try {
+                    const data = await response.json();
+                    // Attach status to the data object for easier handling later
+                    data.status = response.status;
+                    return data;
+                } catch (jsonError) {
+                    // If JSON parsing fails, return a generic error object with status
+                    console.error('Failed to parse JSON response:', jsonError);
+                    return { success: false, error: `Server returned non-JSON response (Status: ${response.status})`, status: response.status };
+                }
             } catch (error) {
                 console.error('API request failed:', error);
-                showNotification(`API request failed: ${error.message}`, 'danger');
-                throw error;
+                // Return a consistent error format
+                return { success: false, error: `Network or request error: ${error.message}`, status: 0 }; // Status 0 for network errors
             }
         }
         
@@ -2104,6 +2196,132 @@ function setupLoadPayloadButton() {
     console.log("Load payload button event listener attached");
 }
 
+// --- User Settings Functions ---
+
+function fetchUserSettings(updateDisplay = false) {
+    console.log("Fetching user settings...");
+    // Optionally show a subtle loading indicator for settings
+    document.getElementById('tokenValue').textContent = '...';
+
+    fetchWithAuth('/api/get_user_settings')
+        .then(data => {
+            if (data.success && data.settings) {
+                currentUserSettings = data.settings;
+                console.log("User settings fetched:", currentUserSettings);
+                if (updateDisplay) {
+                    updateTokenDisplay(currentUserSettings.search_tokens);
+                }
+            } else {
+                console.error("Failed to fetch user settings:", data.error);
+                showNotification("Could not load user settings.", "warning");
+                // Keep default settings or previous settings
+                if (updateDisplay) {
+                     updateTokenDisplay(currentUserSettings.search_tokens); // Show last known value or 0
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching user settings:", error);
+             if (updateDisplay) {
+                 updateTokenDisplay(currentUserSettings.search_tokens); // Show last known value or 0
+             }
+        });
+}
+
+function updateTokenDisplay(tokens) {
+    const tokenValueEl = document.getElementById('tokenValue');
+    if (tokenValueEl) {
+        tokenValueEl.textContent = tokens;
+    }
+    currentUserSettings.search_tokens = tokens; // Keep local cache updated
+}
+
+function openUserSettingsModal() {
+    const modal = new bootstrap.Modal(document.getElementById('userSettingsModal'));
+    const loadingDiv = document.getElementById('userSettingsLoading');
+    const formDiv = document.getElementById('userSettingsForm');
+    const errorDiv = document.getElementById('userSettingsError');
+
+    loadingDiv.style.display = 'block';
+    formDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    modal.show();
+
+    // Fetch latest settings when opening
+    fetchWithAuth('/api/get_user_settings')
+        .then(data => {
+            loadingDiv.style.display = 'none';
+            if (data.success && data.settings) {
+                currentUserSettings = data.settings;
+                document.getElementById('userTokensInput').value = currentUserSettings.search_tokens;
+                document.getElementById('canUseAiCheckbox').checked = currentUserSettings.can_use_ai;
+                formDiv.style.display = 'block';
+            } else {
+                errorDiv.textContent = "Failed to load settings: " + (data.error || 'Unknown error');
+                errorDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            loadingDiv.style.display = 'none';
+            errorDiv.textContent = "Failed to load settings: " + error.message;
+            errorDiv.style.display = 'block';
+        });
+}
+
+function adjustTokens(amount) {
+    const input = document.getElementById('userTokensInput');
+    let currentValue = parseInt(input.value) || 0;
+    currentValue += amount;
+    if (currentValue < 0) currentValue = 0; // Prevent negative tokens
+    input.value = currentValue;
+}
+
+function saveUserSettings() {
+    const tokens = parseInt(document.getElementById('userTokensInput').value);
+    const canUseAi = document.getElementById('canUseAiCheckbox').checked;
+    const errorDiv = document.getElementById('userSettingsError');
+    errorDiv.style.display = 'none'; // Hide previous errors
+
+    if (isNaN(tokens) || tokens < 0) {
+        errorDiv.textContent = "Invalid token value. Must be a non-negative number.";
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    showLoading("Saving settings...");
+
+    fetchWithAuth('/api/update_user_settings', {
+        method: 'POST',
+        body: JSON.stringify({
+            search_tokens: tokens,
+            can_use_ai: canUseAi
+        }),
+    })
+    .then(data => {
+        hideLoading();
+        if (data.success && data.settings) {
+            currentUserSettings = data.settings;
+            updateTokenDisplay(currentUserSettings.search_tokens); // Update navbar display
+            showNotification("Settings saved successfully!", "success");
+            const modal = bootstrap.Modal.getInstance(document.getElementById('userSettingsModal'));
+            modal.hide();
+        } else {
+            errorDiv.textContent = "Failed to save settings: " + (data.error || 'Unknown error');
+            errorDiv.style.display = 'block';
+            showNotification("Failed to save settings.", "danger");
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        errorDiv.textContent = "Failed to save settings: " + error.message;
+        errorDiv.style.display = 'block';
+        showNotification("Failed to save settings.", "danger");
+    });
+}
+
+// --- End User Settings Functions ---
+
+
 // --- AI Analysis Functions ---
 
 // Handle clicks on Analyze buttons
@@ -2111,12 +2329,12 @@ function handleAnalyzeClick(event) {
     if (event.target.closest('.analyze-btn')) {
         const button = event.target.closest('.analyze-btn');
         const carDetails = {
-            Make: button.dataset.make,
-            Model: button.dataset.model,
-            Year: button.dataset.year,
-            Trim: button.dataset.trim,
-            Price: button.dataset.price, // Add Price
-            Kilometres: button.dataset.km // Add Kilometres
+            Make: button.dataset.make || '',
+            Model: button.dataset.model || '',
+            Year: button.dataset.year || '',
+            Trim: button.dataset.trim || '',
+            Price: button.dataset.price || '', // Add Price
+            Kilometres: button.dataset.km || '' // Add Kilometres
         };
 
         // Basic validation
@@ -2142,19 +2360,32 @@ function handleAnalyzeClick(event) {
         // Initialize showdown converter
         const converter = new showdown.Converter();
 
-        fetchWithAuth('/api/analyze_car', {
+        // Use fetch directly to handle non-200 responses
+        fetch('/api/analyze_car', {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                 // Add Authorization header if needed
+            },
             body: JSON.stringify(carDetails),
         })
-        .then(data => {
+        .then(async response => {
+            const data = await response.json(); // Attempt to parse JSON
+            console.log("Analyze car response:", response.status, data);
             loadingDiv.style.display = 'none';
-            if (data.success) {
+
+            if (response.ok && data.success) {
                 // Convert Markdown summary to HTML
                 const htmlSummary = converter.makeHtml(data.summary || '');
                 contentDiv.innerHTML = htmlSummary; // Use innerHTML to render formatted content
                 contentDiv.style.display = 'block';
             } else {
-                errorDiv.textContent = 'Analysis failed: ' + (data.error || 'Unknown error');
+                 // Handle specific errors like AI access denied (403)
+                let errorMessage = data.error || `HTTP error! Status: ${response.status}`;
+                 if (response.status === 403) { // Forbidden / Access Denied
+                     errorMessage = `AI Analysis Denied: ${data.error || 'You do not have permission to use AI analysis.'}`;
+                 }
+                errorDiv.textContent = 'Analysis failed: ' + errorMessage;
                 errorDiv.style.display = 'block';
             }
         })

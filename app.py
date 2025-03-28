@@ -6,6 +6,7 @@ import csv  # Add this import
 import secrets
 import logging # Import logging
 import requests # Import requests for exchange rate API
+import math # Import math for ceil
 import google.generativeai as genai # Import Gemini library
 from googleapiclient.discovery import build # Import Google Search library
 from googleapiclient.errors import HttpError # Import HttpError for search retries
@@ -21,6 +22,7 @@ from AutoScraperUtil import (
     format_time_ymd_hms,
     showcarsmain
 )
+# fetch_autotrader_data now returns dict for initial fetch or list for full fetch
 from AutoScraper import fetch_autotrader_data, save_results_to_csv
 
 # Import Firebase config
@@ -38,7 +40,9 @@ from firebase_config import (
     save_results,           # Add these new imports
     get_user_results,       # Add these new imports
     get_result,             # Add these new imports
-    delete_result           # Add these new imports
+    delete_result,          # Add these new imports
+    get_user_settings,      # Add settings functions
+    update_user_settings    # Add settings functions
 )
 # Initialize Firebase
 firebase_initialized = initialize_firebase()
@@ -323,6 +327,58 @@ def load_payload_api():
 
         return jsonify({"success": True, "payload": payload})
 
+
+# --- User Settings API ---
+@app.route('/api/get_user_settings', methods=['GET'])
+@login_required
+def get_user_settings_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
+
+    settings = get_user_settings(user_id)
+    return jsonify({"success": True, "settings": settings})
+
+@app.route('/api/update_user_settings', methods=['POST'])
+@login_required
+def update_user_settings_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
+
+    data = request.json
+    tokens = data.get('search_tokens')
+    can_use_ai = data.get('can_use_ai')
+
+    update_data = {}
+    if tokens is not None:
+        try:
+            update_data['search_tokens'] = int(tokens)
+            if update_data['search_tokens'] < 0:
+                 return jsonify({"success": False, "error": "Tokens cannot be negative."}), 400
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid value for search_tokens."}), 400
+
+    if can_use_ai is not None:
+        if isinstance(can_use_ai, bool):
+            update_data['can_use_ai'] = can_use_ai
+        else:
+            return jsonify({"success": False, "error": "Invalid value for can_use_ai."}), 400
+
+    if not update_data:
+         return jsonify({"success": False, "error": "No settings provided to update."}), 400
+
+    result = update_user_settings(user_id, update_data)
+
+    if result['success']:
+        # Fetch updated settings to return
+        updated_settings = get_user_settings(user_id)
+        return jsonify({"success": True, "settings": updated_settings})
+    else:
+        return jsonify({"success": False, "error": result.get('error', 'Failed to update settings')}), 500
+# --- End User Settings API ---
+
+
 @app.route('/api/fetch_data', methods=['POST'])
 @login_required
 def fetch_data_api():
@@ -330,17 +386,71 @@ def fetch_data_api():
     user_id = session.get('user_id')
 
     if not payload:
-        return jsonify({"success": False, "error": "No payload provided"})
+        return jsonify({"success": False, "error": "No payload provided"}), 400
 
     if not user_id:
-        return jsonify({"success": False, "error": "User not authenticated"})
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
 
     try:
-        results = fetch_autotrader_data(payload)
+        # 1. Get user settings (including current tokens)
+        user_settings = get_user_settings(user_id)
+        current_tokens = user_settings.get('search_tokens', 0)
 
-        if not results:
-            return jsonify({"success": False, "error": "No results found"})
+        # 2. Perform initial fetch to get estimated count
+        initial_scrape_data = fetch_autotrader_data(payload, initial_fetch_only=True)
+        if not isinstance(initial_scrape_data, dict):
+             # Handle potential errors from fetch_autotrader_data if it doesn't return a dict
+             logging.error(f"Initial fetch did not return expected dictionary. Got: {initial_scrape_data}")
+             return jsonify({"success": False, "error": "Initial data fetch failed unexpectedly."}), 500
 
+        estimated_count = initial_scrape_data.get('estimated_count', 0)
+        initial_results_html = initial_scrape_data.get('initial_results_html', [])
+        max_page = initial_scrape_data.get('max_page', 1)
+
+        # 3. Calculate required tokens (1 token per 100 listings, ceiling)
+        required_tokens = round(max(estimated_count / 100.0, 0.1), 1) if estimated_count > 0 else 0
+
+        print(required_tokens)
+        time.sleep(10)
+        # 4. Check if user has enough tokens
+        if current_tokens < required_tokens:
+            logging.warning(f"User {user_id} insufficient tokens. Has: {current_tokens}, Needs: {required_tokens} for {estimated_count} listings.")
+            return jsonify({
+                "success": False,
+                "error": f"Insufficient tokens. This search requires {required_tokens} tokens ({estimated_count} listings found), but you only have {current_tokens}."
+            }), 402 # Payment Required status code
+
+        # 5. If enough tokens, proceed with fetching remaining pages
+        logging.info(f"User {user_id} has sufficient tokens ({current_tokens} >= {required_tokens}). Proceeding with full scrape.")
+        if max_page > 1: # Only fetch remaining if there are more pages
+            remaining_results_html = fetch_autotrader_data(
+                payload,
+                start_page=1, # Start from page 1 (0 was already fetched)
+                initial_results_html=initial_results_html, # Pass page 0 results
+                max_page_override=max_page # Pass known max_page
+            )
+            # Note: fetch_autotrader_data returns the combined list when not initial_fetch_only
+            all_results_html = remaining_results_html
+        else:
+            # If max_page was 1, the initial fetch got everything
+            all_results_html = initial_results_html
+
+        if not all_results_html:
+            # This case might happen if initial fetch estimated > 0 but full fetch failed or returned nothing
+            logging.warning(f"Initial estimate was {estimated_count}, but full fetch returned no results.")
+            # Don't charge tokens if no results were actually processed
+            required_tokens = 0 # Reset required tokens
+            # Still return success, but with 0 results
+            return jsonify({
+                "success": True,
+                "file_path": None, # No file saved
+                "result_count": 0,
+                "tokens_charged": 0,
+                "tokens_remaining": current_tokens # No change
+            })
+
+
+        # --- Processing and Saving Results (as before, but using all_results_html) ---
         make = payload.get('Make', 'Unknown')
         model = payload.get('Model', 'Unknown')
         folder_path = f"Results/{make}_{model}"
@@ -349,19 +459,26 @@ def fetch_data_api():
             os.makedirs(folder_path)
 
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
-        full_path = f"{folder_path}/{file_name}"
+        full_path = os.path.join(folder_path, file_name).replace("\\", "/") # Ensure forward slashes
 
-        # Save results to CSV
-        save_results_to_csv(results, payload=payload, filename=full_path, max_workers=1000)
+        # Save results to CSV (save_results_to_csv expects list of dicts with 'link')
+        # all_results_html is already the list of dicts from parse_html_content
+        save_results_to_csv(all_results_html, payload=payload, filename=full_path, max_workers=1000)
 
-        # Read the CSV to get the processed results
-        processed_results = []
-        with open(full_path, mode='r', newline='', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                processed_results.append(dict(row))
+        # Read the CSV to get the processed results for Firebase
+        processed_results_for_firebase = []
+        try:
+            with open(full_path, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    processed_results_for_firebase.append(dict(row))
+        except FileNotFoundError:
+             logging.error(f"CSV file {full_path} not found after saving.")
+             # Don't charge tokens if saving/reading failed
+             return jsonify({"success": False, "error": "Failed to process saved results."}), 500
 
-        # Save to Firebase
+
+        # --- Save to Firebase (as before) ---
         metadata = {
             'make': make,
             'model': model,
@@ -369,25 +486,43 @@ def fetch_data_api():
             'yearMax': payload.get('YearMax', ''),
             'priceMin': payload.get('PriceMin', ''),
             'priceMax': payload.get('PriceMax', ''),
-            'file_name': file_name,
-            'timestamp': format_time_ymd_hms()
+            'file_name': file_name, # Just the filename, not the full path
+            'timestamp': format_time_ymd_hms(),
+            'estimated_listings_scanned': estimated_count, # Add scanned count
+            'tokens_charged': required_tokens # Add token cost
         }
 
-        # Save to Firebase
-        firebase_result = save_results(user_id, processed_results, metadata)
+        firebase_result = save_results(user_id, processed_results_for_firebase, metadata)
 
+        # 6. Deduct tokens and update user settings
+        new_token_count = current_tokens - required_tokens
+        update_result = update_user_settings(user_id, {'search_tokens': new_token_count})
+        if not update_result.get('success'):
+            # Log error but proceed - search was successful, token update failed
+            logging.error(f"Failed to update tokens for user {user_id} after successful search. Error: {update_result.get('error')}")
+
+        # --- Prepare Response ---
         response_data = {
             "success": True,
-            "file_path": full_path,
-            "result_count": len(processed_results)
+            "file_path": full_path, # Return the full path for potential local use
+            "result_count": len(processed_results_for_firebase),
+            "tokens_charged": required_tokens,
+            "tokens_remaining": new_token_count
         }
 
         if firebase_result.get('success'):
             response_data["doc_id"] = firebase_result.get('doc_id')
+        else:
+             # Log error if Firebase save failed, but don't fail the whole request
+             logging.error(f"Failed to save results to Firebase for user {user_id}. Error: {firebase_result.get('error')}")
+
 
         return jsonify(response_data)
+
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+        logging.error(f"Error in fetch_data_api: {e}", exc_info=True) # Log traceback
+        return jsonify({"success": False, "error": f"An unexpected error occurred: {str(e)}"}), 500
+
 
 @app.route('/api/open_links', methods=['POST'])
 @login_required
@@ -397,6 +532,9 @@ def open_links_api():
         return jsonify({"success": False, "error": "No file path provided"})
 
     try:
+        # Ensure the path exists before trying to open
+        if not os.path.exists(file_path):
+             return jsonify({"success": False, "error": f"File not found: {file_path}"})
         showcarsmain(file_path)
         return jsonify({"success": True})
     except Exception as e:
@@ -595,6 +733,17 @@ def rename_result_api():
 @app.route('/api/analyze_car', methods=['POST'])
 @login_required
 def analyze_car_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
+
+    # Check AI access permission
+    user_settings = get_user_settings(user_id)
+    if not user_settings.get('can_use_ai', False):
+        logging.warning(f"User {user_id} denied AI analysis access.")
+        return jsonify({"success": False, "error": "AI analysis access denied for this user."}), 403
+
+    # Proceed with AI analysis if permitted
     if not gemini_model:
         return jsonify({"success": False, "error": "AI Model not configured. Check API keys."}), 500
 

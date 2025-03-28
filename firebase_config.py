@@ -245,9 +245,74 @@ def delete_payload(user_id, payload_id):
         return {'success': True}
     except Exception as e:
         return {'success': False, 'error': str(e)}
-    
-    
-    
+
+
+# --- User Settings Functions ---
+
+def get_user_settings(user_id):
+    """
+    Get user-specific settings like search tokens and AI access.
+
+    Args:
+        user_id (str): The user's ID
+
+    Returns:
+        dict: User settings with defaults if not found.
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            print("Error getting user settings: Database connection failed")
+            # Return defaults on DB error to avoid blocking functionality
+            return {'search_tokens': 0, 'can_use_ai': False}
+
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            # Return existing settings, applying defaults if fields are missing
+            return {
+                'search_tokens': user_data.get('search_tokens', 0),
+                'can_use_ai': user_data.get('can_use_ai', False)
+            }
+        else:
+            # User document doesn't exist, return defaults
+            print(f"User document {user_id} not found, returning default settings.")
+            return {'search_tokens': 0, 'can_use_ai': False}
+    except Exception as e:
+        print(f"Error retrieving user settings for {user_id}: {e}")
+        # Return defaults on error
+        return {'search_tokens': 0, 'can_use_ai': False}
+
+def update_user_settings(user_id, settings_update):
+    """
+    Update user-specific settings. Creates the user document if it doesn't exist.
+
+    Args:
+        user_id (str): The user's ID
+        settings_update (dict): Dictionary containing settings to update (e.g., {'search_tokens': 10, 'can_use_ai': True})
+
+    Returns:
+        dict: Success status
+    """
+    try:
+        db = get_firestore_db()
+        if not db:
+            return {'success': False, 'error': 'Database connection failed'}
+
+        user_ref = db.collection('users').document(user_id)
+
+        # Use set with merge=True to create or update the document/fields
+        user_ref.set(settings_update, merge=True)
+
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+# --- End User Settings Functions ---
+
+
 # Add these functions to firebase_config.py
 
 def save_results(user_id, results, metadata):
