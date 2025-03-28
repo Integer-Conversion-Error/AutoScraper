@@ -152,17 +152,41 @@ from auth_decorator import login_required_with_app
 login_required = lambda f: login_required_with_app(app, f)  # Pass app to the decorator
 
 @app.route('/')
+def landing():
+    """Serves the public landing page."""
+    # Check if user is already logged in, if so, redirect to the app page
+    if 'user_id' in session:
+        return redirect(url_for('app_interface'))
+    return render_template('landing.html')
+
+@app.route('/app')
 @login_required
-def index():
+def app_interface():
+    """Serves the main application interface for logged-in users."""
     # Print session info for debugging
     print(f"User session: {session.get('user_id')}, {session.get('email')}")
     return render_template('index.html', username=session.get('display_name', 'User'))
 
+@app.route('/pricing')
+def pricing():
+    """Serves the public pricing page."""
+    return render_template('pricing.html')
+
+@app.route('/about')
+def about():
+    """Serves the public about page."""
+    return render_template('about.html')
+
+@app.route('/terms')
+def terms():
+    """Serves the terms and conditions page."""
+    return render_template('terms.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # If user is already logged in, redirect to index
+    # If user is already logged in, redirect to the app interface
     if 'user_id' in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('app_interface'))
 
     if request.method == 'POST':
         # This route now only receives the Firebase ID token after client-side auth
@@ -180,7 +204,8 @@ def login():
 
                 print(f"Login successful for user: {session.get('email')}")
                 flash('Login successful!', 'success')
-                return redirect(url_for('index'))
+                # Redirect to the main app interface after login
+                return redirect(url_for('app_interface'))
             else:
                 flash('Authentication failed: ' + result.get('error', 'Unknown error'), 'danger')
         else:
@@ -208,7 +233,8 @@ def logout():
     print(f"Logged out user: {user_email}")
 
     # Render the logout page which will handle Firebase client-side logout
-    return render_template('logout.html')
+    # After client-side logout, it should redirect to the landing page
+    return render_template('logout.html', redirect_url=url_for('landing'))
 
 @app.route('/api/makes')
 @login_required

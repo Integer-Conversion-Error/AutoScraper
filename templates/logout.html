@@ -42,16 +42,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
     <script>
-        // Firebase configuration
+        // Firebase configuration (Should match index.html and login.html)
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "your-project-id.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyC5XgDpWOkgXHHJs28DyQvC6JtTB1BpUWw",
+            authDomain: "autoscraper-32bb0.firebaseapp.com",
+            projectId: "autoscraper-32bb0",
+            storageBucket: "autoscraper-32bb0.firebasestorage.app",
+            messagingSenderId: "694443728322",
+            appId: "1:694443728322:web:63770ddc18446c0a74ca5b",
+            measurementId: "G-0NVZC6JPBN"
         };
-        
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         
@@ -59,13 +60,13 @@
         firebase.auth().signOut()
             .then(() => {
                 console.log('Signed out from Firebase successfully');
-                // Redirect to login page
-                window.location.href = "{{ url_for('login') }}";
+                // Redirect to the URL provided by the backend (landing page)
+                window.location.href = "{{ redirect_url or url_for('landing') }}";
             })
             .catch((error) => {
                 console.error('Error signing out from Firebase:', error);
-                // Redirect to login page anyway
-                window.location.href = "{{ url_for('login') }}";
+                // Redirect anyway
+                window.location.href = "{{ redirect_url or url_for('landing') }}";
             });
     </script>
 </body>

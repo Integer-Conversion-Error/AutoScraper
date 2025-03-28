@@ -195,11 +195,11 @@
         fetch('/api/auth/check')
             .then(response => response.json())
             .then(data => {
-                if (data.authenticated) {
-                    console.log("Already authenticated on server, redirecting to index");
-                    window.location.href = "{{ url_for('index') }}";
-                    return;
-                } else {
+                    if (data.authenticated) {
+                        console.log("Already authenticated on server, redirecting to app_interface");
+                        window.location.href = "{{ url_for('app_interface') }}";
+                        return;
+                    } else {
                     console.log("Not authenticated, showing login form");
                     initializeAuth();
                 }

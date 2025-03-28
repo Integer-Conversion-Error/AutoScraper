@@ -180,3 +180,11 @@ This application requires several API keys to function fully, especially for the
 *   UI improvements for displaying AI analysis and search context.
 *   Allowing users to customize the AI prompt.
 *   Integration with other data sources (e.g., CarFax reports if APIs exist).
+*   **TODO:** Implement robust security measures (input validation, rate limiting, dependency scanning).
+*   **TODO:** Refactor backend to handle concurrent data fetch requests from multiple users efficiently and without blocking (e.g., using asynchronous tasks/workers like Celery or RQ).
+*   **TODO:** Improve code rigidity and scalability (e.g., comprehensive testing, better error handling, modular design).
+*   **TODO:** Enhance mobile-friendliness (Responsive Design):
+    *   Review and adjust Bootstrap grid layouts (`col-xs-*`, `col-sm-*`, `col-md-*`, `col-lg-*`) for optimal display on various screen sizes.
+    *   Use CSS media queries to apply specific styles for different viewport widths (e.g., adjusting font sizes, margins, padding).
+    *   Ensure interactive elements (buttons, forms, modals) are easily usable on touchscreens (sufficient size and spacing).
+    *   Test the application thoroughly on different mobile devices and browsers (or using browser developer tools).
