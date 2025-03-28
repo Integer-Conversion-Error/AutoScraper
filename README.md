@@ -124,7 +124,7 @@ This application requires several API keys to function fully, especially for the
     ```
     *   **`GEMINI_API_KEY`**: Obtain from [Google AI Studio](https://aistudio.google.com/app/apikey).
     *   **`SEARCH_API_KEY`**: Obtain from [Google Cloud Console](https://console.cloud.google.com/) (enable "Custom Search API").
-    *   **`SEARCH_ENGINE_ID`**: Obtain from [Google Programmable Search Engine control panel](https://programmablesearchengine.google.com/controlpanel/all) after creating a search engine instance. Configure this instance to search relevant sites (e.g., `reddit.com/r/cars`, specific car forums) or the entire web.
+    *   **`SEARCH_ENGINE_ID`**: Obtain from [Google Programmable Search Engine control panel](https://programmablesearchengine.google.com/controlpanel/all) after creating a search engine instance. Configure this instance to search relevant sites (e.g., `reddit.com/r/cars`, specific car forums) or the entire web. (this project uses the entire web for now)
     *   **`EXCHANGE_RATE_API_KEY`**: Obtain a free key from [ExchangeRate-API.com](https://www.exchangerate-api.com/).
 
 3.  **Firebase Configuration:**
