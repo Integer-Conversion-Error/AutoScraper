@@ -4,13 +4,19 @@ import os
 import json
 import csv  # Add this import
 import secrets
+import logging # Import logging
+import requests # Import requests for exchange rate API
+import google.generativeai as genai # Import Gemini library
+from googleapiclient.discovery import build # Import Google Search library
+from googleapiclient.errors import HttpError # Import HttpError for search retries
+import time # Import time for sleep
 from datetime import timedelta
 from functools import wraps
 from AutoScraperUtil import (
-    get_all_makes, 
-    get_models_for_make, 
-    transform_strings, 
-    read_json_file, 
+    get_all_makes,
+    get_models_for_make,
+    transform_strings,
+    read_json_file,
     save_json_to_file,
     format_time_ymd_hms,
     showcarsmain
@@ -19,10 +25,10 @@ from AutoScraper import fetch_autotrader_data, save_results_to_csv
 
 # Import Firebase config
 from firebase_config import (
-    initialize_firebase, 
+    initialize_firebase,
     get_firestore_db,
-    create_user, 
-    verify_id_token, 
+    create_user,
+    verify_id_token,
     get_user,
     save_payload,
     get_user_payloads,
@@ -39,6 +45,97 @@ firebase_initialized = initialize_firebase()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(32)  # Use a stronger secret key
+
+# --- AI Integration Setup ---
+# Configure logging for AI parts specifically if needed, or rely on Flask's logger
+logging.basicConfig(level=logging.INFO) # Basic logging config
+
+try:
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+    GEMINI_API_KEY = config.get('GEMINI_API_KEY')
+    SEARCH_API_KEY = config.get('SEARCH_API_KEY')
+    SEARCH_ENGINE_ID = config.get('SEARCH_ENGINE_ID')
+    EXCHANGE_RATE_API_KEY = config.get('EXCHANGE_RATE_API_KEY') # Load Exchange Rate Key
+
+    if not GEMINI_API_KEY:
+        logging.error("GEMINI_API_KEY not found in config.json")
+        gemini_model = None
+    else:
+        genai.configure(api_key=GEMINI_API_KEY)
+        # Consider making the model name configurable or choosing based on task
+        gemini_model = genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21') # Reverted to gemini-pro for stability if flash isn't available
+        logging.info("Gemini AI Model configured.")
+
+    if not SEARCH_API_KEY or not SEARCH_ENGINE_ID:
+        logging.warning("SEARCH_API_KEY or SEARCH_ENGINE_ID not found in config.json. Web search functionality will be disabled.")
+        search_service = None
+    else:
+        # Build the search service
+        search_service = build("customsearch", "v1", developerKey=SEARCH_API_KEY)
+        logging.info("Google Custom Search service configured.")
+
+except FileNotFoundError:
+    logging.error("config.json not found. AI features require API keys.")
+    GEMINI_API_KEY = None
+    SEARCH_API_KEY = None
+    SEARCH_ENGINE_ID = None
+    EXCHANGE_RATE_API_KEY = None # Init key var
+    gemini_model = None
+    search_service = None
+except json.JSONDecodeError:
+    logging.error("Error decoding config.json.")
+    GEMINI_API_KEY = None
+    SEARCH_API_KEY = None
+    SEARCH_ENGINE_ID = None
+    EXCHANGE_RATE_API_KEY = None # Init key var
+    gemini_model = None
+    search_service = None
+except Exception as e:
+    logging.error(f"An unexpected error occurred during AI setup: {e}")
+    GEMINI_API_KEY = None
+    SEARCH_API_KEY = None
+    SEARCH_ENGINE_ID = None
+    EXCHANGE_RATE_API_KEY = None # Init key var
+    gemini_model = None
+    search_service = None
+
+# Function to get exchange rates
+def get_exchange_rates(api_key):
+    if not api_key:
+        logging.warning("Exchange Rate API key not configured.")
+        return None
+    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/CAD"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("result") == "success":
+            rates = data.get("conversion_rates", {})
+            # Extract relevant rates
+            usd_rate = rates.get("USD")
+            eur_rate = rates.get("EUR")
+            gbp_rate = rates.get("GBP")
+            return {
+                "USD_per_CAD": usd_rate,
+                "EUR_per_CAD": eur_rate,
+                "GBP_per_CAD": gbp_rate,
+                # Add CAD_per_X for easier conversion in prompt
+                "CAD_per_USD": 1 / usd_rate if usd_rate else None,
+                "CAD_per_EUR": 1 / eur_rate if eur_rate else None,
+                "CAD_per_GBP": 1 / gbp_rate if gbp_rate else None,
+            }
+        else:
+            logging.error(f"ExchangeRate-API error: {data.get('error-type')}")
+            return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching exchange rates: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"Unexpected error getting exchange rates: {e}")
+        return None
+
+# --- End AI Integration Setup ---
 
 # Configure session
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on filesystem
@@ -62,7 +159,7 @@ def login():
     # If user is already logged in, redirect to index
     if 'user_id' in session:
         return redirect(url_for('index'))
-        
+
     if request.method == 'POST':
         # This route now only receives the Firebase ID token after client-side auth
         id_token = request.form.get('idToken')
@@ -76,7 +173,7 @@ def login():
                 session['email'] = user_info.get('email')
                 session['display_name'] = user_info.get('name', user_info.get('email', 'User'))
                 session.modified = True  # Mark session as modified
-                
+
                 print(f"Login successful for user: {session.get('email')}")
                 flash('Login successful!', 'success')
                 return redirect(url_for('index'))
@@ -84,7 +181,7 @@ def login():
                 flash('Authentication failed: ' + result.get('error', 'Unknown error'), 'danger')
         else:
             flash('No authentication token provided', 'danger')
-            
+
     # If it's a GET request or login failed
     return render_template('login.html')
 
@@ -102,10 +199,10 @@ def logout():
     # Clear the user session on the server side
     user_email = session.get('email', 'Unknown user')
     session.clear()
-    
+
     # Log the logout
     print(f"Logged out user: {user_email}")
-    
+
     # Render the logout page which will handle Firebase client-side logout
     return render_template('logout.html')
 
@@ -133,19 +230,19 @@ def create_payload():
 def save_payload_api():
     payload = request.json.get('payload')
     user_id = session.get('user_id')
-    
+
     if not payload:
         return jsonify({"success": False, "error": "No payload provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     # Save payload to Firebase
     result = save_payload(user_id, payload)
-    
+
     if result['success']:
         return jsonify({
-            "success": True, 
+            "success": True,
             "file_path": f"Firebase/{result['doc_id']}",
             "doc_id": result['doc_id']
         })
@@ -156,19 +253,19 @@ def save_payload_api():
 @login_required
 def list_payloads():
     user_id = session.get('user_id')
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Get payloads from Firebase
         payloads = get_user_payloads(user_id)
-        
+
         # Format for the frontend
         formatted_payloads = []
         for payload_data in payloads:
             payload = payload_data['payload']
-            
+
             # Use custom_name if available, otherwise create a formatted name
             if 'custom_name' in payload:
                 formatted_name = payload['custom_name']
@@ -179,14 +276,14 @@ def list_payloads():
                 year_max = payload.get('YearMax', '')
                 price_min = payload.get('PriceMin', '')
                 price_max = payload.get('PriceMax', '')
-                
+
                 formatted_name = f"{make} {model} ({year_min}-{year_max}, ${price_min}-${price_max})"
-            
+
             formatted_payloads.append({
                 "name": formatted_name,
                 "id": payload_data['id']
             })
-        
+
         return jsonify({"success": True, "payloads": formatted_payloads})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
@@ -198,32 +295,32 @@ def load_payload_api():
     file_path = request.json.get('file_path')
     doc_id = request.json.get('doc_id')  # Get the document ID directly
     user_id = session.get('user_id')
-    
+
     if not file_path:
         return jsonify({"success": False, "error": "No file path provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     # Check if it's a Firebase path
     if file_path.startswith("Firebase/"):
         # Use the doc_id directly
         if not doc_id:
             return jsonify({"success": False, "error": "No document ID provided"})
-        
+
         # Get the payload from Firebase
         payload = get_payload(user_id, doc_id)
-        
+
         if not payload:
             return jsonify({"success": False, "error": f"Failed to load payload from Firebase"})
-        
+
         return jsonify({"success": True, "payload": payload})
     else:
         # Legacy file-based loading (for backward compatibility)
         payload = read_json_file(file_path)
         if not payload:
             return jsonify({"success": False, "error": f"Failed to load payload from {file_path}"})
-        
+
         return jsonify({"success": True, "payload": payload})
 
 @app.route('/api/fetch_data', methods=['POST'])
@@ -231,39 +328,39 @@ def load_payload_api():
 def fetch_data_api():
     payload = request.json.get('payload')
     user_id = session.get('user_id')
-    
+
     if not payload:
         return jsonify({"success": False, "error": "No payload provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         results = fetch_autotrader_data(payload)
-        
+
         if not results:
             return jsonify({"success": False, "error": "No results found"})
-        
+
         make = payload.get('Make', 'Unknown')
         model = payload.get('Model', 'Unknown')
         folder_path = f"Results/{make}_{model}"
-        
+
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        
+
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
         full_path = f"{folder_path}/{file_name}"
-        
+
         # Save results to CSV
         save_results_to_csv(results, payload=payload, filename=full_path, max_workers=1000)
-        
+
         # Read the CSV to get the processed results
         processed_results = []
         with open(full_path, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 processed_results.append(dict(row))
-        
+
         # Save to Firebase
         metadata = {
             'make': make,
@@ -275,19 +372,19 @@ def fetch_data_api():
             'file_name': file_name,
             'timestamp': format_time_ymd_hms()
         }
-        
+
         # Save to Firebase
         firebase_result = save_results(user_id, processed_results, metadata)
-        
+
         response_data = {
-            "success": True, 
+            "success": True,
             "file_path": full_path,
             "result_count": len(processed_results)
         }
-        
+
         if firebase_result.get('success'):
             response_data["doc_id"] = firebase_result.get('doc_id')
-        
+
         return jsonify(response_data)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
@@ -298,28 +395,28 @@ def open_links_api():
     file_path = request.json.get('file_path')
     if not file_path:
         return jsonify({"success": False, "error": "No file path provided"})
-    
+
     try:
         showcarsmain(file_path)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
-    
-    
+
+
 # Add these API endpoints to app.py
 
 @app.route('/api/list_results')
 @login_required
 def list_results():
     user_id = session.get('user_id')
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Get results from Firebase
         results = get_user_results(user_id)
-        
+
         return jsonify({"success": True, "results": results})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
@@ -329,20 +426,20 @@ def list_results():
 def get_result_api():
     result_id = request.json.get('result_id')
     user_id = session.get('user_id')
-    
+
     if not result_id:
         return jsonify({"success": False, "error": "No result ID provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Get the result from Firebase
         result = get_result(user_id, result_id)
-        
+
         if not result:
             return jsonify({"success": False, "error": "Result not found"})
-        
+
         return jsonify({"success": True, "result": result})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
@@ -352,25 +449,25 @@ def get_result_api():
 def delete_result_api():
     result_id = request.json.get('result_id')
     user_id = session.get('user_id')
-    
+
     if not result_id:
         return jsonify({"success": False, "error": "No result ID provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Delete the result from Firebase
         result = delete_result(user_id, result_id)
-        
+
         if not result.get('success'):
             return jsonify({"success": False, "error": result.get('error', 'Failed to delete result')})
-        
+
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
-    
-    
+
+
 @app.route('/favicon.ico')
 def favicon():
     """
@@ -378,7 +475,7 @@ def favicon():
     If the file doesn't exist, it returns a 404 Not Found response.
     """
     from flask import send_from_directory
-    
+
     try:
         return send_from_directory(os.path.join(app.root_path, 'static'),
                                    'favicon.ico', mimetype='image/vnd.microsoft.icon')
@@ -395,26 +492,26 @@ def rename_payload_api():
     payload_id = request.json.get('payload_id')
     new_name = request.json.get('new_name')
     user_id = session.get('user_id')
-    
+
     if not payload_id or not new_name:
         return jsonify({"success": False, "error": "Missing payload ID or new name"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Get the current payload
         payload = get_payload(user_id, payload_id)
         if not payload:
             return jsonify({"success": False, "error": "Payload not found"})
-        
+
         # Add a custom_name field instead of overwriting existing data
         payload_data = payload.copy()
         payload_data['custom_name'] = new_name
-        
+
         # Save the updated payload
         result = update_payload(user_id, payload_id, payload_data)
-        
+
         if result.get('success'):
             return jsonify({"success": True})
         else:
@@ -427,17 +524,17 @@ def rename_payload_api():
 def delete_payload_api():
     payload_id = request.json.get('payload_id')
     user_id = session.get('user_id')
-    
+
     if not payload_id:
         return jsonify({"success": False, "error": "No payload ID provided"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Delete the payload from Firebase
         result = delete_payload(user_id, payload_id)
-        
+
         if result.get('success'):
             return jsonify({"success": True})
         else:
@@ -451,42 +548,42 @@ def rename_result_api():
     result_id = request.json.get('result_id')
     new_name = request.json.get('new_name')
     user_id = session.get('user_id')
-    
+
     if not result_id or not new_name:
         return jsonify({"success": False, "error": "Missing result ID or new name"})
-    
+
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"})
-    
+
     try:
         # Get the current result
         result_data = get_result(user_id, result_id)
-        
+
         if not result_data:
             return jsonify({"success": False, "error": "Result not found"})
-        
+
         # Create a copy of the original document to preserve all fields
         new_result_data = result_data.copy()
-        
+
         # Update the metadata with the custom name
         if 'metadata' not in new_result_data:
             new_result_data['metadata'] = {}
         new_result_data['metadata']['custom_name'] = new_name
-        
+
         # Get the results array
         results = new_result_data.get('results', [])
-        
+
         # Get the updated metadata
         metadata = new_result_data.get('metadata', {})
-        
+
         # First delete the existing result
         delete_result_response = delete_result(user_id, result_id)
         if not delete_result_response.get('success'):
             return jsonify({"success": False, "error": delete_result_response.get('error', 'Failed to delete existing result')})
-        
+
         # Then create a new result with the updated metadata
         create_result = save_results(user_id, results, metadata)
-        
+
         if create_result.get('success'):
             return jsonify({"success": True})
         else:
@@ -494,13 +591,207 @@ def rename_result_api():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+# --- AI Analysis Route ---
+@app.route('/api/analyze_car', methods=['POST'])
+@login_required
+def analyze_car_api():
+    if not gemini_model:
+        return jsonify({"success": False, "error": "AI Model not configured. Check API keys."}), 500
+
+    car_details = request.json
+    if not car_details:
+        return jsonify({"success": False, "error": "No car details provided."}), 400
+
+    make = car_details.get('Make', '')
+    model = car_details.get('Model', '')
+    year = car_details.get('Year', '')
+    trim = car_details.get('Trim', '')
+    price_str = car_details.get('Price', '') # Get price string
+    km_str = car_details.get('Kilometres', '') # Get km string
+
+    # Clean and convert price/km
+    price_cad = None
+    try:
+        if price_str:
+            price_cad = float(price_str.replace('$', '').replace(',', ''))
+    except ValueError:
+        logging.warning(f"Could not parse price: {price_str}")
+
+    kilometres = None
+    try:
+        if km_str:
+             # Assuming km_str might be like "123,456 km" or just "123456"
+            kilometres = int(km_str.replace(',', '').split(' ')[0])
+    except ValueError:
+        logging.warning(f"Could not parse kilometres: {km_str}")
+
+
+    if not make or not model or not year:
+        return jsonify({"success": False, "error": "Make, Model, and Year are required for analysis."}), 400
+
+    search_summary = ""
+    if search_service and SEARCH_ENGINE_ID:
+        try:
+            # Define expanded search queries
+            queries = [
+                # Top 5 Reliability Questions
+                f'"{year} {make} {model}" reliability rating',
+                f'"{year} {make} {model}" common problems',
+                f'"{year} {make} {model}" long term reliability',
+                f'"{year} {make} {model}" maintenance costs',
+                f'"{year} {make} {model}" repair costs',
+
+                # Top 5 Review & Comparison Questions
+                f'"{year} {make} {model}" expert review',
+                f'"{year} {make} {model}" owner reviews',
+                f'"{year} {make} {model}" pros and cons',
+                f'"{year} {make} {model}" vs competitor cars',
+                f'"{year} {make} {model}" is it a good car to buy',
+
+                # Top 3 Forum/Community Questions
+                f'"{year} {make} {model}" owners forum',
+                f'"{year} {make} {model}" reddit reviews',
+                f'"{year} {make} {model}" online community feedback',
+
+                # Top 5 Practical & Technical Questions
+                f'"{make} {model}" recalls and TSBs',
+                f'"{year} {make} {model}" fuel economy MPG',
+                f'"{year} {make} {model}" safety ratings',
+                f'"{year} {make} {model}" cargo space',
+                f'"{year} {make} {model}" warranty details',
+
+                # Top 5 Buying & Pricing Questions
+                f'"{year} {make} {model}" fair market price',
+                f'"{year} {make} {model}" used car value',
+                f'"{year} {make} {model}" lease or buy deals',
+                f'"{year} {make} {model}" incentives rebates',
+                f'"{year} {make} {model}" best time to buy',
+
+                # 2 Subjective/Experience Questions
+                f'"{year} {make} {model}" owner satisfaction',
+                f'"{year} {make} {model}" things to know before buying',
+            ]
+            search_results_text = []
+            num_results_per_query = 10 # Limit results per query slightly more to keep context manageable
+            max_search_retries = 3
+            initial_search_delay = 0.5 # seconds
+
+            for query in queries:
+                logging.info(f"Performing web search: {query}")
+                items = []
+                for attempt in range(max_search_retries):
+                    try:
+                        # Execute the search
+                        result = search_service.cse().list(
+                            q=query,
+                            cx=SEARCH_ENGINE_ID,
+                            num=num_results_per_query
+                        ).execute()
+                        items = result.get('items', [])
+                        break # Success, exit retry loop
+                    except HttpError as e:
+                        logging.warning(f"Search attempt {attempt + 1} failed for query '{query}': {e}")
+                        # Check if it's a rate limit or server error (worth retrying)
+                        if e.resp.status in [429, 500, 503] and attempt < max_search_retries - 1:
+                            delay = initial_search_delay * (2 ** attempt)
+                            logging.info(f"Retrying in {delay:.2f} seconds...")
+                            time.sleep(delay)
+                        else:
+                            logging.error(f"Search failed permanently for query '{query}' after {attempt + 1} attempts.")
+                            break # Non-retryable error or max retries reached
+                    except Exception as e: # Catch other potential errors
+                         logging.error(f"Unexpected error during search for query '{query}': {e}")
+                         break # Don't retry on unexpected errors
+
+                # Process the items found (or note if none were found after retries)
+                if items:
+                    search_results_text.append(f"Search results for '{query}':")
+                    for item in items:
+                        title = item.get('title')
+                        link = item.get('link')
+                        snippet = item.get('snippet', '').replace('\n', ' ')
+                        search_results_text.append(f"- {title} ({link}): {snippet}")
+                else:
+                     search_results_text.append(f"No significant results found for '{query}' (or search failed).")
+                search_results_text.append("\n") # Add spacing
+
+            search_summary = "\n".join(search_results_text)
+
+        except Exception as e:
+            # Catch potential errors in the overall search block setup
+            logging.error(f"Error during web search setup or processing: {e}")
+            search_summary = "Error occurred during web search processing."
+    else:
+        search_summary = "Web search is not configured."
+
+    # Get current exchange rates
+    rates = get_exchange_rates(EXCHANGE_RATE_API_KEY)
+    rates_info = "Exchange rates not available."
+    if rates:
+        rates_info = f"""Current Approximate Exchange Rates:
+- 1 CAD = {rates.get('USD_per_CAD', 'N/A'):.3f} USD
+- 1 CAD = {rates.get('EUR_per_CAD', 'N/A'):.3f} EUR
+- 1 CAD = {rates.get('GBP_per_CAD', 'N/A'):.3f} GBP
+- 1 USD = {rates.get('CAD_per_USD', 'N/A'):.2f} CAD
+- 1 EUR = {rates.get('CAD_per_EUR', 'N/A'):.2f} CAD
+- 1 GBP = {rates.get('CAD_per_GBP', 'N/A'):.2f} CAD"""
+
+    # Construct prompt for Gemini
+    prompt = f"""
+Analyze the reliability and potential value of the following car based on the provided details, web search context, and exchange rates.
+
+Car Listing Details:
+Make: {make}
+Model: {model}
+Year: {year}
+Trim: {trim if trim else 'N/A'}
+Listed Price: {f'{price_cad:,.0f} CAD' if price_cad is not None else 'N/A'}
+Kilometres: {f'{kilometres:,} km' if kilometres is not None else 'N/A'}
+
+{rates_info}
+
+Web Search Context (Reliability, Problems, Reviews, etc.):
+{search_summary}
+Based on ALL the information provided (car details, price, mileage, web context, exchange rates), please provide a comprehensive analysis covering:
+
+1.  **Reliability Summary:**
+    *   Known Issues: List specific common problems reported (use bullet points).
+    *   Positive Points: Mention positive reliability aspects found.
+    *   Things to Check: Suggest specific inspection points for a potential buyer.
+    *   Overall Reliability Sentiment: Summarize the general sentiment (positive, negative, mixed).
+
+2.  **Price Analysis:**
+    *   Compare the listed price ({f'{price_cad:,.0f} CAD' if price_cad is not None else 'N/A'}) and mileage ({f'{kilometres:,} km' if kilometres is not None else 'N/A'}) to any relevant pricing information or comparable vehicles mentioned in the web search context. Remember to account for currency differences using the provided exchange rates (assume online prices might be USD, EUR, or GBP unless specified otherwise).
+    *   Provide a deal rating (e.g., Excellent Deal, Good Deal, Fair Price, Slightly High, Overpriced) based on this comparison and the car's reliability profile. Justify the rating briefly.
+
+3.  **Negotiation Tips:**
+    *   Based on the reliability issues found and the price analysis, provide 2-3 specific, actionable negotiation points or questions a buyer could use to potentially lower the price.
+
+Format the response clearly using headings (like **Reliability Summary**, **Price Analysis**, **Negotiation Tips**) and bullet points. Be objective and base the analysis ONLY on the provided information.
+"""
+
+    try:
+        logging.info("Sending request to Gemini API...")
+        response = gemini_model.generate_content(prompt)
+        ai_summary = response.text
+        logging.info("Received response from Gemini API.")
+        return jsonify({"success": True, "summary": ai_summary})
+
+    except Exception as e:
+        logging.error(f"Error generating content with Gemini: {e}")
+        # Check for specific Gemini errors if needed
+        # e.g., if hasattr(e, 'response') and e.response.prompt_feedback: ...
+        return jsonify({"success": False, "error": f"AI analysis failed: {e}"}), 500
+# --- End AI Analysis Route ---
+
+
 if __name__ == '__main__':
     # Create necessary directories for legacy support
     if not os.path.exists("Queries"):
         os.makedirs("Queries")
     if not os.path.exists("Results"):
         os.makedirs("Results")
-    
+
     print("Firebase initialization:", "Successful" if firebase_initialized else "Failed")
     print("Server running at http://localhost:5000")
     print("Go to the login page at http://localhost:5000/login")
