@@ -68,7 +68,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark"> <!-- Changed navbar color -->
         <div class="container">
             <a class="navbar-brand" href="#">
                 <i class="bi bi-car-front"></i> AutoScraper Web
@@ -121,7 +121,7 @@
         </div>
         
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-dark text-white"> <!-- Changed header color -->
                 <h5 class="mb-0"><i class="bi bi-search"></i> Search Parameters</h5>
             </div>
             <div class="card-body">
@@ -129,7 +129,7 @@
                     <div class="form-section">
                         <h5><i class="bi bi-car-front"></i> Vehicle Selection</h5>
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4"> <!-- Adjusted to col-md-4 -->
                                 <label for="makeSelect" class="form-label">Make</label>
                                 <div class="input-group">
                                     <select class="form-select" id="makeSelect" required>
@@ -138,10 +138,22 @@
                                     <button class="btn btn-outline-secondary" type="button" id="showAllMakes">Show All</button>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4"> <!-- Adjusted to col-md-4 -->
                                 <label for="modelSelect" class="form-label">Model</label>
                                 <select class="form-select" id="modelSelect">
                                     <option value="">Select Model (Choose Make First)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3"> <!-- Adjusted to col-md-3 -->
+                                <label for="trimSelect" class="form-label">Trim</label>
+                                <select class="form-select" id="trimSelect">
+                                     <option value="">Any Trim (Select Model First)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3"> <!-- Added Color Dropdown -->
+                                <label for="colorSelect" class="form-label">Color</label>
+                                <select class="form-select" id="colorSelect">
+                                     <option value="">Any Color (Select Trim/Model First)</option>
                                 </select>
                             </div>
                         </div>
@@ -232,6 +244,36 @@
                             </div>
                         </div>
                         
+                        <!-- New Filters (Color, Drivetrain, Transmission) -->
+                        <div class="row mb-3">
+                             <div class="col-md-4"> <!-- Adjusted to col-md-4 -->
+                                <label for="colorInput" class="form-label">Exterior Color</label>
+                                <input type="text" class="form-control" id="colorInput" placeholder="e.g., Red, Black (leave blank for any)">
+                            </div>
+                            <div class="col-md-4"> <!-- Adjusted to col-md-4 -->
+                                <label for="drivetrainSelect" class="form-label">Drivetrain</label>
+                                <select class="form-select" id="drivetrainSelect">
+                                    <option value="">Any</option>
+                                    <option value="AWD">AWD</option>
+                                    <option value="FWD">FWD</option>
+                                    <option value="RWD">RWD</option>
+                                    <option value="4WD">4WD</option>
+                                    <!-- Add other common values if needed -->
+                                </select>
+                            </div>
+                            <div class="col-md-4"> <!-- Adjusted to col-md-4 -->
+                                <label for="transmissionSelect" class="form-label">Transmission</label>
+                                <select class="form-select" id="transmissionSelect">
+                                    <option value="">Any</option>
+                                    <option value="Automatic">Automatic</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="CVT">CVT</option>
+                                    <!-- Add other common values if needed -->
+                                </select>
+                            </div>
+                        </div>
+                        <!-- End New Filters -->
+
                         <div class="mb-3">
                             <label for="exclusionKeyword" class="form-label">Exclusion Keywords</label>
                             <div class="input-group mb-2">
@@ -248,111 +290,114 @@
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button class="btn btn-primary me-md-2" type="button" id="createPayloadBtn">
+                        <button class="btn btn-secondary me-md-2" type="button" id="createPayloadBtn"> <!-- Changed Create Payload to secondary -->
                             <i class="bi bi-plus-circle"></i> Create Payload
                         </button>
-                        <button class="btn btn-success" type="button" id="fetchDataBtn">
+                        <button class="btn btn-success btn-lg" type="button" id="fetchDataBtn"> <!-- Made Fetch larger -->
                             <i class="bi bi-search"></i> Fetch Data
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-        
-        <!-- Replace the existing row with this updated version -->
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-save"></i> Payload Management</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="payloadSelect" class="form-label">Load Saved Payload</label>
-                    <select class="form-select" id="payloadSelect">
-                        <option value="">Select a saved payload</option>
-                    </select>
-                </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                    <button class="btn btn-info" type="button" id="loadPayloadBtn">
-                        <i class="bi bi-download"></i> Load Selected
-                    </button>
-                    <button class="btn btn-warning" type="button" id="renamePayloadBtn">
-                        <i class="bi bi-pencil"></i> Rename
-                    </button>
-                    <button class="btn btn-danger" type="button" id="deletePayloadBtn">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                    <button class="btn btn-secondary" type="button" id="savePayloadBtn">
-                        <i class="bi bi-upload"></i> Save Current
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-list-check"></i> Current Search Results</h5>
-            </div>
-            <div class="card-body">
-                <div id="resultsInfo">
-                    <p>No search performed yet.</p>
-                </div>
-                <div class="d-grid gap-2">
-                    <div class="row">
-                        <div class="col-md-6 mb-2 mb-md-0">
-                            <button class="btn btn-success w-100" type="button" id="openLinksBtn" disabled>
-                                <i class="bi bi-box-arrow-up-right"></i> Open Links in Browser
-                            </button>
-                        </div>
-                        <div class="col-md-6">
-                            <button class="btn btn-primary w-100" type="button" id="downloadCsvBtn" disabled>
-                                <i class="bi bi-download"></i> Download CSV
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Replace the current Results Management section with this updated version -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-table"></i> Saved Results Management</h5>
-                <button class="btn btn-sm btn-light float-end" id="refreshResultsBtn">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="resultSelect" class="form-label">View Saved Results</label>
-                    <select class="form-select" id="resultSelect">
-                        <option value="">Select a saved result</option>
-                    </select>
+        <!-- Rearranged Layout: Payload & Saved Results Side-by-Side -->
+        <div class="row">
+            <!-- Payload Management -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-white"> <!-- Updated Color -->
+                        <h5 class="mb-0"><i class="bi bi-save"></i> Payload Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="payloadSelect" class="form-label">Load Saved Payload</label>
+                            <select class="form-select" id="payloadSelect">
+                                <option value="">Select a saved payload</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <button class="btn btn-info" type="button" id="loadPayloadBtn"> <!-- Keep Load as Info -->
+                                <i class="bi bi-download"></i> Load Selected
+                            </button>
+                            <button class="btn btn-warning" type="button" id="renamePayloadBtn"> <!-- Keep Rename as Warning -->
+                                <i class="bi bi-pencil"></i> Rename
+                            </button>
+                            <button class="btn btn-danger" type="button" id="deletePayloadBtn"> <!-- Keep Delete as Danger -->
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                            <button class="btn btn-secondary" type="button" id="savePayloadBtn">
+                                <i class="bi bi-upload"></i> Save Current
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                    <div>
-                        <button class="btn btn-primary" type="button" id="viewResultBtn">
-                            <i class="bi bi-eye"></i> View Selected
-                        </button>
-                        <button class="btn btn-warning" type="button" id="renameResultBtn">
-                            <i class="bi bi-pencil"></i> Rename
+            </div>
+
+            <!-- Saved Results Management -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-white"> <!-- Already dark -->
+                        <h5 class="mb-0"><i class="bi bi-table"></i> Saved Results Management</h5>
+                        <button class="btn btn-sm btn-outline-light float-end" id="refreshResultsBtn"> <!-- Changed refresh button style -->
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
                         </button>
                     </div>
-                    <button class="btn btn-danger" type="button" id="deleteResultBtn">
-                        <i class="bi bi-trash"></i> Delete Selected
-                    </button>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="resultSelect" class="form-label">View Saved Results</label>
+                            <select class="form-select" id="resultSelect">
+                                <option value="">Select a saved result</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <div>
+                                <button class="btn btn-info" type="button" id="viewResultBtn"> <!-- Changed View to Info -->
+                                    <i class="bi bi-eye"></i> View Selected
+                                </button>
+                                <button class="btn btn-warning" type="button" id="renameResultBtn"> <!-- Keep Rename as Warning -->
+                                    <i class="bi bi-pencil"></i> Rename
+                                </button>
+                            </div>
+                            <button class="btn btn-danger" type="button" id="deleteResultBtn">
+                                <i class="bi bi-trash"></i> Delete Selected
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </div><!-- End Row for Payload & Saved Results -->
+
+        <!-- Current Search Results Card (Below, Full Width) -->
+        <div class="row">
+            <div class="col-md-12">
+                 <div class="card mb-4">
+                    <div class="card-header bg-dark text-white"> <!-- Changed header color -->
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Current Search Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsInfo">
+                            <p>No search performed yet.</p>
+                        </div>
+                        <div class="d-grid gap-2 mt-3"> <!-- Added margin top -->
+                            <div class="row">
+                                <div class="col-md-6 mb-2 mb-md-0">
+                                    <button class="btn btn-info w-100" type="button" id="openLinksBtn" disabled> <!-- Changed button color -->
+                                        <i class="bi bi-box-arrow-up-right"></i> Open Links in Browser
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-info w-100" type="button" id="downloadCsvBtn" disabled> <!-- Changed button color -->
+                                        <i class="bi bi-download"></i> Download CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- End Row for Current Search Results -->
+
 
 <!-- Modal for displaying AI Analysis -->
 <div class="modal fade" id="aiAnalysisModal" tabindex="-1" aria-labelledby="aiAnalysisModalLabel" aria-hidden="true">
@@ -405,6 +450,51 @@
             </div>
             
             <div class="modal-body">
+                <!-- Filter Row -->
+                <div class="row mb-3 gx-2 gy-2"> <!-- Added gy-2 for vertical spacing on smaller screens -->
+                    <div class="col-md-2">
+                        <label for="filterMake" class="form-label form-label-sm">Make</label>
+                        <select id="filterMake" class="form-select form-select-sm">
+                            <option value="">All Makes</option>
+                            <!-- Options added dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterModel" class="form-label form-label-sm">Model</label>
+                        <select id="filterModel" class="form-select form-select-sm">
+                            <option value="">All Models</option>
+                            <!-- Options added dynamically -->
+                        </select>
+                    </div>
+                     <div class="col-md-2">
+                        <label for="filterTrim" class="form-label form-label-sm">Trim</label>
+                        <input type="text" id="filterTrim" class="form-control form-control-sm" placeholder="Contains...">
+                    </div>
+                    <div class="col-md-1">
+                        <label for="filterYear" class="form-label form-label-sm">Year</label>
+                        <input type="number" id="filterYear" class="form-control form-control-sm" placeholder="Year">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterPriceMax" class="form-label form-label-sm">Max Price</label>
+                        <input type="number" id="filterPriceMax" class="form-control form-control-sm" placeholder="Max $">
+                    </div>
+                     <div class="col-md-1">
+                        <label for="filterKmsMax" class="form-label form-label-sm">Max KMs</label>
+                        <input type="number" id="filterKmsMax" class="form-control form-control-sm" placeholder="Max KMs">
+                    </div>
+                     <div class="col-md-1">
+                        <label for="filterDrivetrain" class="form-label form-label-sm">Drive</label>
+                        <select id="filterDrivetrain" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <!-- Options added dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button id="applyFiltersBtn" class="btn btn-sm btn-secondary w-100" title="Apply Filters"><i class="bi bi-funnel-fill"></i></button>
+                    </div>
+                </div>
+                <!-- End Filter Row -->
+
                 <div id="resultsTableContainer" class="table-responsive">
                     <!-- Table will be inserted here dynamically -->
                 </div>
@@ -924,8 +1014,12 @@
                     WithPhotos: document.getElementById('withPhotos').checked,
                     Exclusions: exclusions,
                     Inclusion: document.getElementById('inclusion').value,
+                    Trim: document.getElementById('trimSelect').value || null,
+                    Color: document.getElementById('colorSelect').value || null, // Read from colorSelect dropdown
+                    Drivetrain: document.getElementById('drivetrainSelect').value || null,
+                    Transmission: document.getElementById('transmissionSelect').value || null,
                     Skip: 0,
-                    Top: 15,
+                    Top: 100, // Use 100 to match backend default
                     micrositeType: 1
                 };
                 
@@ -1393,6 +1487,8 @@
             const modelSelect = document.getElementById('modelSelect');
             
             modelSelect.innerHTML = '<option value="">Select Model</option>';
+            // Also reset trim when make changes
+            document.getElementById('trimSelect').innerHTML = '<option value="">Any Trim (Select Model First)</option>';
             
             if (!make) return;
             
@@ -1420,6 +1516,153 @@
                 });
         });
         
+        // Load trims when model changes
+        document.getElementById('modelSelect').addEventListener('change', function() {
+            const make = document.getElementById('makeSelect').value;
+            const model = this.value;
+            const trimSelect = document.getElementById('trimSelect');
+            
+            trimSelect.innerHTML = '<option value="">Any Trim</option>'; // Reset trims
+            // Also reset color when model changes
+            document.getElementById('colorSelect').innerHTML = '<option value="">Any Color (Select Trim/Model First)</option>';
+
+            if (!make || !model) return;
+
+            // Load trims AND colors (if no trim is selected initially)
+            loadTrims(make, model);
+            loadColors(make, model); // Load colors based on make/model initially
+        });
+
+        // Load colors when trim changes
+        document.getElementById('trimSelect').addEventListener('change', function() {
+            const make = document.getElementById('makeSelect').value;
+            const model = document.getElementById('modelSelect').value;
+            const trim = this.value; // Can be "" for "Any Trim"
+
+            if (!make || !model) return;
+
+            loadColors(make, model, trim || null); // Pass null if trim is ""
+        });
+
+
+        // Function to load trims
+        function loadTrims(make, model, selectedTrim = null) {
+             const trimSelect = document.getElementById('trimSelect');
+             trimSelect.innerHTML = '<option value="">Loading Trims...</option>'; // Show loading state
+
+             console.log(`Loading trims for make: ${make}, model: ${model}`);
+            
+             // Encode make and model for the URL
+             const encodedMake = encodeURIComponent(make);
+             const encodedModel = encodeURIComponent(model);
+
+             fetchWithAuth(`/api/trims/${encodedMake}/${encodedModel}`)
+                .then(data => {
+                    // Check for explicit failure from backend, even if fetch itself succeeded (e.g., 200 OK but {success: false})
+                    if (data && data.success === false) {
+                         console.error('Error loading trims (API Error):', data.error);
+                         showNotification(`Failed to load trims: ${data.error}`, 'danger');
+                         trimSelect.innerHTML = '<option value="">Error loading trims</option>';
+                         hideLoading();
+                         return; // Stop further processing
+                    }
+
+                    console.log("Trims loaded:", data); // Assuming data is the dictionary {trim: count} or {}
+                    trimSelect.innerHTML = '<option value="">Any Trim</option>'; // Reset with default
+                    const trims = Object.keys(data);
+                    
+                    trims.forEach(trim => {
+                        // Explicitly skip if the key is 'Status' (case-insensitive)
+                        if (trim.trim().toLowerCase() === 'status') {
+                            return; // Skip this iteration
+                        }
+                        const option = document.createElement('option');
+                        option.value = trim;
+                        // Display count if available, otherwise just the trim name
+                        option.textContent = data[trim] ? `${trim} (${data[trim]})` : trim;
+                        trimSelect.appendChild(option);
+                    });
+
+                    // Re-select the trim if it was passed (e.g., when loading a payload)
+                    if (selectedTrim && trims.includes(selectedTrim)) {
+                        trimSelect.value = selectedTrim;
+                    }
+                    
+                    hideLoading(); // Assuming hideLoading exists
+                })
+                .catch(error => {
+                    console.error('Error loading trims:', error);
+                    showNotification('Failed to load trims. Please try again.', 'danger');
+                    trimSelect.innerHTML = '<option value="">Error loading trims</option>'; // Show error state
+                    hideLoading(); // Assuming hideLoading exists
+                });
+        }
+
+        // Function to load colors
+        function loadColors(make, model, trim = null, selectedColor = null) {
+             const colorSelect = document.getElementById('colorSelect');
+             colorSelect.innerHTML = '<option value="">Loading Colors...</option>'; // Show loading state
+
+             console.log(`Loading colors for make: ${make}, model: ${model}, trim: ${trim}`);
+
+             // Encode make, model, and trim for the URL
+             const encodedMake = encodeURIComponent(make);
+             const encodedModel = encodeURIComponent(model);
+             let url = `/api/colors/${encodedMake}/${encodedModel}`;
+             if (trim) {
+                 url += `/${encodeURIComponent(trim)}`;
+             }
+
+
+             fetchWithAuth(url)
+                .then(data => {
+                    // Check for explicit failure from backend
+                    if (data && data.success === false) {
+                         console.error('Error loading colors (API Error):', data.error);
+                         showNotification(`Failed to load colors: ${data.error}`, 'danger');
+                         colorSelect.innerHTML = '<option value="">Error loading colors</option>';
+                         hideLoading();
+                         return; // Stop further processing
+                    }
+
+                    console.log("Colors loaded:", data); // Assuming data is the list of color strings
+                    colorSelect.innerHTML = '<option value="">Any Color</option>'; // Reset with default
+
+                    // Handle dictionary response {color: count}
+                    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+                        const colors = Object.keys(data); // Get color names from keys
+
+                        colors.forEach(color => {
+                             // Explicitly skip if the key is 'Status' (case-insensitive) - safety check
+                            if (color.trim().toLowerCase() === 'status') {
+                                return; // Skip this iteration
+                            }
+                            const option = document.createElement('option');
+                            option.value = color;
+                            // Display count if available (data[color]), otherwise just the color name
+                            option.textContent = data[color] ? `${color} (${data[color]})` : color;
+                            colorSelect.appendChild(option);
+                        });
+
+                        // Re-select the color if it was passed and exists in the keys
+                        if (selectedColor && colors.includes(selectedColor)) {
+                            colorSelect.value = selectedColor;
+                        }
+                    } else {
+                        console.warn("Received unexpected data format for colors:", data);
+                        // Keep "Any Color" as the only option if data is not a dictionary
+                    }
+
+                    hideLoading();
+                })
+                .catch(error => {
+                    console.error('Error loading colors:', error);
+                    showNotification('Failed to load colors. Please try again.', 'danger');
+                    colorSelect.innerHTML = '<option value="">Error loading colors</option>'; // Show error state
+                    hideLoading();
+                });
+        }
+
         // Show all makes button
         document.getElementById('showAllMakes').addEventListener('click', function() {
             loadMakes(false);
@@ -1504,6 +1747,17 @@
                             if (model) {
                                 console.log(`Setting model to: ${model}`);
                                 modelSelect.value = model;
+                                // Trigger trim and color loading after model is set
+                                if (payload.Make && payload.Model) {
+                                     loadTrims(payload.Make, payload.Model, payload.Trim);
+                                     // Load colors based on make/model/trim from payload
+                                     loadColors(payload.Make, payload.Model, payload.Trim, payload.Color);
+                                }
+                            } else {
+                                // If no model in payload, still load colors based on make if available
+                                if (payload.Make) {
+                                    loadColors(payload.Make, null, null, payload.Color);
+                                }
                             }
                         })
                         .catch(error => {
@@ -1563,6 +1817,29 @@
             exclusions = Array.isArray(payload.Exclusions) ? [...payload.Exclusions] : [];
             console.log("Setting exclusions:", exclusions);
             updateExclusionsList();
+
+            // Populate new fields - Special handling for Trim dropdown
+            const trimSelect = document.getElementById('trimSelect');
+            if (trimSelect) {
+                 // Reset trim select initially
+                 trimSelect.innerHTML = '<option value="">Any Trim</option>';
+                 // If make and model are present, attempt to load trims and select the saved one
+                 if (!payload.Make || !payload.Model) {
+                     // If no make/model, just set to 'Any'
+                     trimSelect.value = "";
+                 } else if (!payload.Trim) {
+                     // If make/model but no trim, load trims and keep 'Any' selected
+                     loadTrims(payload.Make, payload.Model);
+                 } else {
+                     // If make/model and trim, load trims and try to select the saved one
+                     // Color loading is handled separately after models load
+                 }
+            }
+            // Color is handled by loadColors called after models load
+            const drivetrainSelect = document.getElementById('drivetrainSelect');
+            if (drivetrainSelect) drivetrainSelect.value = payload.Drivetrain || '';
+            const transmissionSelect = document.getElementById('transmissionSelect');
+            if (transmissionSelect) transmissionSelect.value = payload.Transmission || '';
         }
 
         // Load saved results
@@ -1673,10 +1950,185 @@
             })(document.querySelectorAll);
         }
 
-        // Variables to track sorting state
+        // Variables to track sorting and filtering state
         let currentSortField = '';
         let currentSortDirection = 'asc';
-        let currentVehicles = [];
+        let originalVehicles = []; // Holds the full list loaded into the modal
+        let currentVehicles = []; // Holds the currently displayed list (filtered/sorted)
+
+
+        // --- Filter Functions ---
+
+        function populateFilterDropdowns(vehicles) {
+            const makeFilter = document.getElementById('filterMake');
+            const modelFilter = document.getElementById('filterModel');
+            const drivetrainFilter = document.getElementById('filterDrivetrain'); // Get drivetrain select
+
+            const makes = [...new Set(vehicles.map(v => v.Make || ''))].filter(Boolean).sort();
+            const models = [...new Set(vehicles.map(v => v.Model || ''))].filter(Boolean).sort();
+            const drivetrains = [...new Set(vehicles.map(v => v.Drivetrain || ''))].filter(Boolean).sort(); // Get unique drivetrains
+
+            makeFilter.innerHTML = '<option value="">All</option>'; // Shortened default text
+            makes.forEach(make => {
+                makeFilter.innerHTML += `<option value="${make}">${make}</option>`;
+            });
+
+            modelFilter.innerHTML = '<option value="">All</option>'; // Shortened default text
+            models.forEach(model => {
+                modelFilter.innerHTML += `<option value="${model}">${model}</option>`;
+            });
+
+            drivetrainFilter.innerHTML = '<option value="">All</option>'; // Add default for drivetrain
+            drivetrains.forEach(drive => {
+                drivetrainFilter.innerHTML += `<option value="${drive}">${drive}</option>`;
+            });
+        }
+
+        function applyFiltersAndDisplay() {
+            const filterMakeValue = document.getElementById('filterMake').value;
+            const filterModelValue = document.getElementById('filterModel').value;
+            const filterTrimValue = document.getElementById('filterTrim').value.toLowerCase(); // Get trim filter
+            const filterYearValue = document.getElementById('filterYear').value;
+            const filterPriceMaxValue = document.getElementById('filterPriceMax').value;
+            const filterKmsMaxValue = document.getElementById('filterKmsMax').value; // Get KMs filter
+            const filterDrivetrainValue = document.getElementById('filterDrivetrain').value; // Get drivetrain filter
+
+            currentVehicles = originalVehicles.filter(vehicle => {
+                const makeMatch = !filterMakeValue || (vehicle.Make && vehicle.Make === filterMakeValue);
+                const modelMatch = !filterModelValue || (vehicle.Model && vehicle.Model === filterModelValue);
+                const trimMatch = !filterTrimValue || (vehicle.Trim && vehicle.Trim.toLowerCase().includes(filterTrimValue)); // Trim contains check
+                const yearMatch = !filterYearValue || (vehicle.Year && vehicle.Year.toString() === filterYearValue);
+
+                // Price comparison
+                let price = Infinity; // Default to Infinity if no price
+                if (vehicle.Price) {
+                    price = parseFloat(String(vehicle.Price).replace(/[^0-9.]/g, '')) || Infinity;
+                }
+                const priceMatch = !filterPriceMaxValue || price <= parseFloat(filterPriceMaxValue);
+
+                // KMs comparison
+                let kms = Infinity; // Default to Infinity if no KMs
+                if (vehicle.Kilometres) {
+                    kms = parseFloat(String(vehicle.Kilometres).replace(/[^0-9.]/g, '')) || Infinity;
+                }
+                const kmsMatch = !filterKmsMaxValue || kms <= parseFloat(filterKmsMaxValue);
+
+                // Drivetrain comparison
+                const drivetrainMatch = !filterDrivetrainValue || (vehicle.Drivetrain && vehicle.Drivetrain === filterDrivetrainValue);
+
+
+                return makeMatch && modelMatch && trimMatch && yearMatch && priceMatch && kmsMatch && drivetrainMatch;
+            });
+
+            // Reset sort before displaying filtered results
+            currentSortField = '';
+            currentSortDirection = 'asc';
+            document.querySelectorAll('.sort-icon').forEach(i => i.classList.add('d-none'));
+
+
+            updateTableWithSortedData(currentVehicles);
+            showNotification(`Filtered results: ${currentVehicles.length} listings shown.`, 'info');
+        }
+
+        // --- End Filter Functions ---
+
+        // --- Delete Listing Function ---
+        function deleteListing(indexToDelete) {
+            // Find the actual vehicle object corresponding to the index in the *currently displayed* list
+            const vehicleToDelete = currentVehicles[indexToDelete];
+
+            if (!vehicleToDelete) {
+                console.error("Could not find vehicle to delete at index:", indexToDelete);
+                return;
+            }
+
+            // Find the index of this vehicle in the *original* list to remove it permanently
+            const originalIndex = originalVehicles.findIndex(v =>
+                v.Link === vehicleToDelete.Link && // Assuming Link is a unique identifier
+                v.Year === vehicleToDelete.Year &&
+                v.Make === vehicleToDelete.Make &&
+                v.Model === vehicleToDelete.Model &&
+                v.Price === vehicleToDelete.Price // Add more fields if Link isn't guaranteed unique
+            );
+
+            if (originalIndex > -1) {
+                originalVehicles.splice(originalIndex, 1); // Remove from original list
+                console.log("Removed from originalVehicles at index:", originalIndex);
+            } else {
+                console.warn("Could not find the exact vehicle in originalVehicles to remove.");
+                // Fallback: Try removing based on index if original list wasn't modified elsewhere
+                if (originalVehicles.length > indexToDelete) {
+                   // This might be risky if originalVehicles was modified independently
+                   // originalVehicles.splice(indexToDelete, 1);
+                }
+            }
+
+            // Remove from the currently displayed list
+            currentVehicles.splice(indexToDelete, 1);
+            console.log("Removed from currentVehicles at index:", indexToDelete);
+
+
+            // Re-render the table with the updated currentVehicles list
+            updateTableWithSortedData(currentVehicles);
+            showNotification('Listing removed from view. Saving change...', 'info');
+
+            // Persist deletion to backend
+            if (!currentResultId) {
+                 console.error("Cannot permanently delete listing: currentResultId is not set.");
+                 showNotification('Error: Could not determine which saved result to modify.', 'danger');
+                 // Consider reverting the local deletion here if desired
+                 return;
+            }
+
+            // Send enough details to uniquely identify the listing on the backend
+            // Using the 'Link' is often a good unique identifier from scraping
+            const listingIdentifier = { Link: vehicleToDelete.Link, /* Add other potentially unique fields if needed */ };
+
+            fetchWithAuth('/api/delete_listing_from_result', {
+                method: 'POST',
+                body: JSON.stringify({
+                     result_id: currentResultId,
+                     listing_identifier: listingIdentifier // Send identifier instead of the whole object
+                }),
+            })
+            .then(data => {
+                if (data.success) {
+                    showNotification('Listing permanently deleted from saved result.', 'success');
+                    // Optionally refresh the main results list if the count changed significantly
+                    // refreshResultsList();
+                } else {
+                    showNotification('Failed to permanently delete listing: ' + data.error, 'danger');
+                    // Revert local deletion if backend fails?
+                    // This is complex as it requires adding the item back to originalVehicles/currentVehicles
+                    // and re-rendering. For now, we'll leave it removed from view but notify the user.
+                    console.error("Backend deletion failed:", data.error);
+                }
+            })
+            .catch(error => {
+                showNotification('Error contacting server to delete listing.', 'danger');
+                 console.error("Network/server error during listing deletion:", error);
+                // Also consider reverting local deletion here
+            });
+        }
+        // --- End Delete Listing Function ---
+
+        // Combined handler for table actions (Analyze and Delete)
+        function handleTableActions(event) {
+            const analyzeButton = event.target.closest('.analyze-btn');
+            const deleteButton = event.target.closest('.delete-listing-btn');
+
+            if (analyzeButton) {
+                handleAnalyzeClick(event); // Call the existing analyze handler
+            } else if (deleteButton) {
+                const index = parseInt(deleteButton.getAttribute('data-index'));
+                if (!isNaN(index)) {
+                    // Confirm before deleting
+                    if (confirm('Are you sure you want to remove this listing from the results?')) {
+                        deleteListing(index);
+                    }
+                }
+            }
+        }
 
         // Function to sort vehicles by a specific field
         function sortVehicles(vehicles, field, direction) {
@@ -1723,9 +2175,13 @@
                     `Results: ${make} ${model} (${yearMin}-${yearMax})`;
             }
             
-            // Get results array and store it for sorting
-            currentVehicles = result.results || [];
+            // Get results array and store it as the original list
+            originalVehicles = result.results || [];
+            currentVehicles = [...originalVehicles]; // Initially display all vehicles
             
+            // Populate filter dropdowns
+            populateFilterDropdowns(originalVehicles);
+
             // Create table
             let tableHTML = `
                 <table class="table table-striped table-hover" id="vehicleResultsTable">
@@ -1740,6 +2196,7 @@
                             <th class="sortable" data-field="Kilometres">Kilometers <i class="bi bi-sort-down d-none sort-icon"></i></th>
                             <th class="sortable" data-field="Drivetrain">Drivetrain <i class="bi bi-sort-down d-none sort-icon"></i></th>
                             <th>Actions</th>
+                            <th>Delete</th> <!-- Added Delete Header -->
                         </tr>
                     </thead>
                     <tbody id="vehicleResultsTableBody"> <!-- Added ID for easier targeting -->
@@ -1772,6 +2229,11 @@
                                     data-km="${vehicle.Kilometres || ''}"
                                     title="Analyze Reliability with AI">
                                 <i class="bi bi-robot"></i> Analyze
+                            </button>
+                        </td>
+                        <td> <!-- Added Delete Cell -->
+                            <button class="btn btn-sm btn-danger delete-listing-btn" data-index="${index}" title="Delete Listing">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -1836,16 +2298,27 @@
             // Show the modal
             resultsModal.show();
 
-            // Add event listener for analyze buttons (using delegation)
+            // Add event listener for analyze and delete buttons (using delegation)
             const tableBody = document.getElementById('vehicleResultsTableBody');
             if (tableBody) {
-                // Remove previous listener if exists to avoid duplicates
-                tableBody.removeEventListener('click', handleAnalyzeClick);
-                tableBody.addEventListener('click', handleAnalyzeClick);
+                // Remove previous listeners if they exist to avoid duplicates
+                tableBody.removeEventListener('click', handleTableActions); // Use a single handler
+                tableBody.addEventListener('click', handleTableActions); // Attach the new handler
             }
+
+            // Attach listener for the filter button
+            const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            if (applyFiltersBtn) {
+                // Remove potential existing listener
+                applyFiltersBtn.removeEventListener('click', applyFiltersAndDisplay);
+                applyFiltersBtn.addEventListener('click', applyFiltersAndDisplay);
+            }
+
+            // Initial display of all data
+            updateTableWithSortedData(currentVehicles);
         }
 
-        // Function to update just the table body with sorted data
+        // Function to update just the table body with sorted/filtered data
         function updateTableWithSortedData(vehicles) {
             const tableBody = document.getElementById('vehicleResultsTableBody'); // Use ID
             if (!tableBody) return;
@@ -1877,6 +2350,11 @@
                                     data-km="${vehicle.Kilometres || ''}"
                                     title="Analyze Reliability with AI">
                                 <i class="bi bi-robot"></i> Analyze
+                            </button>
+                        </td>
+                        <td> <!-- Added Delete Cell -->
+                            <button class="btn btn-sm btn-danger delete-listing-btn" data-index="${index}" title="Delete Listing">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -2402,3 +2880,36 @@ function handleAnalyzeClick(event) {
     </script>
 </body>
 </html>
+
+</final_file_content>
+
+IMPORTANT: For any future changes to this file, use the final_file_content shown above as your reference. This content reflects the current state of the file, including any auto-formatting (e.g., if you used single quotes but the formatter converted them to double quotes). Always base your SEARCH/REPLACE operations on this final version to ensure accuracy.
+
+<environment_details>
+# VSCode Visible Files
+C:/Users/togoo/AppData/Local/Programs/Microsoft VS Code/AutoScraperUtil.py
+C:/Users/togoo/AppData/Local/Programs/Microsoft VS Code/AutoScraperUtil.py
+C:/Users/togoo/AppData/Local/Programs/Microsoft VS Code/app.py
+C:/Users/togoo/AppData/Local/Programs/Microsoft VS Code/app.py
+templates/index.html
+
+# VSCode Open Tabs
+firebase_config.py
+templates/logout.html
+terms_and_conditions.txt
+templates/landing.html
+templates/terms.html
+templates/about.html
+templates/login.html
+templates/pricing.html
+AutoScraper.py
+app.py
+AutoScraperUtil.py
+templates/index.html
+
+# Current Time
+3/29/2025, 3:21:38 AM (America/Toronto, UTC-4:00)
+
+# Current Mode
+ACT MODE
+</environment_details>

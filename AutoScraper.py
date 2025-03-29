@@ -20,6 +20,66 @@ logging.basicConfig(
 )
 logger = logging.getLogger("AutoScraper")
 
+# --- Expected Payload Schema (Based on Example) ---
+# {
+#     "micrositeType": 1,
+#     "Microsite": { ... }, # Complex object, likely not needed for basic search
+#     "Address": "K0A 1L0",
+#     "Proximity": 1000,
+#     "WithFreeCarProof": false,
+#     "WithPrice": true,
+#     "WithPhotos": true,
+#     "HasLiveChat": false,
+#     "HasVirtualAppraisal": false,
+#     "HasHomeTestDrive": false,
+#     "HasOnlineReservation": false,
+#     "HasDigitalRetail": false,
+#     "HasDealerDelivery": false,
+#     "HasHomeDelivery": false,
+#     "HasTryBeforeYouBuy": false,
+#     "HasMoneyBackGuarantee": false,
+#     "IsNew": true,
+#     "IsUsed": true,
+#     "IsDamaged": false,
+#     "IsCpo": true,
+#     "IsDealer": true,
+#     "IsPrivate": true,
+#     "IsOnlineSellerPlus": false,
+#     "Top": 15, # Or 100
+#     "Make": "Alfa Romeo",
+#     "Model": "2000",
+#     "BodyType": null, # Likely specific values exist
+#     "PriceAnalysis": null,
+#     "PhoneNumber": "",
+#     "PriceMin": null,
+#     "PriceMax": null,
+#     "WheelBaseMin": null, "WheelBaseMax": null,
+#     "EngineSizeMin": null, "EngineSizeMax": null,
+#     "LengthMin": null, "LengthMax": null,
+#     "WeightMin": null, "WeightMax": null,
+#     "HorsepowerMin": null, "HorsepowerMax": null,
+#     "HoursMin": null, "HoursMax": null,
+#     "OdometerMin": null,
+#     "OdometerMax": null,
+#     "YearMin": null,
+#     "YearMax": null,
+#     "Keywords": "",
+#     "FuelTypes": null, # Likely specific values exist
+#     "Transmissions": null, # e.g., "Automatic", "Manual"
+#     "Colours": null, # e.g., "Red", "Black"
+#     "Drivetrain": null, # e.g., "AWD", "FWD"
+#     "Engine": null,
+#     "SeatingCapacity": null,
+#     "NumberOfDoors": null,
+#     "Sleeps": null,
+#     "SlideOuts": null,
+#     "Trim": null, # e.g., "Sport", "Limited"
+#     "RelatedCompanyOwnerCompositeId": null,
+#     "": null # Unclear what this empty key is for
+# }
+# --- End Schema ---
+
+
 # Global variables
 start_time = None
 # Cache for vehicle info to avoid duplicate requests
@@ -76,14 +136,24 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         "WithPrice": True,
         "Exclusions": [],
         "OdometerMin": None,
-        "OdometerMax": None
+        "OdometerMax": None,
+        "Trim": None,        # Add defaults for new params
+        "Color": None,
+        "Drivetrain": None,
+        "Transmission": None
     }
 
-    params = {**default_params, **params}
-    if params.get("Trim") == "All":
-        params.update({"Trim": None})
+    # Merge provided params with defaults
+    params = {**default_params, **{k: v for k, v in params.items() if v is not None}} # Ensure None doesn't overwrite defaults if passed explicitly
 
-    exclusions = transform_strings(params["Exclusions"])  # Cover upper/lower-case
+    # Clean up potential "Any" or empty string values passed from the frontend if they weren't caught earlier
+    if params.get("Trim") == "Any" or params.get("Trim") == "": params["Trim"] = None
+    if params.get("Color") == "Any" or params.get("Color") == "": params["Color"] = None
+    if params.get("Drivetrain") == "Any" or params.get("Drivetrain") == "": params["Drivetrain"] = None
+    if params.get("Transmission") == "Any" or params.get("Transmission") == "": params["Transmission"] = None
+
+
+    exclusions = transform_strings(params.get("Exclusions", []))  # Cover upper/lower-case, handle missing key
     url = "https://www.autotrader.ca/Refinement/Search"
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
@@ -117,21 +187,31 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                 "Address": params["Address"],
                 "Proximity": params["Proximity"],
                 "Make": params["Make"],
-                "Model": params["Model"],
-                #"Trim": params["Trim"],
-                "PriceMin": params["PriceMin"],
-                "PriceMax": params["PriceMax"],
-                "Skip": page * params["Top"],
+                "Model": params.get("Model"), # Use .get for safety
+                # "Trim": params["Trim"], # Keep commented, use trimm below if needed
+                "PriceMin": params.get("PriceMin"),
+                "PriceMax": params.get("PriceMax"),
+                "Skip": page * params.get("Top", 100), # Use .get for safety
                 "Top": params["Top"],
                 "IsNew": params["IsNew"],
-                "IsUsed": params["IsUsed"],
-                "WithPhotos": params["WithPhotos"],
-                "YearMax": params["YearMax"],
-                "YearMin": params["YearMin"],
-                "OdometerMin": params["OdometerMin"],
-                "OdometerMax": params["OdometerMax"],
+                "IsUsed": params.get("IsUsed"),
+                "WithPhotos": params.get("WithPhotos"),
+                "YearMax": params.get("YearMax"),
+                "YearMin": params.get("YearMin"),
+                "OdometerMin": params.get("OdometerMin"),
+                "OdometerMax": params.get("OdometerMax"),
                 "micrositeType": 1,
             }
+            # Conditionally add new parameters if they exist, using keys from example
+            if params.get("Trim"):
+                payload["Trim"] = params["Trim"]
+            if params.get("Color"):
+                 payload["Colours"] = params["Color"] # Note the 'u' and plural
+            if params.get("Drivetrain"):
+                 payload["Drivetrain"] = params["Drivetrain"]
+            if params.get("Transmission"):
+                 payload["Transmissions"] = params["Transmission"] # Note the plural
+
 
             try:
                 # Use the session object for the request

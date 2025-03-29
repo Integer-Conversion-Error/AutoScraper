@@ -13,9 +13,12 @@ from googleapiclient.errors import HttpError # Import HttpError for search retri
 import time # Import time for sleep
 from datetime import timedelta
 from functools import wraps
+from urllib.parse import unquote # Add unquote import
 from AutoScraperUtil import (
     get_all_makes,
     get_models_for_make,
+    get_trims_for_model,
+    get_colors, # Import the new color function
     transform_strings,
     read_json_file,
     save_json_to_file,
@@ -42,7 +45,8 @@ from firebase_config import (
     get_result,             # Add these new imports
     delete_result,          # Add these new imports
     get_user_settings,      # Add settings functions
-    update_user_settings    # Add settings functions
+    update_user_settings,   # Add settings functions
+    get_firestore_db        # Import db access for direct updates
 )
 # Initialize Firebase
 firebase_initialized = initialize_firebase()
@@ -248,6 +252,31 @@ def get_makes():
 def get_models(make):
     models = get_models_for_make(make)
     return jsonify(models)
+
+@app.route('/api/trims/<make>/<model>')
+@login_required
+def get_trims_api(make, model):
+    """API endpoint to get trims for a specific make and model."""
+    # Decode URL components
+    decoded_make = unquote(make)
+    decoded_model = unquote(model)
+    trims = get_trims_for_model(decoded_make, decoded_model)
+    # The function already returns a dict {trim_name: count}, which is JSON serializable
+    return jsonify(trims)
+
+@app.route('/api/colors/<make>/<model>')
+@app.route('/api/colors/<make>/<model>/<trim>') # Add route with optional trim
+@login_required
+def get_colors_api(make, model, trim=None):
+    """API endpoint to get colors for a specific make, model, and optional trim."""
+    # Decode URL components
+    decoded_make = unquote(make)
+    decoded_model = unquote(model)
+    decoded_trim = unquote(trim) if trim else None
+
+    colors = get_colors(decoded_make, decoded_model, decoded_trim)
+    # The function returns a list of strings, which is JSON serializable
+    return jsonify(colors)
 
 @app.route('/api/create_payload', methods=['POST'])
 @login_required
@@ -630,6 +659,58 @@ def delete_result_api():
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+# New endpoint to delete a specific listing from a saved result
+@app.route('/api/delete_listing_from_result', methods=['POST'])
+@login_required
+def delete_listing_from_result_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
+
+    data = request.json
+    result_id = data.get('result_id')
+    listing_identifier = data.get('listing_identifier') # Expecting {'Link': '...'}
+
+    if not result_id:
+        return jsonify({"success": False, "error": "Result ID not provided"}), 400
+    if not listing_identifier or 'Link' not in listing_identifier:
+        return jsonify({"success": False, "error": "Listing identifier (Link) not provided"}), 400
+
+    link_to_delete = listing_identifier['Link']
+
+    try:
+        db = get_firestore_db()
+        doc_ref = db.collection('users').document(user_id).collection('results').document(result_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return jsonify({"success": False, "error": "Result document not found"}), 404
+
+        doc_data = doc.to_dict()
+        current_results = doc_data.get('results', [])
+
+        # Filter out the listing to delete based on the Link
+        original_count = len(current_results)
+        new_results = [listing for listing in current_results if listing.get('Link') != link_to_delete]
+        new_count = len(new_results)
+
+        if new_count == original_count:
+            # Log if the link wasn't found, but maybe don't return error to frontend?
+            # Or return success=True but with a note? For now, just log.
+            logging.warning(f"Listing with link '{link_to_delete}' not found in result '{result_id}' for user '{user_id}'. No changes made.")
+            # Still return success as the state matches the desired outcome (listing is gone)
+            return jsonify({"success": True, "message": "Listing not found, no changes needed."})
+
+        # Update the document with the filtered list
+        doc_ref.update({'results': new_results})
+        logging.info(f"Deleted listing with link '{link_to_delete}' from result '{result_id}' for user '{user_id}'.")
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        logging.error(f"Error deleting listing from result '{result_id}' for user '{user_id}': {e}", exc_info=True)
+        return jsonify({"success": False, "error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
 @app.route('/favicon.ico')
