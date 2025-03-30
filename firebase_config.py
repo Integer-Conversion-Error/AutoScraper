@@ -272,18 +272,20 @@ def get_user_settings(user_id):
         if user_doc.exists:
             user_data = user_doc.to_dict()
             # Return existing settings, applying defaults if fields are missing
-            return {
+            settings = {
                 'search_tokens': user_data.get('search_tokens', 0),
-                'can_use_ai': user_data.get('can_use_ai', False)
+                'can_use_ai': user_data.get('can_use_ai', False),
+                'isPayingUser': user_data.get('isPayingUser', False) # Add isPayingUser field
             }
+            return settings
         else:
-            # User document doesn't exist, return defaults
+            # User document doesn't exist, return defaults including isPayingUser
             print(f"User document {user_id} not found, returning default settings.")
-            return {'search_tokens': 0, 'can_use_ai': False}
+            return {'search_tokens': 0, 'can_use_ai': False, 'isPayingUser': False}
     except Exception as e:
         print(f"Error retrieving user settings for {user_id}: {e}")
-        # Return defaults on error
-        return {'search_tokens': 0, 'can_use_ai': False}
+        # Return defaults on error, including isPayingUser
+        return {'search_tokens': 0, 'can_use_ai': False, 'isPayingUser': False}
 
 def update_user_settings(user_id, settings_update):
     """

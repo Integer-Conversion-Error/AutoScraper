@@ -1,7 +1,8 @@
-from flask import request, jsonify, redirect, url_for, session, flash
+from flask import request, jsonify, redirect, url_for, session, flash, g
 from functools import wraps
 import time
-from firebase_config import verify_id_token, get_user
+import logging # Import logging
+from firebase_config import verify_id_token, get_user, get_user_settings # Import get_user_settings
 
 def login_required_with_app(app, f):
     """
@@ -39,9 +40,29 @@ def login_required_with_app(app, f):
                 # Log the error but don't disrupt the user experience
                 print(f"Error validating user: {e}")
                 
-            # User is authenticated, proceed
+            # Fetch user settings and check payment status
+            logging.info(f"Decorator: Checking settings for user_id: {user_id}") # Log User ID
+            user_settings = get_user_settings(user_id)
+            logging.info(f"Decorator: Fetched user_settings: {user_settings}") # Log fetched settings
+            # is_paying = user_settings.get('isPayingUser', False) # Removed isPayingUser check
+            # logging.info(f"Decorator: isPayingUser check result: {is_paying} (Type: {type(is_paying)})") # Log check result and type
+
+            # if not is_paying: # Removed isPayingUser check
+            #     # User is not a paying user
+            #     logging.warning(f"Decorator: Access denied for user {user_id} to {request.path}. Reason: Not a paying user.") # Log denial
+            #     if request.path.startswith('/api/'):
+            #         return jsonify({"success": False, "error": "Access denied. Requires an active subscription."}), 403
+            #     else:
+            #         flash('This feature requires an active subscription.', 'warning')
+            #         return redirect(url_for('pricing')) # Redirect to pricing page
+
+            # Store user_id and settings in g for potential use in the route
+            g.user_id = user_id
+            g.user_settings = user_settings
+
+            # User is authenticated and paying, proceed
             return f(*args, **kwargs)
-        
+
         # If not in session, check for Bearer token in Authorization header
         auth_header = request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Bearer '):
@@ -56,7 +77,29 @@ def login_required_with_app(app, f):
                 session['display_name'] = user_info.get('name', user_info.get('email', 'User'))
                 session['last_validated'] = time.time()
                 session.modified = True  # Mark session as modified
-                
+
+                # Fetch user settings and check payment status (after token verification)
+                user_id = user_info.get('uid')
+                logging.info(f"Decorator (Token Auth): Checking settings for user_id: {user_id}") # Log User ID
+                user_settings = get_user_settings(user_id)
+                logging.info(f"Decorator (Token Auth): Fetched user_settings: {user_settings}") # Log fetched settings
+                # is_paying = user_settings.get('isPayingUser', False) # Removed isPayingUser check
+                # logging.info(f"Decorator (Token Auth): isPayingUser check result: {is_paying} (Type: {type(is_paying)})") # Log check result and type
+
+                # if not is_paying: # Removed isPayingUser check
+                #     # User is not a paying user
+                #     logging.warning(f"Decorator (Token Auth): Access denied for user {user_id} to {request.path}. Reason: Not a paying user.") # Log denial
+                #     if request.path.startswith('/api/'):
+                #         return jsonify({"success": False, "error": "Access denied. Requires an active subscription."}), 403
+                #     else:
+                #         flash('This feature requires an active subscription.', 'warning')
+                #         return redirect(url_for('pricing')) # Redirect to pricing page
+
+                # Store user_id and settings in g for potential use in the route
+                g.user_id = user_id
+                g.user_settings = user_settings
+
+                # User is authenticated and paying, proceed
                 # If it's an API request, continue
                 if request.path.startswith('/api/'):
                     return f(*args, **kwargs)

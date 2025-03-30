@@ -137,10 +137,15 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         "Exclusions": [],
         "OdometerMin": None,
         "OdometerMax": None,
-        "Trim": None,        # Add defaults for new params
+        "Trim": None,
         "Color": None,
         "Drivetrain": None,
-        "Transmission": None
+        "Transmission": None,
+        # Add defaults for new payload fields
+        "IsDamaged": False, # Default to not including damaged
+        "BodyType": None,
+        "NumberOfDoors": None,
+        "SeatingCapacity": None
     }
 
     # Merge provided params with defaults
@@ -151,6 +156,29 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     if params.get("Color") == "Any" or params.get("Color") == "": params["Color"] = None
     if params.get("Drivetrain") == "Any" or params.get("Drivetrain") == "": params["Drivetrain"] = None
     if params.get("Transmission") == "Any" or params.get("Transmission") == "": params["Transmission"] = None
+    # Clean up new fields
+    if params.get("BodyType") == "Any" or params.get("BodyType") == "": params["BodyType"] = None
+    # For numeric fields, ensure they are numbers or None. Assume "Any" maps to None.
+    try:
+        if params.get("NumberOfDoors") == "Any" or params.get("NumberOfDoors") == "":
+             params["NumberOfDoors"] = None
+        elif params.get("NumberOfDoors") is not None:
+             params["NumberOfDoors"] = int(params["NumberOfDoors"])
+    except (ValueError, TypeError):
+         logger.warning(f"Invalid NumberOfDoors value received: {params.get('NumberOfDoors')}. Setting to None.")
+         params["NumberOfDoors"] = None
+    try:
+        if params.get("SeatingCapacity") == "Any" or params.get("SeatingCapacity") == "":
+             params["SeatingCapacity"] = None
+        elif params.get("SeatingCapacity") is not None:
+             params["SeatingCapacity"] = int(params["SeatingCapacity"])
+    except (ValueError, TypeError):
+         logger.warning(f"Invalid SeatingCapacity value received: {params.get('SeatingCapacity')}. Setting to None.")
+         params["SeatingCapacity"] = None
+    # Ensure IsDamaged is boolean
+    if not isinstance(params.get("IsDamaged"), bool):
+        # Handle potential string "true"/"false" from form if needed, default to False
+        params["IsDamaged"] = str(params.get("IsDamaged")).lower() == 'true'
 
 
     exclusions = transform_strings(params.get("Exclusions", []))  # Cover upper/lower-case, handle missing key
@@ -211,6 +239,15 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                  payload["Drivetrain"] = params["Drivetrain"]
             if params.get("Transmission"):
                  payload["Transmissions"] = params["Transmission"] # Note the plural
+            # Add new parameters conditionally
+            if params.get("IsDamaged") is not None: # Check explicitly for None if default is False
+                 payload["IsDamaged"] = params["IsDamaged"]
+            if params.get("BodyType"):
+                 payload["BodyType"] = params["BodyType"]
+            if params.get("NumberOfDoors"):
+                 payload["NumberOfDoors"] = params["NumberOfDoors"]
+            if params.get("SeatingCapacity"):
+                 payload["SeatingCapacity"] = params["SeatingCapacity"]
 
 
             try:

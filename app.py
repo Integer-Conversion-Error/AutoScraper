@@ -153,6 +153,7 @@ app.config['SESSION_USE_SIGNER'] = True    # Add a signer for security
 
 # Import the login_required decorator after app is created
 from auth_decorator import login_required_with_app
+from flask import g # Import g
 login_required = lambda f: login_required_with_app(app, f)  # Pass app to the decorator
 
 @app.route('/')
@@ -443,13 +444,15 @@ def fetch_data_api():
     if not payload:
         return jsonify({"success": False, "error": "No payload provided"}), 400
 
-    if not user_id:
-        return jsonify({"success": False, "error": "User not authenticated"}), 401
+    # user_id is implicitly checked by @login_required
+    # user_settings are fetched by the decorator and stored in g
 
     try:
-        # 1. Get user settings (including current tokens)
-        user_settings = get_user_settings(user_id)
+        # 1. Get user settings (including current tokens) from g
+        # The decorator ensures g.user_id and g.user_settings exist if we reach here
+        user_settings = g.user_settings
         current_tokens = user_settings.get('search_tokens', 0)
+        user_id = g.user_id # Get user_id from g as well
 
         # 2. Perform initial fetch to get estimated count
         initial_scrape_data = fetch_autotrader_data(payload, initial_fetch_only=True)
@@ -728,6 +731,18 @@ def favicon():
         # Log that favicon wasn't found
         print("Favicon.ico not found in static directory")
         return '', 404  # Return empty response with 404 status code
+
+@app.route('/static/index.js')
+@login_required # Assuming this script is part of the logged-in app experience
+def serve_main_js():
+    """Serves the main index.js file for the application."""
+    from flask import send_from_directory
+    try:
+        # Use app.static_folder which is already set to 'static'
+        return send_from_directory(app.static_folder, 'index.js', mimetype='application/javascript')
+    except FileNotFoundError:
+        logging.error("static/index.js not found when serving via /app/index.js")
+        return jsonify({"success": False, "error": "Main script file not found."}), 404
 
 # Add these API endpoints to app.py
 
