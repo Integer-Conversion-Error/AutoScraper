@@ -283,6 +283,9 @@ def get_colors_api(make, model, trim=None):
 @login_required
 def create_payload():
     payload = request.json
+    # --- ADDED LOGGING ---
+    print(f"--- DEBUG: Received payload in /api/create_payload: {payload}")
+    # --- END LOGGING ---
     return jsonify({"success": True, "payload": payload})
 
 @app.route('/api/save_payload', methods=['POST'])
@@ -439,6 +442,9 @@ def update_user_settings_api():
 @login_required
 def fetch_data_api():
     payload = request.json.get('payload')
+    # --- ADDED LOGGING ---
+    print(f"--- DEBUG: Received payload in /api/fetch_data: {payload}")
+    # --- END LOGGING ---
     user_id = session.get('user_id')
 
     if not payload:
