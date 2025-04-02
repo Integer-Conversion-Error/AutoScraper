@@ -1,0 +1,10 @@
+# Configuration for AutoScraper Rust
+
+# Firebase Project ID (Required for token verification)
+firebase_project_id = "autoscraper-32bb0"
+
+# Optional: Proxy URL for reqwest client (if needed)
+# proxy_url = "http://your-proxy-url:port"
+
+# Optional: Override default server address
+# server_address = "0.0.0.0:8080"

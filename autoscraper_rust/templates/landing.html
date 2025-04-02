@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoScraper - Find Your Next Car Faster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { padding-top: 56px; } /* Adjust for fixed navbar */
+        .section { padding: 60px 0; }
+        .section-alt { background-color: #f8f9fa; }
+        .pricing-card { border: none; transition: all 0.3s ease; }
+        .pricing-card:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .pricing-card .card-header { background-color: #0d6efd; color: white; }
+        .pricing-card.popular .card-header { background-color: #198754; } /* Highlight popular plan */
+        .list-group-item { border: none; padding: 0.75rem 1.25rem; }
+        .bi-check-circle-fill { color: #198754; }
+        .bi-x-circle-fill { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-car-front"></i> AutoScraper
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light ms-lg-2" href="/login">Login</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="btn btn-light ms-lg-2" href="/register">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="py-5 text-center container">
+        <div class="row py-lg-5">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <h1 class="fw-light">Find Your Next Car, Faster Than Ever</h1>
+                <p class="lead text-muted">AutoScraper monitors AutoTrader.ca for niche vehicles based on your specific criteria. Get detailed results, advanced filtering, and optional AI-powered reliability analysis to make informed decisions quickly.</p>
+                <p>
+                    <a href="/register" class="btn btn-primary my-2">Get Started</a>
+                    <a href="/login" class="btn btn-secondary my-2">Login</a>
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section id="features" class="section section-alt">
+        <div class="container">
+            <h2 class="text-center mb-5">Core Features</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-3">
+                        <i class="bi bi-search fs-1 text-primary mb-3"></i>
+                        <div class="card-body">
+                            <h5 class="card-title">Advanced Search & Filtering</h5>
+                            <p class="card-text">Define precise search parameters including make, model, year range, price, mileage, location, keywords, and exclusions.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-3">
+                        <i class="bi bi-speedometer2 fs-1 text-primary mb-3"></i>
+                        <div class="card-body">
+                            <h5 class="card-title">Efficient Scraping</h5>
+                            <p class="card-text">Quickly gather hundreds of listings from AutoTrader.ca, saving you hours of manual searching.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-3">
+                        <i class="bi bi-robot fs-1 text-primary mb-3"></i>
+                        <div class="card-body">
+                            <h5 class="card-title">AI Reliability Analysis (Subscription)</h5>
+                            <p class="card-text">Get AI-powered summaries on vehicle reliability, common issues, price analysis, and negotiation tips based on web context.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Summary Section -->
+    <section id="pricing-summary" class="section">
+        <div class="container">
+            <h2 class="text-center mb-4">Flexible Pricing</h2>
+            <p class="lead text-center text-muted mb-5">Choose between AI analysis subscriptions with monthly token allowances or purchase token credits as needed.</p>
+            <div class="row g-4 justify-content-center">
+                 <div class="col-md-5">
+                    <div class="card h-100 text-center p-3">
+                         <i class="bi bi-tags fs-1 text-primary mb-3"></i>
+                        <div class="card-body">
+                            <h5 class="card-title">Subscriptions & Credits</h5>
+                            <p class="card-text">Access AI analysis via monthly/yearly subscriptions which include search tokens, or buy token credits separately.</p>
+                            <a href="/pricing" class="btn btn-primary mt-2">View Pricing Details</a>
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-md-5">
+                     <div class="card h-100 text-center p-3">
+                         <i class="bi bi-info-circle fs-1 text-primary mb-3"></i>
+                        <div class="card-body">
+                            <h5 class="card-title">About Us</h5>
+                            <p class="card-text">Learn more about the motivation behind AutoScraper and how it aims to simplify your vehicle search.</p>
+                            <a href="/about" class="btn btn-primary mt-2">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 bg-dark text-white">
+        <div class="container text-center">
+            <small>Copyright &copy; AutoScraper 2025 | <a href="/terms" class="text-white-50">Terms & Conditions</a></small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

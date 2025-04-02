@@ -6,3 +6,5 @@ __pycache__/AutotraderXHRTest.cpython-310.pyc
 *.pyc
 __pycache__/GetUserSelection.cpython-310.pyc
 autoscraper.log
+/.vs
+/autoscraper_rust/target/debug
