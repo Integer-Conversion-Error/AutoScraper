@@ -14,8 +14,8 @@ pub async fn get_client() -> Result<Client> {
         .context("Failed to build reqwest client")
 }
 
-// Fetches makes from AutoTrader homepage HTML
-pub async fn fetch_all_makes(popular_only: bool) -> Result<Vec<String>> {
+// Fetches makes from AutoTrader homepage HTML, returning a JSON object { "MakeName": null, ... }
+pub async fn fetch_all_makes(popular_only: bool) -> Result<Value> { // Changed return type
     tracing::info!("[AUTOTRADER_API] fetch_all_makes called (popular_only: {})", popular_only);
     let client = get_client().await.context("Failed to get client in fetch_all_makes")?;
     let url = "https://www.autotrader.ca/";
@@ -38,7 +38,10 @@ pub async fn fetch_all_makes(popular_only: bool) -> Result<Vec<String>> {
         }
     }?;
 
-    tracing::debug!("[AUTOTRADER_API] Successfully fetched homepage HTML (length: {}). Parsing...", response_text.len());
+    tracing::debug!("[AUTOTRADER_API] Successfully fetched homepage HTML (length: {}).", response_text.len());
+    // Log raw HTML for debugging (might be very long)
+    tracing::debug!("[AUTOTRADER_API] Raw HTML Response:\n{}", response_text);
+    tracing::debug!("[AUTOTRADER_API] Parsing HTML...");
 
     // Parse the HTML
     let document = Html::parse_document(&response_text);
@@ -66,7 +69,13 @@ pub async fn fetch_all_makes(popular_only: bool) -> Result<Vec<String>> {
         tracing::debug!("[AUTOTRADER_API] Makes found: {:?}", makes);
     }
 
-    Ok(makes)
+    // Convert Vec<String> to serde_json::Map<String, Value> with null values
+    let makes_map: serde_json::Map<String, Value> = makes
+        .into_iter()
+        .map(|make| (make, Value::Null)) // Use null as placeholder value
+        .collect();
+
+    Ok(json!(makes_map)) // Return as serde_json::Value
 }
 
 // Fetches models for a given make, returning the JSON object { "ModelName": count, ... }

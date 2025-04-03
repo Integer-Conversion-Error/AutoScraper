@@ -73,9 +73,22 @@ pub async fn get_makes() -> Result<impl IntoResponse, AppError> {
     tracing::debug!("[HANDLER] /api/makes - Calling autotrader_api::fetch_all_makes(true)...");
     let makes_result = autotrader_api::fetch_all_makes(true).await;
     match makes_result {
-        Ok(makes) => {
-            tracing::info!("[HANDLER] /api/makes - Successfully fetched {} makes. Returning JSON.", makes.len());
-            Ok(Json(makes))
+        Ok(makes_value) => {
+            // Transform the JSON object into a JSON array of make names (strings)
+            let makes_list: Vec<String> = makes_value
+                .as_object()
+                .map(|map| {
+                    // Extract the keys (make names) directly as strings
+                    map.keys().cloned().collect()
+                })
+                .unwrap_or_else(|| {
+                    tracing::warn!("[HANDLER] /api/makes - Received non-object response from fetch_all_makes, returning empty list.");
+                    Vec::new() // Return empty list if not an object
+                });
+
+            tracing::info!("[HANDLER] /api/makes - Successfully fetched and transformed {} makes into a list.", makes_list.len());
+            tracing::info!("[HANDLER] /api/makes - Data being returned as list: {:?}", makes_list);
+            Ok(Json(makes_list)) // Return the Vec<String> which serializes to a JSON array
         }
         Err(e) => {
             tracing::error!("[HANDLER] /api/makes - Error fetching makes: {:?}", e);
@@ -92,11 +105,11 @@ pub async fn get_models(Path(make): Path<String>) -> Result<impl IntoResponse, A
     let models_result = autotrader_api::fetch_models_for_make(&make).await;
 
     match models_result {
-        Ok(models_value) => {
+        Ok(models_value) => { // models_value is already filtered by fetch_models_for_make
             // Get the count from the returned JSON object
             let count = models_value.as_object().map_or(0, |map| map.len());
             tracing::info!("[HANDLER] /api/models/:make - Successfully fetched {} models for make '{}'. Returning JSON.", count, make);
-            Ok(Json(models_value)) // Return the Value directly
+            Ok(Json(models_value)) // Return the Value directly (already filtered in autotrader_api.rs)
         }
         Err(e) => {
             tracing::error!("[HANDLER] /api/models/:make - Error fetching models for make '{}': {:?}", make, e);

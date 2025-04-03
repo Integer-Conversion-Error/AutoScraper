@@ -18,9 +18,10 @@ mod firestore; // Declare the firestore module
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize logging (read level from RUST_LOG env var, default to info)
+    // Initialize logging
     tracing_subscriber::registry()
-        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| "autoscraper_rust=info,tower_http=info".into()))
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| "autoscraper_rust=info,tower_http=info".into())) // Default to info if RUST_LOG not set
+        //.with(EnvFilter::new("autoscraper_rust=debug,tower_http=info")) // Keep this commented for easy debugging toggle if needed
         .with(fmt::layer())
         .init();
 
