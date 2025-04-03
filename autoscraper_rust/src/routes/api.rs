@@ -5,11 +5,11 @@ use axum::{
     http::StatusCode,
     extract::{Query, Path, Json as JsonExtract, State},
 };
-use serde::{Deserialize, Serialize}; // Added Serialize
+use serde::{Deserialize, Serialize};
 use crate::{
     error::AppError,
     autotrader_api,
-    models::{SearchParams, UserSettings, SavedPayload}, // Added SavedPayload
+    models::{SearchParams, UserSettings, SavedPayload},
     scraper,
     config::Settings,
     firestore,
@@ -29,7 +29,7 @@ struct SettingsResponse {
 struct GenericResponse {
     success: bool,
     message: Option<String>,
-    id: Option<String>, // For returning created document ID
+    id: Option<String>,
     error: Option<String>,
 }
 
@@ -53,12 +53,10 @@ pub struct ColorsQuery {
     trim: Option<String>,
 }
 
-// Request body for saving a payload
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct SavePayloadRequest { // Make struct public
-    name: String, // User-provided name for the payload
-    // Use flatten to directly embed SearchParams fields from JS object
+pub struct SavePayloadRequest {
+    name: String,
     #[serde(flatten)]
     params: SearchParams,
 }
@@ -67,15 +65,44 @@ pub struct SavePayloadRequest { // Make struct public
 // --- API Handlers ---
 
 pub async fn get_makes() -> Result<impl IntoResponse, AppError> {
-    tracing::info!("API call: get_makes");
-    let makes = autotrader_api::fetch_all_makes(true).await?;
-    Ok(Json(makes))
+    // ADDED VERY FIRST LOG
+    tracing::info!("***** ENTERING get_makes HANDLER *****");
+    tracing::info!("[HANDLER] /api/makes - Request received.");
+
+    // Restore original code:
+    tracing::debug!("[HANDLER] /api/makes - Calling autotrader_api::fetch_all_makes(true)...");
+    let makes_result = autotrader_api::fetch_all_makes(true).await;
+    match makes_result {
+        Ok(makes) => {
+            tracing::info!("[HANDLER] /api/makes - Successfully fetched {} makes. Returning JSON.", makes.len());
+            Ok(Json(makes))
+        }
+        Err(e) => {
+            tracing::error!("[HANDLER] /api/makes - Error fetching makes: {:?}", e);
+            Err(AppError::InternalServerError(e.context("Failed to fetch makes in handler")))
+        }
+    }
 }
 
-pub async fn get_models(Query(query): Query<ModelsQuery>) -> Result<impl IntoResponse, AppError> {
-    tracing::info!("API call: get_models for make: {}", query.make);
-    let models = autotrader_api::fetch_models_for_make(&query.make).await?;
-    Ok(Json(models))
+// Change to accept make as a path parameter
+pub async fn get_models(Path(make): Path<String>) -> Result<impl IntoResponse, AppError> {
+    tracing::info!("[HANDLER] /api/models/:make - Request received for make: {}", make);
+    tracing::debug!("[HANDLER] /api/models/:make - Calling autotrader_api::fetch_models_for_make...");
+
+    let models_result = autotrader_api::fetch_models_for_make(&make).await;
+
+    match models_result {
+        Ok(models_value) => {
+            // Get the count from the returned JSON object
+            let count = models_value.as_object().map_or(0, |map| map.len());
+            tracing::info!("[HANDLER] /api/models/:make - Successfully fetched {} models for make '{}'. Returning JSON.", count, make);
+            Ok(Json(models_value)) // Return the Value directly
+        }
+        Err(e) => {
+            tracing::error!("[HANDLER] /api/models/:make - Error fetching models for make '{}': {:?}", make, e);
+            Err(AppError::InternalServerError(e.context(format!("Failed to fetch models for make '{}' in handler", make))))
+        }
+    }
 }
 
 pub async fn get_trims(Query(query): Query<TrimsQuery>) -> Result<impl IntoResponse, AppError> {
@@ -108,8 +135,6 @@ pub async fn get_saved_payloads(
     Ok(Json(payloads))
 }
 
-// Handler for POST /api/payloads (Save Payload)
-// This will require authentication later
 pub async fn save_new_payload(
     State(settings): State<Arc<Settings>>,
     JsonExtract(payload_req): JsonExtract<SavePayloadRequest>,
@@ -128,13 +153,6 @@ pub async fn save_new_payload(
         Err(e) => {
             tracing::error!("Failed to save payload: {}", e);
             Err(AppError::InternalServerError(e.context("Failed to save payload")))
-            // Or return a JSON error response:
-            // Ok(Json(GenericResponse {
-            //     success: false,
-            //     message: None,
-            //     id: None,
-            //     error: Some(format!("Failed to save payload: {}", e)),
-            // }))
         }
     }
 }
@@ -169,7 +187,6 @@ pub async fn get_settings(
                  settings: UserSettings { search_tokens: Some(0), can_use_ai: Some(false) },
                  error: Some(format!("Failed to retrieve settings: {}", e)),
              }))
-            // Err(AppError::InternalServerError(e.context("Failed to get user settings")))
         }
     }
 }

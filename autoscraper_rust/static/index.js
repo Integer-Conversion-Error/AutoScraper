@@ -1,31 +1,61 @@
 // Global state variables
 let currentPayload = null; // Holds the parameters for the *next* search
 let exclusions = [];
-let currentResultId = null; // ID of the currently viewed/saved result in Firestore
+let currentResultId = null; // ID of the currently viewed/saved result in Firestore (TODO: implement saving)
 let currentUserSettings = { searchTokens: 0, canUseAi: false }; // Local cache of user settings
 let currentDisplayedResults = []; // Results currently shown in the modal
 let originalVehicles = []; // Holds the full list loaded into the modal for filtering/sorting
+
+// Firebase configuration - IMPORTANT: Ensure this is present and correct
+const firebaseConfig = {
+    apiKey: "AIzaSyC5XgDpWOkgXHHJs28DyQvC6JtTB1BpUWw", // Replace with your actual API key if different
+    authDomain: "autoscraper-32bb0.firebaseapp.com",
+    projectId: "autoscraper-32bb0",
+    storageBucket: "autoscraper-32bb0.firebasestorage.app",
+    messagingSenderId: "694443728322",
+    appId: "1:694443728322:web:63770ddc18446c0a74ca5b",
+    measurementId: "G-0NVZC6JPBN"
+};
+
+// Initialize Firebase - IMPORTANT: Must be called before using Firebase services
+firebase.initializeApp(firebaseConfig);
+
+// Override Firebase's auth state observer if needed (check if still necessary)
+// const origOnAuthStateChanged = firebase.auth().onAuthStateChanged;
+// firebase.auth().onAuthStateChanged = function (callback) {
+//     const wrappedCallback = (user) => {
+//         console.log("Auth state changed but ignoring for server session");
+//         // Don't call the original callback to prevent redirects
+//     };
+//     return origOnAuthStateChanged.call(firebase.auth(), wrappedCallback);
+// };
+
 
 // --- UI Helper Functions ---
 
 function showNotification(message, type = 'primary') {
     const notification = document.getElementById('notification');
     if (!notification) return;
+    // Ensure correct removal of previous classes
     notification.className = 'toast align-items-center text-white border-0'; // Reset classes
     notification.classList.add(`bg-${type}`);
     document.getElementById('notification-content').textContent = message;
+    // Make sure Bootstrap's Toast is initialized (might need to do this once elsewhere)
     const toast = bootstrap.Toast.getOrCreateInstance(notification, { delay: 3000 });
     toast.show();
 }
 
 function showLoading(message = 'Processing...') {
+    // Basic console log fallback
     console.log('Loading:', message);
-    // TODO: Implement a proper visual loading indicator
+    // TODO: Implement a proper visual loading indicator if desired
+    // Example: document.getElementById('loadingIndicator').style.display = 'block';
 }
 
 function hideLoading() {
     console.log('Loading complete.');
     // TODO: Hide visual loading indicator
+    // Example: document.getElementById('loadingIndicator').style.display = 'none';
 }
 
 function updateExclusionsList() {
@@ -48,89 +78,116 @@ function updateExclusionsList() {
 
 // Generic fetch function
 async function fetchApi(url, options = {}) {
-    console.log(`Making request to: ${url}`);
+    console.log(`[fetchApi] START - Requesting: ${url}`);
     const defaultHeaders = {
         'Content-Type': 'application/json',
     };
 
     // Add Authorization header if user is logged in (Firebase Auth)
-    const user = firebase.auth().currentUser;
-    if (user) {
-        try {
-            const token = await user.getIdToken();
-            defaultHeaders['Authorization'] = `Bearer ${token}`;
-        } catch (error) {
-            console.warn("Could not get Firebase token:", error);
-            // Decide if request should proceed without token
+    // Ensure Firebase Auth is initialized before this runs if relying on currentUser
+    try {
+        const user = firebase.auth().currentUser; // Access auth after initialization
+        if (user) {
+            try {
+                const token = await user.getIdToken();
+                defaultHeaders['Authorization'] = `Bearer ${token}`;
+            } catch (error) {
+                console.warn("Could not get Firebase token:", error);
+                // Decide if you want to proceed without auth or throw an error
+            }
+        } else {
+             console.warn("No Firebase user logged in for authenticated request.");
+             // Decide if you want to proceed without auth or throw an error
         }
-    } else {
-         console.warn("No Firebase user logged in for authenticated request.");
-         // Potentially block requests requiring auth here
+    } catch (initError) {
+        // This catch block handles errors if firebase.auth() itself fails (e.g., due to init issues)
+        console.error("Firebase auth error in fetchApi:", initError);
+        showNotification("Authentication error. Please try refreshing.", "danger");
+        throw initError; // Re-throw to stop the fetch process
     }
+
 
     const mergedOptions = { ...options, headers: { ...defaultHeaders, ...(options.headers || {}) } };
 
     try {
+        console.log(`[fetchApi] Options prepared:`, mergedOptions);
+        console.log(`[fetchApi] Calling fetch(${url})...`);
         const response = await fetch(url, mergedOptions);
+        console.log(`[fetchApi] Fetch returned for ${url}, status: ${response.status}`);
+
         let data = null;
         const contentType = response.headers.get("content-type");
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[fetchApi] HTTP error ${response.status} for ${url}: ${errorText}`);
+            throw new Error(`HTTP error ${response.status}: ${errorText || response.statusText}`);
+        }
+
         if (contentType && contentType.indexOf("application/json") !== -1) {
-            data = await response.json();
-        } else if (response.ok && response.headers.get('content-length') === '0') {
-             console.warn(`Received empty but OK response for ${url}`);
-             return { success: true, data: null, status: response.status }; // Treat as success
-        } else if (!response.ok) {
-             const errorText = await response.text();
-             throw new Error(`HTTP error ${response.status}: ${errorText || response.statusText}`);
-        } else {
-             // Handle other content types if necessary, or treat as unexpected
-             console.warn(`Received non-JSON response for ${url}: ${contentType}`);
-             return { success: true, data: await response.text(), status: response.status }; // Return text if needed
-        }
-
-        if (!response.ok) { // Check again in case JSON parsing revealed an error structure
-            const errorMessage = data?.error || data?.message || `HTTP ${response.status}`;
-            throw new Error(errorMessage);
-        }
-
-        // For consistency, wrap successful data if it doesn't follow the {success: true, ...} pattern
-        // Adjust this based on how your Rust endpoints *actually* return data
-        if (typeof data.success === 'undefined') {
-             // Assuming direct data return means success for GETs like /api/makes, /api/models etc.
-             // For POST/PUT/DELETE that return GenericResponse, the success field should be present.
-             if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
-                 // If success field is missing on mutation, it might be an issue
-                 console.warn(`Response from ${url} missing 'success' field.`);
-                 // You might want to treat this as an error or handle based on context
+             if (response.status === 204) { // No Content
+                 console.log(`[fetchApi] Received 204 No Content for ${url}`);
+                 data = null; // Represent empty success as null data
+             } else {
+                console.log(`[fetchApi] Parsing JSON response for ${url}`);
+                data = await response.json();
+                console.log(`[fetchApi] JSON parsed successfully for ${url}`);
              }
-             // Wrap direct data returns for simplicity downstream
-             // return { success: true, data: data, status: response.status };
+        } else if (response.ok && (response.headers.get('content-length') === '0' || !contentType)) {
+             console.warn(`[fetchApi] Received empty but OK response for ${url}`);
+             return { success: true, data: null, status: response.status }; // Treat as success
+        } else {
+             const textData = await response.text();
+             console.warn(`[fetchApi] Received non-JSON OK response for ${url}: ${contentType}. Body: ${textData.substring(0, 100)}...`);
+             return { success: true, data: textData, status: response.status }; // Return text if needed
         }
-        return data; // Return the parsed JSON data
+
+        console.log(`[fetchApi] Success response data for ${url}:`, data);
+        // Adjust based on whether Rust handlers wrap responses in { success: true, ... }
+        // If they return data directly on success, wrap it here for consistency
+        if (typeof data?.success === 'undefined' && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE')) {
+             console.warn(`Response from ${url} missing 'success' field. Assuming success.`);
+             return { success: true, ...data, status: response.status }; // Merge data into success object
+        }
+        return data; // Return direct data for GET or data with success field
 
     } catch (error) {
-        console.error('API request failed:', url, error);
+        console.error(`[fetchApi] CATCH block error for ${url}:`, error);
         showNotification(`API request failed: ${error.message}`, 'danger');
         throw error;
     }
 }
 
+
 function loadMakes() {
     showLoading('Loading makes...');
-    fetchApi(`/api/makes`)
+    console.log("[loadMakes] Starting...");
+    fetchApi(`/api/makes`) // Uses fetchApi which now handles auth
         .then(makes => {
-            console.log("Makes loaded:", makes);
+            console.log("[loadMakes] fetchApi successful, received:", makes);
             const makeSelect = document.getElementById('makeSelect');
+            if (!makeSelect) {
+                 console.error("[loadMakes] makeSelect element not found!");
+                 hideLoading();
+                 return;
+            }
             makeSelect.innerHTML = '<option value="">Select Make</option>';
             if (Array.isArray(makes)) {
                 makes.forEach(make => {
                     const option = document.createElement('option'); option.value = make; option.textContent = make; makeSelect.appendChild(option);
                 });
-            } else { showNotification('Failed to load makes: Invalid data format.', 'danger'); }
+                 console.log("[loadMakes] Populated makes dropdown.");
+            } else {
+                console.warn("[loadMakes] Received unexpected data format for makes:", makes);
+                showNotification('Failed to load makes: Invalid data format.', 'danger');
+            }
             hideLoading();
         })
-        .catch(error => hideLoading());
+        .catch(error => {
+             // Error is already logged and shown by fetchApi
+             console.error("[loadMakes] Error caught in .catch:", error); // Keep this log for context
+             hideLoading();
+        });
 }
 
 function loadModels(make) {
@@ -140,27 +197,46 @@ function loadModels(make) {
     document.getElementById('colorSelect').innerHTML = '<option value="">Any Color (Select Model First)</option>';
     if (!make) { modelSelect.innerHTML = '<option value="">Select Model (Choose Make First)</option>'; return; }
     showLoading('Loading models...');
-    fetchApi(`/api/models?make=${encodeURIComponent(make)}`)
-        .then(models => {
+    // Backend now expects path param: /api/models/{make}
+    fetchApi(`/api/models/${encodeURIComponent(make)}`)
+        .then(models => { // Expects models to be an object like {"A4": 25, "Q5": 30}
             console.log("Models loaded:", models);
             modelSelect.innerHTML = '<option value="">Select Model</option>';
-            if (Array.isArray(models)) {
-                models.forEach(model => {
-                    const option = document.createElement('option'); option.value = model; option.textContent = model; modelSelect.appendChild(option);
+            if (typeof models === 'object' && models !== null) {
+                // Iterate over the key-value pairs of the object
+                Object.entries(models).forEach(([modelName, count]) => {
+                    const option = document.createElement('option');
+                    option.value = modelName; // Set value to just the model name
+                    option.textContent = `${modelName} (${count})`; // Display name and count
+                    modelSelect.appendChild(option);
                 });
-            } else { showNotification('Failed to load models: Invalid data format.', 'danger'); }
+                 console.log("[loadModels] Populated models dropdown from object.");
+            } else {
+                console.warn("Received unexpected data format for models:", models);
+                showNotification('Failed to load models: Invalid data format.', 'danger');
+            }
             hideLoading();
         })
-        .catch(error => { modelSelect.innerHTML = '<option value="">Error loading models</option>'; hideLoading(); });
+        .catch(error => {
+            // Error is already logged and shown by fetchApi
+            modelSelect.innerHTML = '<option value="">Error loading models</option>';
+            hideLoading();
+        });
 }
 
 function loadTrims(make, model, selectedTrim = null) {
+    // Clean the model string (remove count in parentheses) before sending to backend
+    const cleanedModel = model.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    console.log(`[loadTrims] Original model: "${model}", Cleaned model for API call: "${cleanedModel}"`);
+
     const trimSelect = document.getElementById('trimSelect');
     trimSelect.innerHTML = '<option value="">Loading Trims...</option>';
     document.getElementById('colorSelect').innerHTML = '<option value="">Any Color (Select Trim/Model First)</option>';
-    if (!make || !model) { trimSelect.innerHTML = '<option value="">Any Trim (Select Model First)</option>'; return; }
+    // Use cleanedModel for the check
+    if (!make || !cleanedModel) { trimSelect.innerHTML = '<option value="">Any Trim (Select Model First)</option>'; return; }
     showLoading('Loading trims...');
-    fetchApi(`/api/trims?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`)
+    // Backend expects query params: /api/trims?make=...&model=...
+    fetchApi(`/api/trims?make=${encodeURIComponent(make)}&model=${encodeURIComponent(cleanedModel)}`) // Use cleanedModel
         .then(trims => {
             console.log("Trims loaded:", trims);
             trimSelect.innerHTML = '<option value="">Any Trim</option>';
@@ -172,15 +248,24 @@ function loadTrims(make, model, selectedTrim = null) {
             } else { showNotification('Failed to load trims: Invalid data format.', 'danger'); }
             hideLoading();
         })
-        .catch(error => { trimSelect.innerHTML = '<option value="">Error loading trims</option>'; hideLoading(); });
+        .catch(error => {
+            // Error is already logged and shown by fetchApi
+            trimSelect.innerHTML = '<option value="">Error loading trims</option>';
+            hideLoading();
+        });
 }
 
 function loadColors(make, model, trim = null, selectedColor = null) {
+    // Clean the model string if needed (though it should be clean from the change listener)
+    const cleanedModel = model.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    console.log(`[loadColors] Original model: "${model}", Cleaned model for API call: "${cleanedModel}"`);
+
     const colorSelect = document.getElementById('colorSelect');
     colorSelect.innerHTML = '<option value="">Loading Colors...</option>';
-    if (!make || !model) { colorSelect.innerHTML = '<option value="">Any Color (Select Model First)</option>'; return; }
+    if (!make || !cleanedModel) { colorSelect.innerHTML = '<option value="">Any Color (Select Model First)</option>'; return; }
     showLoading('Loading colors...');
-    let url = `/api/colors?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`;
+    // Backend expects query params: /api/colors?make=...&model=...&trim=...
+    let url = `/api/colors?make=${encodeURIComponent(make)}&model=${encodeURIComponent(cleanedModel)}`; // Use cleanedModel
     if (trim) { url += `&trim=${encodeURIComponent(trim)}`; }
     fetchApi(url)
         .then(colors => {
@@ -194,19 +279,23 @@ function loadColors(make, model, trim = null, selectedColor = null) {
             } else { showNotification('Failed to load colors: Invalid data format.', 'danger'); }
             hideLoading();
         })
-        .catch(error => { colorSelect.innerHTML = '<option value="">Error loading colors</option>'; hideLoading(); });
+        .catch(error => {
+            // Error is already logged and shown by fetchApi
+            colorSelect.innerHTML = '<option value="">Error loading colors</option>';
+            hideLoading();
+        });
 }
 
 function loadSavedPayloads() {
     showLoading('Loading saved payloads...');
-    fetchApi('/api/payloads') // GET /api/payloads
+    fetchApi('/api/payloads') // Uses fetchApi which now handles auth
         .then(payloads => {
             const payloadSelect = document.getElementById('payloadSelect');
             payloadSelect.innerHTML = '<option value="">Select a saved payload</option>';
             if (Array.isArray(payloads)) {
                 payloads.forEach(payload => {
                     const option = document.createElement('option');
-                    option.value = ""; // Use data-id
+                    option.value = "";
                     option.textContent = payload.name || "Unnamed Payload";
                     option.setAttribute('data-id', payload.id);
                     payloadSelect.appendChild(option);
@@ -214,13 +303,16 @@ function loadSavedPayloads() {
             } else { showNotification('Failed to load saved payloads: Invalid data format.', 'danger'); }
             hideLoading();
         })
-        .catch(error => hideLoading());
+        .catch(error => {
+            // Error is already logged and shown by fetchApi
+            hideLoading();
+        });
 }
 
 function fetchUserSettings(updateDisplay = false) {
     console.log("Fetching user settings...");
     if (updateDisplay) { document.getElementById('tokenValue').textContent = '...'; }
-    fetchApi('/api/settings') // GET /api/settings
+    fetchApi('/api/settings') // Uses fetchApi which now handles auth
         .then(data => {
             if (data && data.success && data.settings) {
                 currentUserSettings = {
@@ -234,7 +326,10 @@ function fetchUserSettings(updateDisplay = false) {
                 if (updateDisplay) { updateTokenDisplay(currentUserSettings.searchTokens); }
             }
         })
-        .catch(error => { if (updateDisplay) { updateTokenDisplay(currentUserSettings.searchTokens); } });
+        .catch(error => {
+            // Error is already logged and shown by fetchApi
+            if (updateDisplay) { updateTokenDisplay(currentUserSettings.searchTokens); }
+        });
 }
 
 // --- Event Listeners and Initialization ---
@@ -242,23 +337,30 @@ function fetchUserSettings(updateDisplay = false) {
 document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM loaded, initializing...");
 
-    // Load initial data
+    // Ensure Firebase is initialized before setting up listeners that might use it
+    if (typeof firebase === 'undefined' || !firebase.app) {
+        console.error("Firebase not initialized before DOMContentLoaded!");
+        showNotification("Initialization error. Please refresh.", "danger");
+        return;
+    }
+
     loadMakes(true);
     loadSavedPayloads();
-    // loadSavedResults(); // TODO: Implement Rust endpoint
     fetchUserSettings(true);
 
-    // Event Listeners
     document.getElementById('makeSelect').addEventListener('change', function () { loadModels(this.value); });
     document.getElementById('modelSelect').addEventListener('change', function () {
         const make = document.getElementById('makeSelect').value;
-        loadTrims(make, this.value);
-        loadColors(make, this.value);
+        // Use the selected option's value (which is just the model name)
+        const model = this.value;
+        loadTrims(make, model); // Pass the model name (value)
+        loadColors(make, model); // Pass the model name (value)
     });
     document.getElementById('trimSelect').addEventListener('change', function () {
         const make = document.getElementById('makeSelect').value;
-        const model = document.getElementById('modelSelect').value;
-        loadColors(make, model, this.value || null);
+        const model = document.getElementById('modelSelect').value; // Get model name from value
+        // Use the selected option's value (which is just the trim name)
+        loadColors(make, model, this.value || null); // Pass model name and trim name
     });
     document.getElementById('showAllMakes').addEventListener('click', () => loadMakes(false));
     document.getElementById('addExclusionBtn').addEventListener('click', addExclusion);
@@ -297,8 +399,8 @@ function getCurrentFormParams() {
      const make = document.getElementById('makeSelect').value;
      const params = {
         make: make || null,
-        model: document.getElementById('modelSelect').value || null,
-        trim: document.getElementById('trimSelect').value || null,
+        model: document.getElementById('modelSelect').value || null, // Use the value directly
+        trim: document.getElementById('trimSelect').value || null,   // Use the value directly
         color: document.getElementById('colorSelect').value || null,
         yearMin: parseInt(document.getElementById('yearMin').value) || null,
         yearMax: parseInt(document.getElementById('yearMax').value) || null,
@@ -398,7 +500,6 @@ function saveUserSettings() {
     if (isNaN(tokens) || tokens < 0) { errorDiv.textContent = "Invalid token value."; errorDiv.style.display = 'block'; return; }
     showLoading("Saving settings...");
     // TODO: Implement '/api/settings' (POST or PUT) endpoint in Rust backend
-    // For now, just show notification and close modal
     showNotification("Saving settings... (Not implemented yet)", "info");
     const modal = bootstrap.Modal.getInstance(document.getElementById('userSettingsModal'));
     modal.hide();
@@ -431,7 +532,7 @@ function handleSaveNamedPayload() {
     .then(data => {
         hideLoading();
         if (data && data.success) {
-            showNotification(`Payload saved as "${payloadName}"`, 'success');
+            showNotification(`Payload saved successfully (ID: ${data.id})`, 'success');
             loadSavedPayloads(); // Refresh list
         } else { showNotification(`Failed to save payload: ${data?.error || 'Unknown error'}`, 'danger'); }
     })
@@ -477,7 +578,7 @@ function displayResults(resultData) {
     currentDisplayedResults = [...originalVehicles];
     populateFilterDropdowns(originalVehicles); // Basic stub
     renderTableBody(currentDisplayedResults);
-    setupTableListeners(); // Add listeners after table exists
+    setupTableListeners();
     resultsModal.show();
 }
 
@@ -501,13 +602,12 @@ function renderTableBody(vehicles) {
                  </thead>
                  <tbody id="vehicleResultsTableBody"></tbody>
              </table>`;
-         tableBody = document.getElementById('vehicleResultsTableBody'); // Re-get the body
+         tableBody = document.getElementById('vehicleResultsTableBody');
     }
 
-    tableBody.innerHTML = ''; // Clear existing rows
+    tableBody.innerHTML = '';
     vehicles.forEach((vehicle, index) => {
         const row = tableBody.insertRow();
-        // Adapt to ListingResult structure
         row.innerHTML = `
             <td><input type="checkbox" class="vehicle-checkbox" data-link="${vehicle.link || ''}"></td>
             <td>${vehicle.title || ''}</td>
@@ -582,4 +682,3 @@ function sortVehicles(vehicles, field, direction) {
     console.log(`Sorting by ${field} ${direction} (stub)`);
     return [...vehicles]; // Return unsorted for now
 }
-

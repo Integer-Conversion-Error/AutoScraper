@@ -18,8 +18,8 @@ pub fn create_router() -> Router<Arc<Settings>> {
     // Define API routes separately.
     // Nested routers must have the same state type as the parent.
     let api_router: Router<Arc<Settings>> = Router::new()
-        .route("/makes", get(api::get_makes)) // These handlers don't use State yet, but the router type must match
-        .route("/models", get(api::get_models))
+        .route("/makes", get(api::get_makes))
+        .route("/models/:make", get(api::get_models)) // Changed route to use path parameter
         .route("/trims", get(api::get_trims))
         .route("/colors", get(api::get_colors))
         .route("/search", post(api::search_listings))
