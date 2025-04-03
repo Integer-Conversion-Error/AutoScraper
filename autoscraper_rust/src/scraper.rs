@@ -76,8 +76,10 @@ async fn fetch_page(
 ) -> Result<(Vec<ListingResult>, Option<u32>), String> { // Return error as String for simplicity here
     let mut retry_delay = Duration::from_millis(INITIAL_RETRY_DELAY_MS);
     let url = "https://www.autotrader.ca/Refinement/Search";
+    tracing::debug!(page, url, "Attempting to fetch page");
 
     for attempt in 0..MAX_RETRIES {
+        tracing::debug!(page, attempt, "Fetch attempt {}/{}", attempt + 1, MAX_RETRIES);
         // Construct payload for this page
         // Use defaults similar to Python code
         let payload = json!({
@@ -108,21 +110,45 @@ async fn fetch_page(
             "NumberOfDoors": params.num_doors,
             "SeatingCapacity": params.seating_capacity,
         });
+        tracing::debug!(page, attempt, payload = %payload, "Request payload"); // Log full payload at debug
 
         match client.post(url).json(&payload).send().await {
             Ok(response) => {
+                let status = response.status();
+                tracing::debug!(page, attempt, status = %status, "Received response status");
+
                 if let Err(e) = response.error_for_status_ref() {
                     // Handle HTTP errors
-                    tracing::warn!("HTTP error on page {}: {}. Retrying...", page, e);
+                    let response_text = response.text().await.unwrap_or_else(|_| "[Failed to read response body]".to_string());
+                    // Log full body at debug level for inspection, keep warning concise
+                    tracing::debug!(page, attempt, status = %status, error = %e, response_body = response_text, "HTTP error details");
+                    tracing::warn!(page, attempt, status = %status, error = %e, "HTTP error encountered. Retrying...");
                     sleep(retry_delay).await;
                     retry_delay *= 2;
                     continue;
                 }
 
-                match response.json::<serde_json::Value>().await {
+                // Need to buffer the response to read JSON and potentially text later on error
+                let response_bytes = match response.bytes().await {
+                     Ok(b) => b,
+                     Err(e) => {
+                         tracing::warn!(page, attempt, error = %e, "Failed to read response bytes. Retrying...");
+                         sleep(retry_delay).await;
+                         retry_delay *= 2;
+                         continue;
+                     }
+                 };
+
+                match serde_json::from_slice::<serde_json::Value>(&response_bytes) {
                     Ok(json_response) => {
+                        tracing::debug!(page, attempt, "Successfully parsed JSON response"); // Changed to debug
                         let ads_html = json_response.get("AdsHtml").and_then(|v| v.as_str()).unwrap_or("");
                         let search_results_json_str = json_response.get("SearchResultsDataJson").and_then(|v| v.as_str()).unwrap_or("");
+                        // Log full extracted strings at debug level
+                        tracing::debug!(page, attempt, ads_html_len = ads_html.len(), search_json_len = search_results_json_str.len(), "Extracted content strings");
+                        tracing::debug!(page, attempt, ads_html = ads_html, "Extracted AdsHtml");
+                        tracing::debug!(page, attempt, search_results_json = search_results_json_str, "Extracted SearchResultsDataJson");
+
 
                         let exclusions_set: HashSet<String> = params.exclusions.clone().unwrap_or_default().into_iter().collect();
                         let page_results = parse_listing_html(ads_html, &exclusions_set);
@@ -132,31 +158,37 @@ async fn fetch_page(
                              match serde_json::from_str::<serde_json::Value>(search_results_json_str) {
                                 Ok(search_data) => {
                                     max_page = search_data.get("maxPage").and_then(|v| v.as_u64()).map(|p| p as u32);
+                                    tracing::debug!(page, attempt, max_page, "Parsed maxPage from SearchResultsDataJson");
                                 }
-                                Err(e) => tracing::warn!("Failed to parse SearchResultsDataJson on page {}: {}", page, e),
+                                // Log the raw string at debug level if parsing fails
+                                Err(e) => tracing::debug!(page, attempt, error = %e, json_str = search_results_json_str, "Failed to parse SearchResultsDataJson string"),
                             }
                         } else if page_results.is_empty() {
-                            // No results at all, maybe retry?
-                             tracing::warn!("No results (HTML or JSON) on page {}. Retrying...", page);
+                            // No results HTML and no SearchResultsDataJson
+                             tracing::warn!(page, attempt, "No AdsHtml or SearchResultsDataJson found. Retrying...");
                              sleep(retry_delay).await;
                              retry_delay *= 2;
                              continue;
                         }
 
                         // Successfully got results for this page
+                        tracing::debug!(page, attempt, num_results = page_results.len(), max_page, "Successfully fetched and parsed page");
                         return Ok((page_results, max_page));
                     }
                     Err(e) => {
                         // Handle JSON parsing errors
-                        tracing::warn!("JSON parse error on page {}: {}. Retrying...", page, e);
+                        let response_text = String::from_utf8_lossy(&response_bytes);
+                        // Log full body at debug level for inspection, keep warning concise
+                        tracing::debug!(page, attempt, error = %e, response_body = %response_text, "JSON parse error details");
+                        tracing::warn!(page, attempt, error = %e, "JSON parse error encountered. Retrying...");
                         sleep(retry_delay).await;
                         retry_delay *= 2;
                     }
                 }
             }
             Err(e) => {
-                // Handle network errors
-                tracing::warn!("Network error on page {}: {}. Retrying...", page, e);
+                // Handle network errors (e.g., DNS resolution, connection refused)
+                tracing::warn!(page, attempt, error = %e, "Network error during request. Retrying...");
                 sleep(retry_delay).await;
                 retry_delay *= 2;
             }

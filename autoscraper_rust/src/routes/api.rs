@@ -5,8 +5,10 @@ use axum::{
     http::StatusCode,
     extract::{Query, Path, Json as JsonExtract, State},
 };
+use reqwest::Client; // Import Client
 use serde::{Deserialize, Serialize};
 use crate::{
+    auth_middleware::AuthenticatedUser, // Import the extractor
     error::AppError,
     autotrader_api,
     models::{SearchParams, UserSettings, SavedPayload},
@@ -15,6 +17,9 @@ use crate::{
     firestore,
 };
 use std::sync::Arc;
+
+// Import AppState struct (assuming it's made public in main.rs or moved)
+use crate::AppState;
 
 // --- Response Wrappers ---
 
@@ -139,24 +144,25 @@ pub async fn search_listings(
 }
 
 pub async fn get_saved_payloads(
-    State(settings): State<Arc<Settings>>,
+    State(app_state): State<AppState>, // Use AppState struct
+    authenticated_user: AuthenticatedUser,
 ) -> Result<impl IntoResponse, AppError> {
-    // TODO: Extract user_id from authenticated session/token
-    let user_id = "placeholder_user_id";
+    let user_id = &authenticated_user.user_id;
     tracing::info!("API call: get_saved_payloads for user: {}", user_id);
-    let payloads = firestore::get_payloads(user_id, &settings).await?;
+    // Access settings via app_state.settings
+    let payloads = firestore::get_payloads(user_id, &app_state.settings).await?;
     Ok(Json(payloads))
 }
 
 pub async fn save_new_payload(
-    State(settings): State<Arc<Settings>>,
+    State(app_state): State<AppState>, // Use AppState struct
+    authenticated_user: AuthenticatedUser,
     JsonExtract(payload_req): JsonExtract<SavePayloadRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    // TODO: Extract user_id from authenticated session/token
-    let user_id = "placeholder_user_id";
+    let user_id = &authenticated_user.user_id;
     tracing::info!("API call: save_new_payload for user: {}", user_id);
 
-    match firestore::save_payload(user_id, &payload_req.name, &payload_req.params, &settings).await {
+    match firestore::save_payload(user_id, &payload_req.name, &payload_req.params, &app_state.settings).await {
         Ok(doc_id) => Ok(Json(GenericResponse {
             success: true,
             message: Some("Payload saved successfully.".to_string()),
@@ -172,13 +178,13 @@ pub async fn save_new_payload(
 
 
 pub async fn get_settings(
-    State(settings): State<Arc<Settings>>,
+    State(app_state): State<AppState>, // Use AppState struct
+    authenticated_user: AuthenticatedUser,
 ) -> Result<impl IntoResponse, AppError> {
-    // TODO: Extract user_id from authenticated session/token
-    let user_id = "placeholder_user_id";
+    let user_id = &authenticated_user.user_id;
     tracing::info!("API call: get_settings for user: {}", user_id);
 
-    let result = firestore::get_user_settings(user_id, &settings).await;
+    let result = firestore::get_user_settings(user_id, &app_state.settings).await;
 
     match result {
         Ok(Some(user_settings)) => Ok(Json(SettingsResponse {
@@ -204,4 +210,28 @@ pub async fn get_settings(
     }
 }
 
-// Add other API handlers here later (save settings, results management, etc.)
+
+pub async fn save_settings(
+    State(app_state): State<AppState>, // Use AppState struct
+    authenticated_user: AuthenticatedUser,
+    JsonExtract(user_settings): JsonExtract<UserSettings>,
+) -> Result<impl IntoResponse, AppError> {
+    let user_id = &authenticated_user.user_id;
+    tracing::info!("API call: save_settings for user: {}", user_id);
+
+    match firestore::save_user_settings(user_id, &user_settings, &app_state.settings).await {
+        Ok(_) => Ok(Json(GenericResponse {
+            success: true,
+            message: Some("Settings saved successfully.".to_string()),
+            id: None, // No ID relevant here
+            error: None,
+        })),
+        Err(e) => {
+            tracing::error!("Failed to save user settings: {}", e);
+            // Return AppError to let the central error handler manage the response
+            Err(AppError::InternalServerError(e.context("Failed to save user settings")))
+        }
+    }
+}
+
+// Add other API handlers here later (results management, etc.)

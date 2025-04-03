@@ -10,7 +10,8 @@ use axum::{
 #[derive(Debug)]
 pub enum AppError {
     InternalServerError(anyhow::Error),
-    // Add other error variants like NotFound, Unauthorized, etc.
+    Unauthorized(String), // Add Unauthorized variant with a message
+    // Add other error variants like NotFound, etc.
 }
 
 // Implement conversion from anyhow::Error for easier error propagation
@@ -27,11 +28,20 @@ impl IntoResponse for AppError {
             AppError::InternalServerError(e) => {
                 // Log the detailed error here
                 tracing::error!("Internal server error: {:?}", e);
+                // Don't expose internal details to the client
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error".to_string())
+            }
+            AppError::Unauthorized(message) => {
+                tracing::warn!("Unauthorized access attempt: {}", message);
+                (StatusCode::UNAUTHORIZED, message) // Return the specific message
             }
             // Handle other error variants here
         };
 
+        // Consider returning JSON for API errors:
+        // let body = Json(json!({ "error": error_message }));
+        // (status, body).into_response()
+        // For now, just return plain text:
         (status, error_message).into_response()
     }
 }

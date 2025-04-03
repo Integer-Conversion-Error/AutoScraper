@@ -40,7 +40,7 @@ pub async fn fetch_all_makes(popular_only: bool) -> Result<Value> { // Changed r
 
     tracing::debug!("[AUTOTRADER_API] Successfully fetched homepage HTML (length: {}).", response_text.len());
     // Log raw HTML for debugging (might be very long)
-    tracing::debug!("[AUTOTRADER_API] Raw HTML Response:\n{}", response_text);
+    //tracing::debug!("[AUTOTRADER_API] Raw HTML Response:\n{}", response_text);
     tracing::debug!("[AUTOTRADER_API] Parsing HTML...");
 
     // Parse the HTML

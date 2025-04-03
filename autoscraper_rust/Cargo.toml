@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # Web Framework & Async Runtime
-axum = "0.7"
+axum = { version = "0.7", features = ["macros"] } # Keep "macros" feature for FromRef derive
 tokio = { version = "1", features = ["full"] } # "full" includes macros, rt-multi-thread, etc.
 hyper = { version = "1", features = ["full"] } # Often needed with Axum
 
@@ -37,6 +37,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Concurrency Utilities
 futures = "0.3"
+once_cell = "1.19" # For static/lazy initialization (e.g., key cache)
 
 # Google Cloud / Firebase Auth
 yup-oauth2 = "9.0" # For service account authentication
@@ -44,6 +45,8 @@ yup-oauth2 = "9.0" # For service account authentication
 
 # Static File Serving & HTTP Utilities
 tower-http = { version = "0.5", features = ["fs", "trace"] }
+headers = "0.4" # For Authorization header extraction
+axum-extra = { version = "0.9", features = ["typed-header"] } # Add axum-extra for TypedHeader
 
 # Firebase (Placeholder - needs investigation for Admin SDK equivalent)
 # firebase-rs = "0.5" # Example, might need direct REST calls

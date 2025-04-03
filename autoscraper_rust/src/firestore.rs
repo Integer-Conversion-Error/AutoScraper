@@ -153,6 +153,18 @@ fn search_params_to_firestore_fields(name: &str, params: &SearchParams) -> Value
     json!({ "fields": fields })
 }
 
+// Converts UserSettings into a Firestore fields map (Value) for patching
+fn user_settings_to_firestore_fields(user_settings: &UserSettings) -> Value {
+    let mut fields = HashMap::new();
+    // Only include fields that are Some, as Firestore PATCH replaces specified fields
+    if let Some(tokens) = user_settings.search_tokens {
+        fields.insert("searchTokens".to_string(), json!({ "integerValue": tokens.to_string() }));
+    }
+    if let Some(can_ai) = user_settings.can_use_ai {
+        fields.insert("canUseAi".to_string(), json!({ "booleanValue": can_ai }));
+    }
+    json!({ "fields": fields })
+}
 
 // --- Firestore Interaction Functions ---
 
@@ -287,6 +299,53 @@ pub async fn save_payload(user_id: &str, name: &str, params: &SearchParams, sett
 
     tracing::info!("Successfully saved payload with ID: {}", doc_id);
     Ok(doc_id)
+}
+
+// Saves (updates/creates) user settings document
+pub async fn save_user_settings(user_id: &str, user_settings: &UserSettings, settings: &Settings) -> Result<()> {
+    let client = get_authenticated_client().await?;
+    let project_id = settings.firebase_project_id.as_deref()
+        .ok_or_else(|| anyhow!("Firebase project ID not configured"))?;
+
+    // URL for patching the user document
+    let url = format!(
+        "https://firestore.googleapis.com/v1/projects/{}/databases/(default)/documents/users/{}",
+        project_id, user_id
+    );
+
+    // Construct the Firestore document body for patching
+    let firestore_doc_body = user_settings_to_firestore_fields(user_settings);
+
+    // Specify which fields to update using updateMask
+    let mut update_mask_params = Vec::new();
+    if user_settings.search_tokens.is_some() {
+        update_mask_params.push("updateMask.fieldPaths=searchTokens");
+    }
+    if user_settings.can_use_ai.is_some() {
+        update_mask_params.push("updateMask.fieldPaths=canUseAi");
+    }
+    let query_params = update_mask_params.join("&");
+    let patch_url = format!("{}?{}", url, query_params);
+
+
+    tracing::debug!("Patching user settings at URL: {}", patch_url);
+    tracing::debug!("Patch body: {}", serde_json::to_string(&firestore_doc_body)?);
+
+
+    let response = client.patch(&patch_url)
+        .json(&firestore_doc_body)
+        .send()
+        .await?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+        tracing::error!("Firestore PATCH failed with status {}: {}", status, error_text);
+        return Err(anyhow!("Failed to save user settings. Status: {}, Error: {}", status, error_text));
+    }
+
+    tracing::info!("Successfully saved/updated settings for user: {}", user_id);
+    Ok(())
 }
 
 

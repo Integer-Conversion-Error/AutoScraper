@@ -2,23 +2,27 @@ use axum::{
     extract::Form,
     response::{IntoResponse, Redirect},
     http::StatusCode,
-    extract::State, // Add State extractor
+    extract::State,
 };
-use crate::{models::LoginForm, error::AppError, auth, config::Settings}; // Import Settings
-use std::sync::Arc; // Import Arc
+use crate::{models::LoginForm, error::AppError, auth_middleware, config::Settings}; // Use auth_middleware
+use reqwest::Client;
+use std::sync::Arc;
+
+// Import AppState struct
+use crate::AppState;
 
 // Handler for POST /login
 // Accepts the form data and the shared application state
 pub async fn handle_login(
-    State(settings): State<Arc<Settings>>, // Extract shared settings from state
+    State(app_state): State<AppState>, // Use AppState struct
     Form(form): Form<LoginForm>,
 ) -> Result<impl IntoResponse, AppError> {
     tracing::info!("Received login token (first few chars): {}", &form.id_token[..std::cmp::min(form.id_token.len(), 10)]);
 
-    // 1. Call verify_token, passing the settings
-    match auth::verify_token(&form.id_token, &settings).await {
-        Ok(user_id) => {
-            tracing::info!("Token verified successfully for user_id: {}", user_id);
+    // 1. Call verify_token from auth_middleware, passing the settings and http_client from app_state
+    match auth_middleware::verify_token(&form.id_token, &app_state.settings, &app_state.http_client).await {
+        Ok(claims) => { // verify_token now returns Claims struct
+            tracing::info!("Token verified successfully for user_id: {}", claims.sub);
 
             // TODO:
             // 2. Create a session (e.g., set a signed cookie)
@@ -27,10 +31,10 @@ pub async fn handle_login(
             Ok(Redirect::to("/app")) // Redirect on success
         }
         Err(e) => {
-            tracing::error!("Token verification failed: {}", e);
-            // Return an error response (e.g., Unauthorized or Internal Server Error)
-            // For now, just return InternalServerError, can refine later
-            Err(AppError::InternalServerError(e.context("Token verification failed")))
+            // Use Debug formatting for AppError in tracing
+            tracing::error!("Token verification failed: {:?}", e);
+            // Return the AppError directly as verify_token already returns a suitable error
+            Err(e)
         }
     }
 }

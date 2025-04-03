@@ -1,4 +1,5 @@
 import { showLoading, hideLoading, showNotification } from './ui.js';
+import { firebaseUser, authStatePromise } from './auth.js'; // Import auth state
 // Import other necessary functions or state variables if needed later
 
 // --- API Call Functions ---
@@ -14,14 +15,13 @@ async function fetchApi(url, options = {}) {
     };
 
     // Wait for auth state to be ready before proceeding
-    // Assuming authStatePromise is globally available or managed elsewhere
-    await window.authStatePromise; // Use window scope temporarily
-    console.log(`[fetchApi] Auth state ready. User: ${window.firebaseUser ? window.firebaseUser.uid : 'null'}`);
+    await authStatePromise; // Use imported promise
+    console.log(`[fetchApi] Auth state ready. User: ${firebaseUser ? firebaseUser.uid : 'null'}`); // Use imported user
 
     // Add Authorization header if user is logged in
-    if (window.firebaseUser) {
+    if (firebaseUser) { // Use imported user
         try {
-            const token = await window.firebaseUser.getIdToken(true); // Force refresh token if needed
+            const token = await firebaseUser.getIdToken(true); // Use imported user, force refresh token if needed
             defaultHeaders['Authorization'] = `Bearer ${token}`;
             console.log("[fetchApi] Added Auth token.");
         } catch (error) {
@@ -82,11 +82,11 @@ async function fetchApi(url, options = {}) {
      } catch (error) {
          console.error(`[fetchApi] CATCH block error for ${url}:`, error);
         if (!error.message.includes("Authentication")) { showNotification(`API request failed: ${error.message}`, 'danger'); }
-        throw error;
+         throw error;
     }
 }
-// Export fetchApi if it needs to be used directly by other modules (e.g., testing)
-// export { fetchApi }; // Or keep it internal to this module if only used by functions below
+// Export fetchApi as it's needed by main.js
+export { fetchApi };
 
 export function loadMakes() {
     showLoading('Loading makes...');
@@ -202,7 +202,7 @@ export function loadColors(make, model, trim = null, selectedColor = null) {
 // Assume firebaseUser is global for now.
 export function loadSavedPayloads() {
     console.log("loadSavedPayloads called (triggered by auth state)");
-    if (!window.firebaseUser) { const ps = document.getElementById('payloadSelect'); if (ps) ps.innerHTML = '<option value="">Login to load payloads</option>'; return; }
+    if (!firebaseUser) { const ps = document.getElementById('payloadSelect'); if (ps) ps.innerHTML = '<option value="">Login to load payloads</option>'; return; } // Use imported user
     showLoading('Loading saved payloads...');
     fetchApi('/api/payloads')
         .then(payloads => {
@@ -218,7 +218,7 @@ export function loadSavedPayloads() {
 
 export function fetchUserSettings(updateDisplay = false) {
     console.log("fetchUserSettings called (triggered by auth state)");
-    if (!window.firebaseUser) { if (updateDisplay) window.updateTokenDisplay?.(0); return; } // Use window scope for updateTokenDisplay if it becomes global
+    if (!firebaseUser) { if (updateDisplay) window.updateTokenDisplay?.(0); return; } // Use imported user, keep window scope for updateTokenDisplay for now
     if (updateDisplay) { const tv = document.getElementById('tokenValue'); if (tv) tv.textContent = '...'; }
     fetchApi('/api/settings')
         .then(data => {
@@ -238,10 +238,10 @@ export function fetchUserSettings(updateDisplay = false) {
 // --- Other API-related handlers ---
 
 // Needs access to getCurrentFormParams, showLoading, fetchApi, showNotification, displayResults, hideLoading
-// Assume these are imported or global
+// Assume these are imported or global (getCurrentFormParams, displayResults, currentSearchResults)
 export function handleFetchData() {
     console.log("Fetch data button clicked");
-    const params = window.getCurrentFormParams?.(); // Use window scope temporarily
+    const params = window.getCurrentFormParams?.(); // Keep window scope for now, might need refactoring later
     if (!params) return;
     showLoading('Fetching data from AutoTrader...');
     fetchApi('/api/search', { method: 'POST', body: JSON.stringify(params) })
@@ -252,8 +252,8 @@ export function handleFetchData() {
         document.getElementById('openLinksBtn').disabled = resultCount === 0;
         document.getElementById('downloadCsvBtn').disabled = resultCount === 0;
         showNotification(`Found ${resultCount} listings.`, 'success');
-        window.currentSearchResults = resultsData || []; // Assuming global state
-        window.displayResults?.({ results: window.currentSearchResults, metadata: params }); // Assuming global
+        window.currentSearchResults = resultsData || []; // Keep window scope for now
+        window.displayResults?.({ results: window.currentSearchResults, metadata: params }); // Keep window scope for now
         hideLoading();
     })
     .catch(error => { document.getElementById('resultsInfo').innerHTML = `<div class="alert alert-danger"><p><i class="bi bi-exclamation-triangle"></i> Error fetching data: ${error.message}</p></div>`; hideLoading(); });
@@ -262,7 +262,7 @@ export function handleFetchData() {
 // Needs access to getCurrentFormParams, showNotification, showLoading, fetchApi, hideLoading, loadSavedPayloads
 export function handleSaveNamedPayload() {
     const payloadName = document.getElementById('payloadName').value.trim();
-    const params = window.getCurrentFormParams?.(); // Assuming global
+    const params = window.getCurrentFormParams?.(); // Keep window scope for now
     if (!payloadName) { showNotification('Please enter a name', 'warning'); return; }
     if (!params) return;
     const namePayloadModal = bootstrap.Modal.getInstance(document.getElementById('namePayloadModal'));

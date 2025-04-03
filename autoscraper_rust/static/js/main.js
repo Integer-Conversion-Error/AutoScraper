@@ -1,6 +1,6 @@
 import { firebaseUser, authStatePromise } from './auth.js'; // Import auth state
 import { showNotification, showLoading, hideLoading, updateExclusionsList } from './ui.js';
-import { loadMakes, loadModels, loadTrims, loadColors, loadSavedPayloads, fetchUserSettings, handleFetchData, handleSaveNamedPayload } from './api.js';
+import { fetchApi, loadMakes, loadModels, loadTrims, loadColors, loadSavedPayloads, fetchUserSettings, handleFetchData, handleSaveNamedPayload } from './api.js'; // Added fetchApi
 // Import other necessary functions from api.js or ui.js as needed
 
 // --- Global State (Consider a dedicated state module later) ---
@@ -168,12 +168,36 @@ function saveUserSettings() {
     const errorDiv = document.getElementById('userSettingsError');
     errorDiv.style.display = 'none';
     if (isNaN(tokens) || tokens < 0) { errorDiv.textContent = "Invalid token value."; errorDiv.style.display = 'block'; return; }
+
     showLoading("Saving settings...");
-    showNotification("Saving settings... (Not implemented yet)", "info"); // Still needs backend implementation
-    const modal = bootstrap.Modal.getInstance(document.getElementById('userSettingsModal'));
-    modal.hide();
-    hideLoading();
-    // fetchApi('/api/settings', { method: 'POST', body: JSON.stringify({ searchTokens: tokens, canUseAi: canUseAi }) }) ...
+    const modalInstance = bootstrap.Modal.getInstance(document.getElementById('userSettingsModal'));
+
+    fetchApi('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({ searchTokens: tokens, canUseAi: canUseAi })
+    })
+    .then(data => {
+        hideLoading();
+        if (data && data.success) {
+            showNotification("Settings saved successfully!", "success");
+            // Update local state and display immediately
+            currentUserSettings = { searchTokens: tokens, canUseAi: canUseAi };
+            window.updateTokenDisplay(tokens); // Update the token display in the UI
+            if (modalInstance) modalInstance.hide();
+        } else {
+            showNotification(`Failed to save settings: ${data?.error || 'Unknown error'}`, "danger");
+            // Optionally show error in modal instead of hiding it
+            // errorDiv.textContent = `Failed to save settings: ${data?.error || 'Unknown error'}`;
+            // errorDiv.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showNotification(`Error saving settings: ${error.message}`, "danger");
+        // Optionally show error in modal
+        // errorDiv.textContent = `Error saving settings: ${error.message}`;
+        // errorDiv.style.display = 'block';
+    });
 }
 
 // --- Placeholder/Stubbed Functions ---
