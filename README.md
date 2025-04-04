@@ -4,6 +4,29 @@
 
 AutoScraper is a web application designed to streamline the process of searching for vehicles on AutoTrader.ca. It allows users to define detailed search criteria (payloads), execute searches concurrently, filter results based on inclusion/exclusion keywords, save search parameters and results, and leverage AI for in-depth analysis of specific listings.
 
+## Rust Rewrite (Work In Progress)
+
+A rewrite of this application in Rust is currently underway, located in the `autoscraper_rust/` directory.
+
+**Motivation:**
+*   Explore the performance benefits and type safety offered by Rust.
+*   Leverage modern asynchronous programming with Tokio and Actix-web.
+*   Build a more robust and potentially scalable backend.
+
+**Technology Stack (Rust Version):**
+*   **Backend Framework:** Actix-web
+*   **Asynchronous Runtime:** Tokio
+*   **HTTP Client:** Reqwest
+*   **Serialization/Deserialization:** Serde
+*   **Database/Auth:** Firebase (via REST API or potential Rust SDKs) - *Integration details in `firestore.rs` and `auth.rs`*
+*   **Templating:** Askama (inferred from common Rust web practices)
+*   **Frontend:** Similar HTML, CSS, JavaScript structure as the Python version, served by Actix-web.
+
+**Status:**
+*   Work In Progress (WIP). Core features like authentication, static page serving, and basic API interactions are being developed.
+
+*(Setup and usage instructions for the Rust version will be added to this README or within the `autoscraper_rust/` directory as development progresses.)*
+
 ## Problem Solved
 
 Finding specific vehicles, especially niche models or configurations, on large platforms like AutoTrader can be time-consuming. Users often need to manually sift through numerous listings, apply filters repeatedly, and cross-reference information externally (e.g., reliability data, market pricing). AutoScraper aims to solve this by:
