@@ -1,0 +1,34 @@
+**AutoScraper - Terms and Conditions for Subscriptions and Token Purchases**
+
+**Last Updated:** March 28, 2025
+
+**IMPORTANT: PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE PURCHASING SUBSCRIPTIONS OR TOKENS.**
+
+By purchasing or using AutoScraper subscriptions ("Subscription(s)") or search tokens ("Tokens"), you ("User" or "You") agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, do not purchase or use Subscriptions or Tokens.
+
+**1. Service Description:**
+AutoScraper provides a service that scrapes publicly available data from third-party websites (such as AutoTrader.ca) based on user-defined criteria. Subscriptions may grant access to additional features like AI analysis and include a monthly allowance of Tokens. Tokens can also be purchased separately and are used to perform searches, with a cost calculated based on the estimated number of listings scanned.
+
+**2. Acknowledgment of Risk and Service Availability:**
+   a. **Reliance on Third Parties:** User acknowledges that the core functionality of AutoScraper relies on accessing and processing data from third-party websites (e.g., AutoTrader.ca). These third-party websites may change their structure, implement technical measures (such as rate limiting or blocking), or modify their own terms of service at any time without notice.
+   b. **Potential Service Disruption:** User understands and agrees that such changes by third parties, or other unforeseen technical issues, may partially or completely disrupt, degrade, or render unusable the services provided by AutoScraper, including but not limited to the ability to perform searches using Tokens or access features granted by Subscriptions (like AI analysis).
+   c. **No Guarantee of Service:** AutoScraper does not guarantee uninterrupted, timely, or error-free access to its services or the underlying data from third-party websites. The service is provided on an "AS IS" and "AS AVAILABLE" basis.
+
+**3. Limitation of Liability and Disclaimer of Warranties:**
+   a. **Assumption of Risk:** USER EXPRESSLY AGREES THAT THE USE OF AUTOSCRAPER SUBSCRIPTIONS AND TOKENS IS AT THE USER'S SOLE RISK.
+   b. **No Liability for Service Unavailability:** TO THE FULLEST EXTENT PERMITTED BY LAW, AUTOSCRAPER, ITS OWNERS, AND OPERATORS SHALL NOT BE LIABLE FOR ANY DAMAGES, LOSSES, OR REFUNDS WHATSOEVER (INCLUDING, BUT NOT LIMITED TO, THE VALUE OF UNUSED TOKENS OR SUBSCRIPTION FEES) ARISING OUT OF OR IN CONNECTION WITH THE UNAVAILABILITY, INTERRUPTION, SUSPENSION, OR TERMINATION OF AUTOSCRAPER SERVICES, WHETHER SUCH UNAVAILABILITY IS CAUSED BY CHANGES MADE BY THIRD-PARTY WEBSITES, TECHNICAL FAILURES, LEGAL REQUIREMENTS, OR ANY OTHER REASON.
+   c. **No Warranties:** AUTOSCRAPER DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. AUTOSCRAPER DOES NOT WARRANT THAT THE SERVICE WILL MEET USER'S REQUIREMENTS OR THAT THE OPERATION OF THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE.
+
+**4. Token and Subscription Usage:**
+   a. **Token Cost:** The cost in Tokens for performing a search is based on the estimated number of listings to be scanned during the initial phase of the search process. This cost is deducted upon successful initiation of the full search, regardless of the final number of relevant results returned after filtering.
+   b. **Subscription Tokens:** Tokens included with Subscriptions are typically granted monthly and may expire at the end of each billing cycle, as specified in the plan details.
+   c. **Purchased Tokens:** Tokens purchased separately ("Token Credits") do not expire but are subject to the service availability limitations described herein.
+   d. **No Refunds:** All purchases of Subscriptions and Tokens are final and non-refundable, except as required by applicable law. User acknowledges the risks outlined in Section 2 and Section 3 and agrees that potential service unavailability does not warrant a refund.
+
+**5. Modifications to Terms:**
+AutoScraper reserves the right to modify these Terms at any time. Continued use of Subscriptions or Tokens after such modifications constitutes acceptance of the revised Terms.
+
+**6. Governing Law:**
+These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction - e.g., Province of Ontario, Canada], without regard to its conflict of law principles.
+
+**By completing a purchase, you affirm that you have read, understood, and agree to these Terms and Conditions.**

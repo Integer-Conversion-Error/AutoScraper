@@ -357,19 +357,26 @@ def get_models_for_make(make):
         print(f"Failed to parse JSON response: {e}")
         return {}
 
-#USED    
-def get_trims_for_model(make,model):
+#USED
+def get_colors(make, model, trim=None):
     """
-    Fetches all models for a given car make by sending a POST request to the AutoTrader API.
+    Fetches available exterior colors for a given car make, model, and optional trim
+    by sending a POST request to the AutoTrader API.
 
     Args:
-        make (str): The car make for which models are to be fetched.
+        make (str): The car make.
+        model (str): The car model.
+        trim (str, optional): The car trim. Defaults to None.
 
     Returns:
-        dict: A dictionary of models and their respective counts, or an empty dictionary if none found.
+        dict: A dictionary of colors and their respective counts, or an empty dictionary if none found.
     """
+    if not make or not model:
+        print("Make and Model are required to fetch colors.")
+        return {}
+
     try:
-        url = "https://www.autotrader.ca/Refinement/Refine"
+        url = "https://www.autotrader.ca/Refinement/Refine" # Using the Refinement endpoint
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
             'Content-Type': 'application/json',
@@ -378,13 +385,78 @@ def get_trims_for_model(make,model):
             'Accept-Language': 'en-US,en;q=0.9',
             'AllowMvt': 'true'
         }
-        # Using cookies from the response
-        # cookies = {
-        #     'atOptUser': 'db0860a4-b562-4270-9ed0-b2d2875c873c',
-        #     'nlbi_820541_1646237': 'Z30UdORIkUeQlTEnZpjQsQAAAACqH714EnL/JlzmRPTWgXMX'
-        # }
         payload = {
             "IsDealer": True,
+            "IsPrivate": True,
+            "InMarketType": "basicSearch",
+            "Address": "Rockland", # Default location, might not affect color results
+            "Proximity": -1,
+            "Make": make,
+            "Model": model,
+            "Trim": trim if trim else None, # Include trim if provided
+            "IsNew": True,
+            "IsUsed": True,
+            "IsCpo": True,
+            "IsDamaged": False,
+            "WithPhotos": True,
+            "WithPrice": True,
+            "HasDigitalRetail": False
+        }
+
+        # Sending POST request
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+
+        data = response.json()
+        #print(json.dumps(data,indent=2))
+        # Extract colors from the response (assuming the key is 'ExteriorColours')
+        # Adjust the key if inspection reveals a different name (e.g., 'Colors', 'ExteriorColor')
+        colors_data = data.get("ExteriorColour", {})
+
+        # Filter out potential non-color entries like 'Status' if necessary
+        filtered_colors = {k: v for k, v in colors_data.items() if k.lower() != 'status'}
+
+        print(f"Color Response for {make} {model} {trim or ''} (after filtering): {filtered_colors}") # Debugging line
+        return filtered_colors
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while making the color request for {make} {model} {trim or ''}: {e}")
+        return {}
+    except ValueError as e: # Catches JSONDecodeError
+        print(f"Failed to parse JSON response for colors: {e}")
+        return {}
+    except Exception as e:
+        print(f"An unexpected error occurred fetching colors: {e}")
+        return {}
+
+#USED
+def get_trims_for_model(make, model):
+    """
+    Fetches all trims for a given car make and model by sending a POST request to the AutoTrader API.
+
+    Args:
+        make (str): The car make.
+        model (str): The car model.
+
+    Returns:
+        dict: A dictionary of trims and their respective counts, or an empty dictionary if none found.
+    """
+    if not make or not model:
+        print("Make and Model are required to fetch trims.")
+        return {}
+
+    try:
+        url = "https://www.autotrader.ca/Refinement/Refine" # Using the Refinement endpoint
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'AllowMvt': 'true'
+        }
+        # cookies can often be omitted for refinement calls if session isn't strictly needed
+        payload = {
+            "IsDealer": True, # Keep broad defaults
             "IsPrivate": True,
             "InMarketType": "basicSearch",
             "Address": "Rockland",
@@ -395,22 +467,28 @@ def get_trims_for_model(make,model):
             "IsUsed": True,
             "IsCpo": True,
             "IsDamaged": False,
-            "WithPhotos": True,
+            "WithPhotos": True, # Keep broad defaults
             "WithPrice": True,
             "HasDigitalRetail": False
+            # Other defaults like Year, Price, Odometer are likely not needed for trim refinement
         }
 
-        # Sending POST request with headers and cookies
+        # Sending POST request with headers
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()  # Raise HTTPError for bad responses
 
         data = response.json()
 
-        # Extract and return models from the response
-        #print(data)
-        return data.get("Trims", {})
+        # Extract trims from the response
+        trims_data = data.get("Trims", {})
+
+        # Explicitly create a new dictionary excluding 'Status' (case-insensitive)
+        filtered_trims = {k: v for k, v in trims_data.items() if k.lower() != 'status'}
+
+        # print(f"Trim Response for {make} {model} (after filtering): {filtered_trims}") # Debugging line
+        return filtered_trims
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred while making the request: {e}")
+        print(f"An error occurred while making the trim request for {make} {model}: {e}")
         return {}
     except ValueError as e:
         print(f"Failed to parse JSON response: {e}")
