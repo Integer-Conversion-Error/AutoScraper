@@ -4,9 +4,10 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use crate::config::Settings;
-use reqwest::Client; // Import reqwest Client
-use std::sync::Arc;
+// Removed unused imports:
+// use crate::config::Settings;
+// use reqwest::Client;
+// use std::sync::Arc;
 
 // Import the AppState struct defined in main.rs (or move definition here)
 // Assuming it's accessible via crate root for now

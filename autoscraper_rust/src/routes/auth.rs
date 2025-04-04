@@ -1,12 +1,11 @@
 use axum::{
     extract::Form,
     response::{IntoResponse, Redirect},
-    http::StatusCode,
+    // Removed: http::StatusCode,
     extract::State,
 };
-use crate::{models::LoginForm, error::AppError, auth_middleware, config::Settings}; // Use auth_middleware
-use reqwest::Client;
-use std::sync::Arc;
+// Removed unused imports: config::Settings, reqwest::Client, std::sync::Arc
+use crate::{models::LoginForm, error::AppError, auth_middleware};
 
 // Import AppState struct
 use crate::AppState;

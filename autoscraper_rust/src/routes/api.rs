@@ -2,18 +2,19 @@
 
 use axum::{
     response::{IntoResponse, Json},
-    http::StatusCode,
+    // Removed: http::StatusCode,
     extract::{Query, Path, Json as JsonExtract, State},
 };
-use reqwest::Client; // Import Client
+// Removed: use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use crate::{
     auth_middleware::AuthenticatedUser, // Import the extractor
     error::AppError,
     autotrader_api,
-    models::{SearchParams, UserSettings, SavedPayload},
+    // Removed unused model: SavedPayload
+    // Removed unused config: Settings
+    models::{SearchParams, UserSettings},
     scraper,
-    config::Settings,
     firestore,
 };
 use std::sync::Arc;
@@ -69,14 +70,14 @@ pub struct SavePayloadRequest {
 
 // --- API Handlers ---
 
-pub async fn get_makes() -> Result<impl IntoResponse, AppError> {
-    // ADDED VERY FIRST LOG
-    tracing::info!("***** ENTERING get_makes HANDLER *****");
+pub async fn get_makes(
+    State(app_state): State<AppState>, // Extract AppState
+) -> Result<impl IntoResponse, AppError> {
     tracing::info!("[HANDLER] /api/makes - Request received.");
 
-    // Restore original code:
+    // Pass the shared client from app_state
     tracing::debug!("[HANDLER] /api/makes - Calling autotrader_api::fetch_all_makes(true)...");
-    let makes_result = autotrader_api::fetch_all_makes(true).await;
+    let makes_result = autotrader_api::fetch_all_makes(Arc::clone(&app_state.http_client), true).await;
     match makes_result {
         Ok(makes_value) => {
             // Transform the JSON object into a JSON array of make names (strings)
@@ -103,11 +104,15 @@ pub async fn get_makes() -> Result<impl IntoResponse, AppError> {
 }
 
 // Change to accept make as a path parameter
-pub async fn get_models(Path(make): Path<String>) -> Result<impl IntoResponse, AppError> {
+pub async fn get_models(
+    State(app_state): State<AppState>, // Extract AppState
+    Path(make): Path<String>,
+) -> Result<impl IntoResponse, AppError> {
     tracing::info!("[HANDLER] /api/models/:make - Request received for make: {}", make);
     tracing::debug!("[HANDLER] /api/models/:make - Calling autotrader_api::fetch_models_for_make...");
 
-    let models_result = autotrader_api::fetch_models_for_make(&make).await;
+    // Pass the shared client
+    let models_result = autotrader_api::fetch_models_for_make(Arc::clone(&app_state.http_client), &make).await;
 
     match models_result {
         Ok(models_value) => { // models_value is already filtered by fetch_models_for_make
@@ -123,24 +128,93 @@ pub async fn get_models(Path(make): Path<String>) -> Result<impl IntoResponse, A
     }
 }
 
-pub async fn get_trims(Query(query): Query<TrimsQuery>) -> Result<impl IntoResponse, AppError> {
+pub async fn get_trims(
+    State(app_state): State<AppState>, // Extract AppState
+    Query(query): Query<TrimsQuery>,
+) -> Result<impl IntoResponse, AppError> {
     tracing::info!("API call: get_trims for make: {}, model: {}", query.make, query.model);
-    let trims = autotrader_api::fetch_trims_for_model(&query.make, &query.model).await?;
+    // Pass the shared client
+    let trims = autotrader_api::fetch_trims_for_model(Arc::clone(&app_state.http_client), &query.make, &query.model).await?;
     Ok(Json(trims))
 }
 
-pub async fn get_colors(Query(query): Query<ColorsQuery>) -> Result<impl IntoResponse, AppError> {
+pub async fn get_colors(
+    State(app_state): State<AppState>, // Extract AppState
+    Query(query): Query<ColorsQuery>,
+) -> Result<impl IntoResponse, AppError> {
     tracing::info!("API call: get_colors for make: {}, model: {}, trim: {:?}", query.make, query.model, query.trim);
-    let colors = autotrader_api::fetch_colors(&query.make, &query.model, query.trim.as_deref()).await?;
+    // Pass the shared client
+    let colors = autotrader_api::fetch_colors(Arc::clone(&app_state.http_client), &query.make, &query.model, query.trim.as_deref()).await?;
     Ok(Json(colors))
 }
 
 pub async fn search_listings(
-    JsonExtract(params): JsonExtract<SearchParams>
+    State(app_state): State<AppState>, // Extract AppState
+    JsonExtract(params): JsonExtract<SearchParams>,
 ) -> Result<impl IntoResponse, AppError> {
-    tracing::info!("API call: search_listings");
-    let results = scraper::fetch_listings(&params).await?;
-    Ok(Json(results))
+    tracing::info!("API call: search_listings with params: {:?}", params);
+
+    // --- Step 1: Fetch initial listing summaries ---
+    let client_clone = Arc::clone(&app_state.http_client); // Clone Arc for fetch_listings
+    let listings = match scraper::fetch_listings(client_clone, &params).await {
+        Ok(l) => l,
+        Err(e) => {
+            tracing::error!("Failed during initial listing fetch: {}", e);
+            // Convert anyhow::Error back to AppError for response
+            return Err(AppError::InternalServerError(e.context("Failed to fetch listing summaries")));
+        }
+    };
+
+    if listings.is_empty() {
+        tracing::info!("No listings found matching criteria.");
+        // Return a success response but indicate no results found
+        return Ok(Json(GenericResponse {
+            success: true,
+            message: Some("Search complete. No listings found matching your criteria.".to_string()),
+            id: None,
+            error: None,
+        }));
+    }
+
+    tracing::info!("Found {} initial listings. Proceeding to fetch details and save CSV.", listings.len());
+
+    // --- Step 2: Construct output path ---
+    let make_str = params.make.as_deref().unwrap_or("UnknownMake");
+    let model_str = params.model.as_deref().unwrap_or("UnknownModel");
+    let year_min_str = params.year_min.map_or("Any".to_string(), |y| y.to_string());
+    let year_max_str = params.year_max.map_or("Any".to_string(), |y| y.to_string());
+    let price_min_str = params.price_min.map_or("Any".to_string(), |p| p.to_string());
+    let price_max_str = params.price_max.map_or("Any".to_string(), |p| p.to_string());
+    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
+
+    let folder_name = format!("Results/{}_{}", make_str, model_str);
+    // Ensure filename is valid (replace invalid chars if necessary, though Rust handles paths well)
+    let file_name = format!(
+        "{}-{}_{}-{}_{}.csv",
+        year_min_str, year_max_str, price_min_str, price_max_str, timestamp
+    );
+    let output_dir = std::path::PathBuf::from(folder_name);
+    let output_file_path = output_dir.join(file_name);
+
+
+    // --- Step 3: Fetch details and save CSV ---
+    let client_clone_2 = Arc::clone(&app_state.http_client); // Clone Arc for fetch_details_and_save_csv
+    match scraper::fetch_details_and_save_csv(client_clone_2, listings, output_file_path.clone()).await {
+        Ok(_) => {
+            tracing::info!("Successfully fetched details and saved CSV to: {:?}", output_file_path);
+            Ok(Json(GenericResponse {
+                success: true,
+                message: Some(format!("Search complete. Results saved to: {}", output_file_path.display())),
+                id: None, // Or maybe return the filename/path as ID?
+                error: None,
+            }))
+        }
+        Err(e) => {
+             tracing::error!("Failed during VDP fetch or CSV saving: {}", e);
+             // Convert anyhow::Error back to AppError for response
+             Err(AppError::InternalServerError(e.context("Failed to fetch vehicle details or save results")))
+        }
+    }
 }
 
 pub async fn get_saved_payloads(

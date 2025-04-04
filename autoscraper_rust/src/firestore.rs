@@ -3,8 +3,8 @@
 use anyhow::{anyhow, Context, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Client;
-use serde::{Deserialize, Serialize}; // Added Serialize
-use serde_json::{json, Value}; // Added json macro and Value
+use serde::Deserialize; // Removed Serialize (not used here)
+use serde_json::{json, Value};
 use yup_oauth2::{ServiceAccountAuthenticator, ServiceAccountKey};
 use std::{collections::HashMap, env};
 use crate::models::{SavedPayload, SearchParams, UserSettings}; // Import UserSettings
@@ -227,7 +227,8 @@ pub async fn get_payloads(user_id: &str, settings: &Settings) -> Result<Vec<Save
                         odometer_max: None, address: None, proximity: None, is_new: None,
                         is_used: None, is_damaged: None, with_photos: None, drivetrain: None,
                         transmission: None, body_type: None, num_doors: None, seating_capacity: None,
-                        exclusions: None, inclusion: None
+                        exclusions: None, inclusion: None,
+                        results_per_page: None // Added missing field
                     };
                     payloads.push(SavedPayload {
                         id: doc_id,

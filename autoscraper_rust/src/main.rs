@@ -104,8 +104,16 @@ async fn main() -> Result<()> {
     };
     // Wrap settings in Arc for shared ownership
     let shared_settings = Arc::new(settings);
-    // Create a shared reqwest client
-    let http_client = Arc::new(Client::new());
+
+    // Create the shared reqwest client *after* env vars are set
+    // It will automatically pick up HTTP_PROXY/HTTPS_PROXY
+    let http_client = Arc::new(
+        Client::builder()
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36") // Consistent user agent
+            .build()
+            .context("Failed to build shared reqwest client")?
+    );
+    tracing::info!("Shared HTTP client created.");
 
     // Create the application state instance
     let app_state = AppState {

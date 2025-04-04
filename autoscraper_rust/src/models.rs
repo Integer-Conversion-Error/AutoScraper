@@ -44,6 +44,7 @@ pub struct SearchParams {
     pub inclusion: Option<String>,
 
     // --- Fields from Python defaults/payload not explicitly on form yet ---
+    pub results_per_page: Option<u32>, // Added to match Python 'Top' param usage
     // pub is_cpo: Option<bool>,
     // pub is_dealer: Option<bool>,
     // pub is_private: Option<bool>,
@@ -67,6 +68,39 @@ pub struct ListingResult {
     // pub drivetrain: Option<String>,
     // ... etc
 }
+
+
+// Represents detailed vehicle information extracted from a VDP
+#[derive(Debug, Serialize, Deserialize, Clone, Default)] // Added Default
+#[serde(rename_all = "camelCase")]
+pub struct VehicleDetails {
+    // Fields corresponding to Python's extract_vehicle_info_from_json
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub year: Option<String>, // Keep as String for now, parsing can be added if needed
+    pub trim: Option<String>,
+    pub price: Option<String>, // Keep as String
+    pub drivetrain: Option<String>,
+    pub kilometres: Option<String>, // Keep as String, parsing done in Python helper
+    pub status: Option<String>,
+    #[serde(rename = "bodyType")] // Match JSON key
+    pub body_type: Option<String>,
+    pub engine: Option<String>,
+    pub cylinder: Option<String>, // Keep as String
+    pub transmission: Option<String>,
+    #[serde(rename = "exteriorColour")] // Match JSON key
+    pub exterior_colour: Option<String>,
+    pub doors: Option<String>, // Keep as String
+    #[serde(rename = "fuelType")] // Match JSON key
+    pub fuel_type: Option<String>,
+    #[serde(rename = "cityFuelEconomy")] // Match JSON key
+    pub city_fuel_economy: Option<String>, // Keep as String
+    #[serde(rename = "hwyFuelEconomy")] // Match JSON key
+    pub hwy_fuel_economy: Option<String>, // Keep as String
+    // Add link for reference?
+    pub link: Option<String>,
+}
+
 
 // Struct to capture the ID token submitted from the login form
 #[derive(Debug, Deserialize)]

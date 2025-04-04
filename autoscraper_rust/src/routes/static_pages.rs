@@ -1,8 +1,6 @@
 use askama::Template;
-use axum::{
-    response::{Html, IntoResponse},
-    http::StatusCode,
-};
+use axum::response::{Html, IntoResponse};
+// Removed: use axum::http::StatusCode;
 use crate::error::AppError; // Use our custom error type
 
 // Define the template struct pointing to our landing page file

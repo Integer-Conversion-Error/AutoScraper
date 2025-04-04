@@ -1,27 +1,22 @@
 // Functions to interact with AutoTrader.ca (fetching makes, models, etc.)
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Context, Result}; // Keep only one import
+// Removed duplicate: use anyhow::{anyhow, Context, Result};
 use reqwest::Client;
 use scraper::{Html, Selector};
-use serde_json::{json, Value}; // Import json macro
+use serde_json::{json, Value};
+use std::sync::Arc; // Add Arc
 
-// Reusable HTTP client (made public)
-pub async fn get_client() -> Result<Client> {
-    tracing::debug!("[AUTOTRADER_API] Creating reqwest client...");
-    reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
-        .build()
-        .context("Failed to build reqwest client")
-}
+// Removed get_client function, client will be passed in
 
 // Fetches makes from AutoTrader homepage HTML, returning a JSON object { "MakeName": null, ... }
-pub async fn fetch_all_makes(popular_only: bool) -> Result<Value> { // Changed return type
+pub async fn fetch_all_makes(client: Arc<Client>, popular_only: bool) -> Result<Value> {
     tracing::info!("[AUTOTRADER_API] fetch_all_makes called (popular_only: {})", popular_only);
-    let client = get_client().await.context("Failed to get client in fetch_all_makes")?;
+    // Use the passed-in client
     let url = "https://www.autotrader.ca/";
     tracing::debug!("[AUTOTRADER_API] Fetching URL: {}", url);
 
-    let response_text = match client.get(url).send().await {
+    let response_text = match client.get(url).send().await { // Use client directly
         Ok(resp) => {
             tracing::debug!("[AUTOTRADER_API] Received response status: {}", resp.status());
             match resp.error_for_status() {
@@ -79,9 +74,9 @@ pub async fn fetch_all_makes(popular_only: bool) -> Result<Value> { // Changed r
 }
 
 // Fetches models for a given make, returning the JSON object { "ModelName": count, ... }
-pub async fn fetch_models_for_make(make: &str) -> Result<Value> { // Changed return type
+pub async fn fetch_models_for_make(client: Arc<Client>, make: &str) -> Result<Value> {
     tracing::info!("[AUTOTRADER_API] fetch_models_for_make called (make: {})", make);
-    let client = get_client().await.context("Failed to get client in fetch_models_for_make")?;
+    // Use the passed-in client
     let url = "https://www.autotrader.ca/Home/Refine"; // This URL might be incorrect for fetching models via POST
     tracing::info!("[AUTOTRADER_API] Attempting to fetch models from URL: {}", url);
 
@@ -129,9 +124,9 @@ pub async fn fetch_models_for_make(make: &str) -> Result<Value> { // Changed ret
 }
 
 // Fetches trims for a given make and model
-pub async fn fetch_trims_for_model(make: &str, model: &str) -> Result<Vec<String>> {
+pub async fn fetch_trims_for_model(client: Arc<Client>, make: &str, model: &str) -> Result<Vec<String>> {
     tracing::info!("[AUTOTRADER_API] fetch_trims_for_model called (make: {}, model: {})", make, model);
-    let client = get_client().await.context("Failed to get client in fetch_trims_for_model")?;
+    // Use the passed-in client
     let url = "https://www.autotrader.ca/Refinement/Refine";
     tracing::debug!("[AUTOTRADER_API] Fetching trims URL: {}", url);
 
@@ -167,9 +162,9 @@ pub async fn fetch_trims_for_model(make: &str, model: &str) -> Result<Vec<String
 }
 
 // Fetches colors for a given make, model, and optional trim
-pub async fn fetch_colors(make: &str, model: &str, trim: Option<&str>) -> Result<Vec<String>> {
+pub async fn fetch_colors(client: Arc<Client>, make: &str, model: &str, trim: Option<&str>) -> Result<Vec<String>> {
     tracing::info!("[AUTOTRADER_API] fetch_colors called (make: {}, model: {}, trim: {:?})", make, model, trim);
-    let client = get_client().await.context("Failed to get client in fetch_colors")?;
+    // Use the passed-in client
     let url = "https://www.autotrader.ca/Refinement/Refine";
     tracing::debug!("[AUTOTRADER_API] Fetching colors URL: {}", url);
 

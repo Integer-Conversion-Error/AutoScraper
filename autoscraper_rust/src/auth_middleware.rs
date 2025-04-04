@@ -1,11 +1,11 @@
 use axum::{
     async_trait,
-    extract::{FromRequestParts, State, FromRef}, // Add FromRef here
-    http::{request::Parts, StatusCode},
-    response::{IntoResponse, Response},
+    extract::{FromRequestParts, FromRef}, // Removed unused State
+    http::request::Parts,
+    // Removed: http::StatusCode, response::IntoResponse, response::Response
     RequestPartsExt,
 };
-use axum_extra::TypedHeader; // Import from axum-extra
+use axum_extra::TypedHeader;
 use headers::{authorization::Bearer, Authorization};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use once_cell::sync::Lazy;
