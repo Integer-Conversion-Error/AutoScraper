@@ -19,7 +19,7 @@ A rewrite of this application in Rust is currently underway, located in the `aut
 *   **HTTP Client:** Reqwest
 *   **Serialization/Deserialization:** Serde
 *   **Database/Auth:** Firebase (via REST API or potential Rust SDKs) - *Integration details in `firestore.rs` and `auth.rs`*
-*   **Templating:** Askama (inferred from common Rust web practices)
+*   **Templating:** Askama 
 *   **Frontend:** Similar HTML, CSS, JavaScript structure as the Python version, served by Actix-web.
 
 **Status:**
