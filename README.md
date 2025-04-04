@@ -4,60 +4,6 @@
 
 AutoScraper is a web application designed to streamline the process of searching for vehicles on AutoTrader.ca. It allows users to define detailed search criteria (payloads), execute searches concurrently, filter results based on inclusion/exclusion keywords, save search parameters and results, and leverage AI for in-depth analysis of specific listings.
 
-## Rust Rewrite (Work In Progress)
-
-A rewrite of this application in Rust is currently underway, located in the `autoscraper_rust/` directory.
-
-**Motivation:**
-*   Explore the performance benefits and type safety offered by Rust.
-*   Leverage modern asynchronous programming with Tokio and Axum.
-*   Build a more robust and potentially scalable backend.
-
-**Technology Stack (Rust Version):**
-*   **Backend Framework:** Axum
-*   **Asynchronous Runtime:** Tokio
-*   **HTTP Client:** Reqwest (for AutoTrader API, VDP scraping, Firebase REST API)
-*   **HTML Parsing:** scraper crate
-*   **Serialization/Deserialization:** Serde (Serde JSON)
-*   **Templating:** Askama
-*   **Authentication:** Firebase ID Token verification (using `jsonwebtoken`, Google public keys via `reqwest`), Axum extractor for route protection.
-*   **Database:** Firebase Firestore (via REST API using `reqwest`).
-*   **Configuration:** config crate, dotenv
-*   **Logging:** tracing
-*   **CSV Handling:** csv crate
-*   **Concurrency:** Tokio tasks, `futures::stream::FuturesUnordered`
-*   **Frontend:** Similar HTML, CSS, JavaScript structure as the Python version, served by Axum with `tower-http`.
-
-**Current Implemented Features:**
-*   **Web Server:** Axum server setup with Tokio runtime.
-*   **Static Files & Pages:** Serving static assets (CSS, JS) and HTML templates (landing, login, main app) using Askama.
-*   **Configuration:** Loading settings from `.env` and `config.toml`.
-*   **Proxy Support:** Reads `proxyconfig.json` and sets `HTTP_PROXY`/`HTTPS_PROXY` environment variables for `reqwest`.
-*   **Logging:** Uses `tracing` for application logs.
-*   **AutoTrader Metadata API:** Endpoints to fetch Makes, Models, Trims, Colors.
-*   **Core Scraping:**
-    *   `/api/search` endpoint initiates a search based on provided parameters.
-    *   Fetches listing summaries from AutoTrader's search endpoint with retries.
-    *   Concurrently fetches detailed Vehicle Detail Pages (VDPs) for each listing using `reqwest` and `FuturesUnordered`.
-    *   Includes robust retry logic and concurrency limits for VDP fetching to handle rate limiting (HTTP 429).
-    *   Parses VDP HTML (specifically embedded JSON data) using the `scraper` crate to extract detailed vehicle information.
-    *   Saves the detailed results to a CSV file in `Results/Make_Model/`.
-*   **Authentication:**
-    *   `/login` endpoint verifies a Firebase ID token sent from the frontend.
-    *   Fetches Google's public keys to validate the token signature and claims (audience, issuer, expiry).
-    *   Provides an `AuthenticatedUser` extractor to protect specific API routes (requires `Authorization: Bearer <token>` header).
-*   **Firestore Integration (REST API):**
-    *   Authenticated endpoints (`/api/payloads`, `/api/settings`) to save and retrieve search payloads and user settings from Firestore.
-
-**Features NOT Yet Implemented (Compared to Python Version):**
-*   **Persistent User Sessions:** While tokens are verified on login/API calls, there's no session cookie mechanism to keep users logged in across browser sessions.
-*   **AI Analysis:** No integration with Google Gemini or Custom Search API.
-*   **Results Management UI:** Saved results are only exported to CSV; no UI for viewing, managing, or analyzing saved results within the app.
-*   **Detailed Keyword Filtering:** Filtering based on VDP details (engine, transmission, etc.) is not implemented (only initial title exclusion/inclusion).
-*   **User Registration Flow:** Only login token verification exists.
-*   **Other Static Pages:** Routes/handlers for About, Pricing, Terms, Logout pages are not yet implemented.
-
-*(Setup and usage instructions for the Rust version will be added to this README or within the `autoscraper_rust/` directory as development progresses.)*
 
 ## Problem Solved
 
@@ -138,6 +84,63 @@ Finding specific vehicles, especially niche models or configurations, on large p
 │   └── register.html       # Registration page template
 └── README.md               # This file
 ```
+
+
+## Rust Rewrite (Work In Progress)
+
+A rewrite of this application in Rust is currently underway, located in the `autoscraper_rust/` directory.
+
+**Motivation:**
+*   Explore the performance benefits and type safety offered by Rust.
+*   Leverage modern asynchronous programming with Tokio and Axum.
+*   Build a more robust and potentially scalable backend.
+
+**Technology Stack (Rust Version):**
+*   **Backend Framework:** Axum
+*   **Asynchronous Runtime:** Tokio
+*   **HTTP Client:** Reqwest (for AutoTrader API, VDP scraping, Firebase REST API)
+*   **HTML Parsing:** scraper crate
+*   **Serialization/Deserialization:** Serde (Serde JSON)
+*   **Templating:** Askama
+*   **Authentication:** Firebase ID Token verification (using `jsonwebtoken`, Google public keys via `reqwest`), Axum extractor for route protection.
+*   **Database:** Firebase Firestore (via REST API using `reqwest`).
+*   **Configuration:** config crate, dotenv
+*   **Logging:** tracing
+*   **CSV Handling:** csv crate
+*   **Concurrency:** Tokio tasks, `futures::stream::FuturesUnordered`
+*   **Frontend:** Similar HTML, CSS, JavaScript structure as the Python version, served by Axum with `tower-http`.
+
+**Current Implemented Features:**
+*   **Web Server:** Axum server setup with Tokio runtime.
+*   **Static Files & Pages:** Serving static assets (CSS, JS) and HTML templates (landing, login, main app) using Askama.
+*   **Configuration:** Loading settings from `.env` and `config.toml`.
+*   **Proxy Support:** Reads `proxyconfig.json` and sets `HTTP_PROXY`/`HTTPS_PROXY` environment variables for `reqwest`.
+*   **Logging:** Uses `tracing` for application logs.
+*   **AutoTrader Metadata API:** Endpoints to fetch Makes, Models, Trims, Colors.
+*   **Core Scraping:**
+    *   `/api/search` endpoint initiates a search based on provided parameters.
+    *   Fetches listing summaries from AutoTrader's search endpoint with retries.
+    *   Concurrently fetches detailed Vehicle Detail Pages (VDPs) for each listing using `reqwest` and `FuturesUnordered`.
+    *   Includes robust retry logic and concurrency limits for VDP fetching to handle rate limiting (HTTP 429).
+    *   Parses VDP HTML (specifically embedded JSON data) using the `scraper` crate to extract detailed vehicle information.
+    *   Saves the detailed results to a CSV file in `Results/Make_Model/`.
+*   **Authentication:**
+    *   `/login` endpoint verifies a Firebase ID token sent from the frontend.
+    *   Fetches Google's public keys to validate the token signature and claims (audience, issuer, expiry).
+    *   Provides an `AuthenticatedUser` extractor to protect specific API routes (requires `Authorization: Bearer <token>` header).
+*   **Firestore Integration (REST API):**
+    *   Authenticated endpoints (`/api/payloads`, `/api/settings`) to save and retrieve search payloads and user settings from Firestore.
+
+**Features NOT Yet Implemented (Compared to Python Version):**
+*   **Persistent User Sessions:** While tokens are verified on login/API calls, there's no session cookie mechanism to keep users logged in across browser sessions.
+*   **AI Analysis:** No integration with Google Gemini or Custom Search API.
+*   **Results Management UI:** Saved results are only exported to CSV; no UI for viewing, managing, or analyzing saved results within the app.
+*   **Detailed Keyword Filtering:** Filtering based on VDP details (engine, transmission, etc.) is not implemented (only initial title exclusion/inclusion).
+*   **User Registration Flow:** Only login token verification exists.
+*   **Other Static Pages:** Routes/handlers for About, Pricing, Terms, Logout pages are not yet implemented.
+
+*(Setup and usage instructions for the Rust version will be added to this README or within the `autoscraper_rust/` directory as development progresses.)*
+
 
 ## Setup and Installation
 
