@@ -418,9 +418,6 @@ document.addEventListener('DOMContentLoaded', function () {
             NumberOfDoors: document.getElementById('numDoorsInput').value ? parseInt(document.getElementById('numDoorsInput').value) : null,
             SeatingCapacity: document.getElementById('seatingCapacityInput').value ? parseInt(document.getElementById('seatingCapacityInput').value) : null,
             IsDamaged: document.getElementById('isDamaged').checked,
-            Skip: 0,
-            Top: 100, // Use 100 to match backend default
-            micrositeType: 1
         };
 
         // Clean up empty strings to null for consistency with backend expectations
@@ -528,9 +525,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 WithPhotos: currentPayload.WithPhotos !== undefined ? currentPayload.WithPhotos : true,
                 Exclusions: Array.isArray(currentPayload.Exclusions) ? currentPayload.Exclusions : [],
                 Inclusion: currentPayload.Inclusion || "",
-                Skip: 0,
-                Top: 15,
-                micrositeType: 1
+                // Add the missing fields from currentPayload
+                Trim: currentPayload.Trim || null, // Ensure Trim is included if present
+                Color: currentPayload.Color || null, // Ensure Color is included if present
+                Drivetrain: currentPayload.Drivetrain || null,
+                Transmission: currentPayload.Transmission || null,
+                BodyType: currentPayload.BodyType || null,
+                NumberOfDoors: currentPayload.NumberOfDoors !== undefined ? currentPayload.NumberOfDoors : null, // Keep null if undefined
+                SeatingCapacity: currentPayload.SeatingCapacity !== undefined ? currentPayload.SeatingCapacity : null, // Keep null if undefined
+                IsDamaged: currentPayload.IsDamaged !== undefined ? currentPayload.IsDamaged : false, // Default to false if undefined
             };
 
             // Use fetch directly to handle non-200 responses gracefully

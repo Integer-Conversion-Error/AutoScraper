@@ -128,7 +128,6 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         "PriceMax": 999999,
         "YearMin": "1950",
         "YearMax": "2050",
-        "Top": 100,
         "Address": "Kanata, ON",
         "IsNew": True,
         "IsUsed": True,
@@ -145,12 +144,15 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         "IsDamaged": False, # Default to not including damaged
         "BodyType": None,
         "NumberOfDoors": None,
-        "SeatingCapacity": None
+        "SeatingCapacity": None,
+        "micrositeType":1,
+        "Skip" : 0,
+        "Top" : 15
     }
 
     # Merge provided params with defaults
     params = {**default_params, **{k: v for k, v in params.items() if v is not None}} # Ensure None doesn't overwrite defaults if passed explicitly
-
+    print(params)
     # Clean up potential "Any" or empty string values passed from the frontend if they weren't caught earlier
     if params.get("Trim") == "Any" or params.get("Trim") == "": params["Trim"] = None
     if params.get("Color") == "Any" or params.get("Color") == "": params["Color"] = None
