@@ -22,7 +22,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <a class="navbar-brand" href="{{ url_for('views.landing') }}"> <!-- Use blueprint name -->
                 <i class="bi bi-car-front"></i> AutoScraper
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,19 +31,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('landing') }}#features">Features</a>
+                        <a class="nav-link" href="{{ url_for('views.landing') }}#features">Features</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('pricing') }}">Pricing</a>
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('views.pricing') }}">Pricing</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                        <a class="nav-link" href="{{ url_for('views.about') }}">About</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-light ms-lg-2" href="{{ url_for('login') }}">Login</a>
+                        <a class="btn btn-outline-light ms-lg-2" href="{{ url_for('auth.login') }}">Login</a> <!-- Use blueprint name -->
                     </li>
                      <li class="nav-item">
-                        <a class="btn btn-light ms-lg-2" href="{{ url_for('register') }}">Register</a>
+                        <a class="btn btn-light ms-lg-2" href="{{ url_for('auth.register') }}">Register</a> <!-- Use blueprint name -->
                     </li>
                 </ul>
             </div>
@@ -72,7 +72,7 @@
                                 <li class="list-group-item"><i class="bi bi-check-circle-fill me-2"></i>100 Search Tokens Included Monthly</li>
                                 <li class="list-group-item text-muted"><i class="bi bi-info-circle me-2"></i>Tokens expire monthly</li>
                             </ul>
-                            <a href="{{ url_for('register') }}" class="w-100 btn btn-lg btn-outline-primary mt-auto">Sign Up</a>
+                            <a href="{{ url_for('auth.register') }}" class="w-100 btn btn-lg btn-outline-primary mt-auto">Sign Up</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                                 <li class="list-group-item"><i class="bi bi-check-circle-fill me-2"></i>300 Search Tokens Included Monthly</li>
                                 <li class="list-group-item text-muted"><i class="bi bi-info-circle me-2"></i>Tokens expire monthly</li>
                             </ul>
-                            <a href="{{ url_for('register') }}" class="w-100 btn btn-lg btn-success mt-auto">Sign Up</a> <!-- Changed button color -->
+                            <a href="{{ url_for('auth.register') }}" class="w-100 btn btn-lg btn-success mt-auto">Sign Up</a> <!-- Use blueprint name --> <!-- Changed button color -->
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                             <h5 class="card-title">100 Tokens</h5>
                             <p class="card-text fs-4 fw-bold mt-2">$10</p>
                             <p class="text-muted mb-3">($0.100 / token)</p>
-                            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                             <h5 class="card-title">500 Tokens</h5>
                             <p class="card-text fs-4 fw-bold mt-2">$45</p>
                             <p class="text-muted mb-3">($0.090 / token)</p>
-                            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                             <h5 class="card-title">1,500 Tokens</h5>
                             <p class="card-text fs-4 fw-bold mt-2">$120</p>
                             <p class="text-muted mb-3">($0.080 / token)</p>
-                            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
                             <h5 class="card-title">4,000 Tokens</h5>
                             <p class="card-text fs-4 fw-bold mt-2">$280</p>
                             <p class="text-muted mb-3">($0.070 / token)</p>
-                            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
                             <h5 class="card-title">10,000 Tokens</h5>
                             <p class="card-text fs-4 fw-bold mt-2">$500</p>
                             <p class="text-muted mb-3">($0.050 / token)</p>
-                            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary mt-auto">Purchase</a> <!-- Use blueprint name -->
                         </div>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
     <!-- Footer -->
     <footer class="py-4 bg-dark text-white mt-5">
         <div class="container text-center">
-            <small>Copyright &copy; AutoScraper 2025 | <a href="{{ url_for('terms') }}" class="text-white-50">Terms & Conditions</a></small>
+            <small>Copyright &copy; AutoScraper 2025 | <a href="{{ url_for('views.terms') }}" class="text-white-50">Terms & Conditions</a></small> <!-- Use blueprint name -->
         </div>
     </footer>
 

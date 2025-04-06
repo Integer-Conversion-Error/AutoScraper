@@ -61,12 +61,12 @@
             .then(() => {
                 console.log('Signed out from Firebase successfully');
                 // Redirect to the URL provided by the backend (landing page)
-                window.location.href = "{{ redirect_url or url_for('landing') }}";
+                window.location.href = "{{ redirect_url or url_for('views.landing') }}"; // Use blueprint name
             })
             .catch((error) => {
                 console.error('Error signing out from Firebase:', error);
                 // Redirect anyway
-                window.location.href = "{{ redirect_url or url_for('landing') }}";
+                window.location.href = "{{ redirect_url or url_for('views.landing') }}"; // Use blueprint name
             });
     </script>
 </body>

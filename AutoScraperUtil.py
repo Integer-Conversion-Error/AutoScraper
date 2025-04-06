@@ -2,10 +2,24 @@ import ast
 import csv
 import json
 import os
+import re # Import re for the cleaning function
 
 from bs4 import BeautifulSoup
 import webbrowser
 import requests
+
+def clean_model_name(model_name):
+    """Removes the trailing ' (number)' suffix from a model name."""
+    if not isinstance(model_name, str):
+        return model_name # Return as is if not a string
+    # Find the last opening parenthesis
+    paren_index = model_name.rfind(' (')
+    # Check if it's followed by digits and a closing parenthesis at the end
+    if paren_index != -1 and model_name.endswith(')'):
+        potential_number = model_name[paren_index + 2:-1]
+        if potential_number.isdigit():
+            return model_name[:paren_index].strip()
+    return model_name # Return original if pattern doesn't match
 
 def showcarsmain(file_path, column_name = "Link"):
     """
@@ -371,7 +385,9 @@ def get_colors(make, model, trim=None):
     Returns:
         dict: A dictionary of colors and their respective counts, or an empty dictionary if none found.
     """
-    if not make or not model:
+    # Clean the model name internally for robustness
+    cleaned_model = clean_model_name(model)
+    if not make or not cleaned_model:
         print("Make and Model are required to fetch colors.")
         return {}
 
@@ -392,7 +408,7 @@ def get_colors(make, model, trim=None):
             "Address": "Rockland", # Default location, might not affect color results
             "Proximity": -1,
             "Make": make,
-            "Model": model,
+            "Model": cleaned_model, # Use cleaned model
             "Trim": trim if trim else None, # Include trim if provided
             "IsNew": True,
             "IsUsed": True,
@@ -416,10 +432,10 @@ def get_colors(make, model, trim=None):
         # Filter out potential non-color entries like 'Status' if necessary
         filtered_colors = {k: v for k, v in colors_data.items() if k.lower() != 'status'}
 
-        print(f"Color Response for {make} {model} {trim or ''} (after filtering): {filtered_colors}") # Debugging line
+        print(f"Color Response for {make} {cleaned_model} {trim or ''} (after filtering): {filtered_colors}") # Debugging line
         return filtered_colors
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred while making the color request for {make} {model} {trim or ''}: {e}")
+        print(f"An error occurred while making the color request for {make} {cleaned_model} {trim or ''}: {e}")
         return {}
     except ValueError as e: # Catches JSONDecodeError
         print(f"Failed to parse JSON response for colors: {e}")
@@ -440,7 +456,9 @@ def get_trims_for_model(make, model):
     Returns:
         dict: A dictionary of trims and their respective counts, or an empty dictionary if none found.
     """
-    if not make or not model:
+    # Clean the model name internally for robustness
+    cleaned_model = clean_model_name(model)
+    if not make or not cleaned_model:
         print("Make and Model are required to fetch trims.")
         return {}
 
@@ -462,7 +480,7 @@ def get_trims_for_model(make, model):
             "Address": "Rockland",
             "Proximity": -1,
             "Make": make,
-            "Model": model,
+            "Model": cleaned_model, # Use cleaned model
             "IsNew": True,
             "IsUsed": True,
             "IsCpo": True,
@@ -485,10 +503,10 @@ def get_trims_for_model(make, model):
         # Explicitly create a new dictionary excluding 'Status' (case-insensitive)
         filtered_trims = {k: v for k, v in trims_data.items() if k.lower() != 'status'}
 
-        # print(f"Trim Response for {make} {model} (after filtering): {filtered_trims}") # Debugging line
+        # print(f"Trim Response for {make} {cleaned_model} (after filtering): {filtered_trims}") # Debugging line
         return filtered_trims
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred while making the trim request for {make} {model}: {e}")
+        print(f"An error occurred while making the trim request for {make} {cleaned_model}: {e}")
         return {}
     except ValueError as e:
         print(f"Failed to parse JSON response: {e}")

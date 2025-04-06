@@ -20,6 +20,20 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// --- Helper Function to Clean Model Names (JavaScript version) ---
+function cleanModelNameJS(modelName) {
+    if (typeof modelName !== 'string') {
+        return modelName; // Return as is if not a string
+    }
+    // Regex to find ' (number)' at the end of the string
+    const match = modelName.match(/^(.*?)\s+\(\d+\)$/);
+    if (match && match[1]) {
+        return match[1].trim(); // Return the part before ' (number)'
+    }
+    return modelName; // Return original if pattern doesn't match
+}
+// --- End Helper Function ---
+
 // Override Firebase's auth state observer to prevent unwanted redirects
 const origOnAuthStateChanged = firebase.auth().onAuthStateChanged;
 firebase.auth().onAuthStateChanged = function (callback) {
@@ -408,8 +422,8 @@ document.addEventListener('DOMContentLoaded', function () {
             WithPhotos: document.getElementById('withPhotos').checked,
                     Exclusions: exclusions,
                     Inclusion: document.getElementById('inclusion').value,
-                    // Get selected trims from checkboxes
-                    Trim: Array.from(document.querySelectorAll('#trimCheckboxes input[type="checkbox"]:checked')).map(cb => cb.value),
+                    // Get selected trim from the dropdown
+                    Trim: document.getElementById('trimSelect').value || null, // Correctly read from trimSelect dropdown
                     Color: document.getElementById('colorSelect').value || null, // Read from colorSelect dropdown
                     Drivetrain: document.getElementById('drivetrainSelect').value || null,
             Transmission: document.getElementById('transmissionSelect').value || null,
@@ -904,11 +918,12 @@ document.getElementById('makeSelect').addEventListener('change', function () {
     fetchWithAuth(`/api/models/${make}`)
         .then(data => {
             console.log("Models loaded:", data);
-            const models = Object.keys(data);
+            const models = Object.keys(data); // e.g., ["IS (387)", "RX (123)"]
 
-            models.forEach(model => {
+            models.forEach(modelWithCount => { // modelWithCount is like "IS (387)"
                 const option = document.createElement('option');
-                option.textContent = `${model} (${data[model]})`;
+                option.value = cleanModelNameJS(modelWithCount); // Set value to cleaned name, e.g., "IS"
+                option.textContent = `${modelWithCount} (${data[modelWithCount]})`; // Display text: "IS (387) (10)"
                 modelSelect.appendChild(option);
             });
 
@@ -1141,10 +1156,10 @@ function populateFormWithPayload(payload) {
 
                     // Add new options
                     const models = Object.keys(data);
-                    models.forEach(modelName => {
+                    models.forEach(modelNameWithCount => { // modelNameWithCount is like "IS (387)"
                         const option = document.createElement('option');
-                        option.value = modelName;
-                        option.textContent = `${modelName} (${data[modelName]})`;
+                        option.value = cleanModelNameJS(modelNameWithCount); // Set value to cleaned name, e.g., "IS"
+                        option.textContent = `${modelNameWithCount} (${data[modelNameWithCount]})`; // Display text: "IS (387) (10)"
                         modelSelect.appendChild(option);
                     });
 

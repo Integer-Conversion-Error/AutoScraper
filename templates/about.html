@@ -17,7 +17,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <a class="navbar-brand" href="{{ url_for('views.landing') }}"> <!-- Use blueprint name -->
                 <i class="bi bi-car-front"></i> AutoScraper
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,19 +26,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('landing') }}#features">Features</a>
+                        <a class="nav-link" href="{{ url_for('views.landing') }}#features">Features</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('pricing') }}">Pricing</a>
+                        <a class="nav-link" href="{{ url_for('views.pricing') }}">Pricing</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('about') }}">About</a>
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('views.about') }}">About</a> <!-- Use blueprint name -->
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-light ms-lg-2" href="{{ url_for('login') }}">Login</a>
+                        <a class="btn btn-outline-light ms-lg-2" href="{{ url_for('auth.login') }}">Login</a> <!-- Use blueprint name -->
                     </li>
                      <li class="nav-item">
-                        <a class="btn btn-light ms-lg-2" href="{{ url_for('register') }}">Register</a>
+                        <a class="btn btn-light ms-lg-2" href="{{ url_for('auth.register') }}">Register</a> <!-- Use blueprint name -->
                     </li>
                 </ul>
             </div>
@@ -105,7 +105,7 @@
     <!-- Footer -->
     <footer class="py-4 bg-dark text-white mt-5">
         <div class="container text-center">
-            <small>Copyright &copy; AutoScraper 2025 | <a href="{{ url_for('terms') }}" class="text-white-50">Terms & Conditions</a></small>
+            <small>Copyright &copy; AutoScraper 2025 | <a href="{{ url_for('views.terms') }}" class="text-white-50">Terms & Conditions</a></small> <!-- Use blueprint name -->
         </div>
     </footer>
 

@@ -2,15 +2,15 @@ from flask import request, jsonify, redirect, url_for, session, flash, g
 from functools import wraps
 import time
 import logging # Import logging
+from flask import current_app # Import current_app if needed for logging or config
 from firebase_config import verify_id_token, get_user, get_user_settings # Import get_user_settings
 
-def login_required_with_app(app, f):
+def login_required(f):
     """
     Enhanced login_required decorator that ensures session persistence
-    and proper authentication across requests.
-    
+    and proper authentication across requests. Relies on Flask request context.
+
     Args:
-        app: The Flask application instance
         f: The function to decorate
     """
     @wraps(f)
@@ -35,26 +35,17 @@ def login_required_with_app(app, f):
                         # User no longer exists, clear session
                         session.clear()
                         flash('Your session has expired. Please log in again.', 'warning')
-                        return redirect(url_for('login'))
+                        return redirect(url_for('auth.login')) # Use blueprint name
             except Exception as e:
-                # Log the error but don't disrupt the user experience
-                print(f"Error validating user: {e}")
-                
+                # Log the error using current_app logger if available
+                # current_app.logger.error(f"Error validating user {user_id}: {e}", exc_info=True)
+                print(f"Error validating user {user_id}: {e}") # Keep print for now
+
             # Fetch user settings and check payment status
             logging.info(f"Decorator: Checking settings for user_id: {user_id}") # Log User ID
             user_settings = get_user_settings(user_id)
             logging.info(f"Decorator: Fetched user_settings: {user_settings}") # Log fetched settings
-            # is_paying = user_settings.get('isPayingUser', False) # Removed isPayingUser check
-            # logging.info(f"Decorator: isPayingUser check result: {is_paying} (Type: {type(is_paying)})") # Log check result and type
-
-            # if not is_paying: # Removed isPayingUser check
-            #     # User is not a paying user
-            #     logging.warning(f"Decorator: Access denied for user {user_id} to {request.path}. Reason: Not a paying user.") # Log denial
-            #     if request.path.startswith('/api/'):
-            #         return jsonify({"success": False, "error": "Access denied. Requires an active subscription."}), 403
-            #     else:
-            #         flash('This feature requires an active subscription.', 'warning')
-            #         return redirect(url_for('pricing')) # Redirect to pricing page
+            # Payment check logic is commented out, no changes needed here
 
             # Store user_id and settings in g for potential use in the route
             g.user_id = user_id
@@ -80,20 +71,12 @@ def login_required_with_app(app, f):
 
                 # Fetch user settings and check payment status (after token verification)
                 user_id = user_info.get('uid')
-                logging.info(f"Decorator (Token Auth): Checking settings for user_id: {user_id}") # Log User ID
+                # Use logger if available
+                # logging.info(f"Decorator (Token Auth): Checking settings for user_id: {user_id}") # Log User ID
                 user_settings = get_user_settings(user_id)
-                logging.info(f"Decorator (Token Auth): Fetched user_settings: {user_settings}") # Log fetched settings
-                # is_paying = user_settings.get('isPayingUser', False) # Removed isPayingUser check
-                # logging.info(f"Decorator (Token Auth): isPayingUser check result: {is_paying} (Type: {type(is_paying)})") # Log check result and type
+                # logging.info(f"Decorator (Token Auth): Fetched user_settings: {user_settings}") # Log fetched settings
 
-                # if not is_paying: # Removed isPayingUser check
-                #     # User is not a paying user
-                #     logging.warning(f"Decorator (Token Auth): Access denied for user {user_id} to {request.path}. Reason: Not a paying user.") # Log denial
-                #     if request.path.startswith('/api/'):
-                #         return jsonify({"success": False, "error": "Access denied. Requires an active subscription."}), 403
-                #     else:
-                #         flash('This feature requires an active subscription.', 'warning')
-                #         return redirect(url_for('pricing')) # Redirect to pricing page
+                # Payment check logic is commented out, no changes needed here
 
                 # Store user_id and settings in g for potential use in the route
                 g.user_id = user_id
@@ -113,15 +96,25 @@ def login_required_with_app(app, f):
                     return jsonify({"success": False, "error": "Authentication failed"}), 401
                 # For web pages, redirect to login
                 flash('Authentication failed. Please log in again.', 'danger')
-                return redirect(url_for('login'))
+                return redirect(url_for('auth.login')) # Use blueprint name
         
         # If no token is provided in a header for API requests
         if request.path.startswith('/api/'):
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # For regular pages without authentication, redirect to login
-        if request.path != '/login' and request.path != '/register':
-            flash('Please log in to access this page', 'warning')
-        return redirect(url_for('login'))
-    
+        # Check against blueprint endpoints
+        if request.endpoint and not request.endpoint.startswith('auth.'): # Avoid redirect loop from login/register
+             # Check if the requested endpoint is public (part of views_bp but not requiring login)
+             # This check might need refinement based on public routes
+             public_endpoints = ['views.landing', 'views.pricing', 'views.about', 'views.terms', 'views.favicon']
+             if request.endpoint not in public_endpoints:
+                flash('Please log in to access this page', 'warning')
+                return redirect(url_for('auth.login')) # Use blueprint name
+
+        # If it's the login/register page itself or already handled, proceed (or let Flask handle 404)
+        # This final redirect might be redundant if Flask handles unauthenticated access correctly via the decorator
+        # Let's remove the final redirect for now, as the decorator should handle unauthorized access.
+        # return redirect(url_for('auth.login')) # Use blueprint name - REMOVED
+
     return decorated_function

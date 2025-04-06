@@ -74,7 +74,9 @@ def get_user_responses():
     if payload["Make"]:
         models_for_make = get_models_for_make(payload["Make"])
         if models_for_make:
-            payload["Model"] = get_models_input(models_for_make)
+            # Get the selected model and then clean it
+            selected_model = get_models_input(models_for_make)
+            payload["Model"] = clean_model_name(selected_model)
 
     payload["Address"] = cleaned_input("Address", "Kanata, ON", str)
     payload["Proximity"] = cleaned_input("Distance",-1,int)
@@ -212,4 +214,3 @@ def cleaned_input(itemTitle, defaultval, expectedtype):
 
 if __name__ == "__main__":
     get_user_responses()
-

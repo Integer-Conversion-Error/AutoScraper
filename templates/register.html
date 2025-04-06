@@ -82,7 +82,7 @@
                 
                 <div class="text-center mt-3">
                     <p>Already have an account?</p>
-                    <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary"> <!-- Use blueprint name -->
                         <i class="bi bi-box-arrow-in-right"></i> Sign In
                     </a>
                 </div>
@@ -170,7 +170,7 @@
                     // Redirect to login page after a short delay
                     setTimeout(() => {
                         // Force a full page reload to ensure proper initialization of FirebaseUI
-                        window.location.href = "{{ url_for('login') }}";
+                        window.location.href = "{{ url_for('auth.login') }}"; // Use blueprint name
                     }, 2000);
                 })
                 .catch((error) => {
