@@ -261,7 +261,13 @@ def get_trims_api(make, model):
     # Decode URL components
     decoded_make = unquote(make)
     decoded_model = unquote(model)
-    trims = get_trims_for_model(decoded_make, decoded_model)
+    # Clean the model name (remove suffix like '(1234)')
+    paren_index = decoded_model.find(' (')
+    if paren_index != -1:
+        cleaned_model = decoded_model[:paren_index].strip()
+    else:
+        cleaned_model = decoded_model
+    trims = get_trims_for_model(decoded_make, cleaned_model) # Use cleaned_model
     # The function already returns a dict {trim_name: count}, which is JSON serializable
     return jsonify(trims)
 
@@ -274,8 +280,14 @@ def get_colors_api(make, model, trim=None):
     decoded_make = unquote(make)
     decoded_model = unquote(model)
     decoded_trim = unquote(trim) if trim else None
+    # Clean the model name (remove suffix like '(1234)')
+    paren_index = decoded_model.find(' (')
+    if paren_index != -1:
+        cleaned_model = decoded_model[:paren_index].strip()
+    else:
+        cleaned_model = decoded_model
 
-    colors = get_colors(decoded_make, decoded_model, decoded_trim)
+    colors = get_colors(decoded_make, cleaned_model, decoded_trim) # Use cleaned_model
     # The function returns a list of strings, which is JSON serializable
     return jsonify(colors)
 

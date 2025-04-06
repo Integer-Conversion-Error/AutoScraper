@@ -67,13 +67,13 @@ Finding specific vehicles, especially niche models or configurations, on large p
 ├── auth_decorator.py       # Decorator for requiring login on routes
 ├── AutoScraper.code-workspace # VS Code workspace file
 ├── AutoScraper.py          # Core AutoTrader scraping logic
-├── AutoScraperBackground.jpg # Background image (likely unused by web app)
+├── AutoScraperBackground.jpg # Background image 
 ├── AutoScraperUtil.py      # Utility functions for scraping, parsing, file handling
 ├── config.json             # Stores API keys (GEMINI, SEARCH, EXCHANGE_RATE) - **DO NOT COMMIT**
 ├── firebase_config.py      # Firebase initialization and interaction functions
-├── GetUserSelection.py     # (Likely legacy) Console input functions
+├── GetUserSelection.py     # Console input functions
 ├── proxyconfig.json        # Proxy configuration (optional) - **DO NOT COMMIT if contains credentials**
-├── Queries/                # (Likely legacy) Directory for saving console payloads
+├── Queries/                # Directory for saving console payloads
 ├── Results/                # Directory for saving CSV results
 ├── static/
 │   └── favicon.ico         # Favicon
