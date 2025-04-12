@@ -25,7 +25,14 @@ def app_interface():
 @views_bp.route('/pricing')
 def pricing():
     """Serves the public pricing page."""
-    return render_template('pricing.html')
+    # Pass the Stripe Publishable Key to the template
+    publishable_key = current_app.config.get('STRIPE_PUBLISHABLE_KEY')
+    if not publishable_key:
+        current_app.logger.error("STRIPE_PUBLISHABLE_KEY is not configured in the app!")
+        # Handle the error appropriately, maybe show an error message on the page
+        # For now, pass None or an empty string, the JS will handle the error display
+        publishable_key = ""
+    return render_template('pricing.html', stripe_publishable_key=publishable_key)
 
 @views_bp.route('/about')
 def about():

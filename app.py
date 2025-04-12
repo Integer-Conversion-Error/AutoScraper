@@ -3,6 +3,7 @@ import json
 import secrets
 import logging
 import requests # Keep for get_exchange_rates if moved back or to util
+import stripe # Import Stripe library
 import google.generativeai as genai
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -63,24 +64,32 @@ try:
     SEARCH_API_KEY = config.get('SEARCH_API_KEY')
     SEARCH_ENGINE_ID = config.get('SEARCH_ENGINE_ID')
     EXCHANGE_RATE_API_KEY = config.get('EXCHANGE_RATE_API_KEY')
+    STRIPE_PUBLISHABLE_KEY = config.get('STRIPE_PUBLISHABLE_KEY')
+    STRIPE_SECRET_KEY = config.get('STRIPE_SECRET_KEY')
 except FileNotFoundError:
-    app.logger.error("config.json not found. AI/Search/Exchange features may be limited.")
+    app.logger.error("config.json not found. AI/Search/Exchange/Stripe features may be limited.")
     GEMINI_API_KEY = None
     SEARCH_API_KEY = None
     SEARCH_ENGINE_ID = None
     EXCHANGE_RATE_API_KEY = None
+    STRIPE_PUBLISHABLE_KEY = None
+    STRIPE_SECRET_KEY = None
 except json.JSONDecodeError:
     app.logger.error("Error decoding config.json.")
     GEMINI_API_KEY = None
     SEARCH_API_KEY = None
     SEARCH_ENGINE_ID = None
     EXCHANGE_RATE_API_KEY = None
+    STRIPE_PUBLISHABLE_KEY = None
+    STRIPE_SECRET_KEY = None
 except Exception as e:
     app.logger.error(f"An unexpected error occurred loading config.json: {e}", exc_info=True)
     GEMINI_API_KEY = None
     SEARCH_API_KEY = None
     SEARCH_ENGINE_ID = None
     EXCHANGE_RATE_API_KEY = None
+    STRIPE_PUBLISHABLE_KEY = None
+    STRIPE_SECRET_KEY = None
 
 # Configure Gemini
 app.gemini_model = None # Initialize attribute on app
@@ -113,6 +122,17 @@ app.EXCHANGE_RATE_API_KEY = EXCHANGE_RATE_API_KEY
 if not EXCHANGE_RATE_API_KEY:
      app.logger.warning("EXCHANGE_RATE_API_KEY not found. Exchange rate features may be limited.")
 
+# Configure Stripe
+app.config['STRIPE_PUBLISHABLE_KEY'] = STRIPE_PUBLISHABLE_KEY # Store publishable key for frontend
+if STRIPE_SECRET_KEY:
+    try:
+        stripe.api_key = STRIPE_SECRET_KEY
+        app.logger.info("Stripe configured successfully.")
+    except Exception as e:
+        app.logger.error(f"Failed to configure Stripe: {e}", exc_info=True)
+else:
+    app.logger.warning("STRIPE_SECRET_KEY not found. Payment processing will be disabled.")
+
 
 # --- Define Actual Login Decorator ---
 # The login_required decorator is now defined in auth_decorator.py
@@ -129,6 +149,7 @@ from routes.api_payloads import api_payloads_bp
 from routes.api_results import api_results_bp
 from routes.api_settings import api_settings_bp
 from routes.api_ai import api_ai_bp
+from routes.payments import payments_bp # Import the new payments blueprint
 
 # Register blueprints with the app
 app.register_blueprint(views_bp)
@@ -138,6 +159,7 @@ app.register_blueprint(api_payloads_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_results_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_settings_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_ai_bp) # Prefix '/api' defined in blueprint
+app.register_blueprint(payments_bp) # Prefix '/payment' defined in blueprint
 
 app.logger.info("Blueprints registered.")
 
@@ -155,6 +177,7 @@ if __name__ == '__main__':
     print(f"Firebase initialization: {'Successful' if firebase_initialized else 'Failed'}")
     print(f"Gemini Model: {'Configured' if app.gemini_model else 'Not Configured'}")
     print(f"Search Service: {'Configured' if app.search_service else 'Not Configured'}")
+    print(f"Stripe: {'Configured' if stripe.api_key else 'Not Configured'}")
     print("---")
     print("Server running at http://localhost:5000")
     print("Access the app via landing page: http://localhost:5000/")
