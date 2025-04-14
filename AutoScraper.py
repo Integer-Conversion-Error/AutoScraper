@@ -5,7 +5,8 @@ import csv
 import time
 import os
 import logging
-from functools import lru_cache
+import csv # Added for CSV cache handling
+from functools import lru_cache # Will be removed later, but keep import for now if used elsewhere
 from GetUserSelection import get_user_responses, cleaned_input
 from AutoScraperUtil import *
 
@@ -82,8 +83,55 @@ logger = logging.getLogger("AutoScraper")
 
 # Global variables
 start_time = None
-# Cache for vehicle info to avoid duplicate requests
-vehicle_info_cache = {}
+# Cache for vehicle info to avoid duplicate requests (lru_cache will be removed)
+# vehicle_info_cache = {} # Removed, using CSV cache now
+
+# --- CSV Cache Configuration ---
+CACHE_FILE = "autoscraper_cache.csv"
+CACHE_HEADERS = [
+    "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain",
+    "Kilometres", "Status", "Body Type", "Engine", "Cylinder",
+    "Transmission", "Exterior Colour", "Doors", "Fuel Type",
+    "City Fuel Economy", "Hwy Fuel Economy"
+]
+
+def load_cache(filepath=CACHE_FILE):
+    """Loads the CSV cache file into a dictionary."""
+    cache = {}
+    try:
+        with open(filepath, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            if reader.fieldnames != CACHE_HEADERS:
+                 logger.warning(f"Cache file '{filepath}' headers mismatch expected headers. Rebuilding cache might be necessary.")
+                 # Decide if you want to return {} or try to proceed
+                 # return {}
+            for row in reader:
+                link = row.get("Link")
+                if link:
+                    cache[link] = row
+        logger.info(f"Loaded {len(cache)} items from cache file '{filepath}'.")
+    except FileNotFoundError:
+        logger.info(f"Cache file '{filepath}' not found. A new one will be created.")
+    except Exception as e:
+        logger.error(f"Error loading cache file '{filepath}': {e}")
+    return cache
+
+def append_to_cache(data_rows, filepath=CACHE_FILE, headers=CACHE_HEADERS):
+    """Appends new data rows (list of dicts) to the CSV cache file."""
+    if not data_rows:
+        return
+
+    file_exists = os.path.isfile(filepath)
+    try:
+        with open(filepath, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=headers)
+            if not file_exists or os.path.getsize(filepath) == 0:
+                writer.writeheader()
+                logger.info(f"Created or wrote headers to cache file '{filepath}'.")
+            writer.writerows(data_rows)
+        logger.info(f"Appended {len(data_rows)} new items to cache file '{filepath}'.")
+    except Exception as e:
+        logger.error(f"Error appending to cache file '{filepath}': {e}")
 
 
 def get_proxy_from_file(filename = "proxyconfig.json"):
@@ -385,18 +433,8 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     return filtered_results
 
 
-@lru_cache(maxsize=128)
-def extract_vehicle_info_cached(url):
-    """
-    Cached version of extract_vehicle_info to avoid redundant requests.
-
-    Args:
-        url (str): The URL to fetch data from.
-
-    Returns:
-        dict: Vehicle information extracted from the URL.
-    """
-    return extract_vehicle_info(url)
+# Removed @lru_cache and the wrapper function extract_vehicle_info_cached
+# The CSV cache handles persistence now.
 
 def extract_vehicle_info(url):
     """
@@ -547,122 +585,170 @@ def extract_vehicle_info_from_json(json_content):
         logger.error(f"Error extracting vehicle info: {e}")
         return {}
 
-def save_results_to_csv(data, payload, filename="results.csv", max_workers=10):
+def process_links_and_update_cache(data, max_workers=10):
     """
-    Saves fetched data by processing it concurrently with a thread pool.
+    Processes links, using and updating a persistent CSV cache.
+    Fetches data for new links and appends them to the cache file.
+    Returns the data for all links relevant to the current search (cached or newly fetched).
 
     Args:
-        data (list): List of links to save.
-        payload (dict): Payload containing additional filtering criteria.
-        filename (str): Name of the CSV file.
-        max_workers (int): Maximum number of concurrent workers.
+        data (list): List of link dictionaries (e.g., [{'link': 'url1'}, {'link': 'url2'}]).
+        max_workers (int): Maximum number of concurrent workers for fetching new data.
+
+    Returns:
+        list: A list of dictionaries, where each dictionary represents a car's data
+              corresponding to the input links.
     """
-    global start_time
-    allColNames = [
-        "Link",
-        "Make",
-        "Model",
-        "Year",
-        "Trim",
-        "Price",
-        "Drivetrain",
-        "Kilometres",
-        "Status",
-        "Body Type",
-        "Engine",
-        "Cylinder",
-        "Transmission",
-        "Exterior Colour",
-        "Doors",
-        "Fuel Type",
-        "City Fuel Economy",
-        "Hwy Fuel Economy"
-    ]
+    global start_time # Keep track of overall time if needed
+    if not start_time: # Ensure start_time is set if this is the first major step
+        start_time = time.time()
 
-    def process_link(item):
-        """
-        Worker function to process each link.
+    logger.info(f"Processing {len(data)} links. Loading cache...")
+    persistent_cache = load_cache() # Load the main cache
+    results_for_current_search = [] # Holds results (dict) for this specific run
+    links_to_fetch = [] # Links not found in cache
+    newly_fetched_data_rows = [] # Rows (dict) to append to cache file
 
-        Args:
-            item (dict): Dictionary containing link information.
+    # 1. Identify links needing fetching vs. already cached
+    for item in data:
+        link = item.get("link")
+        if not link:
+            logger.warning("Skipping item with no link.")
+            continue
 
-        Returns:
-            list: Processed row for CSV or None if extraction fails.
-        """
-        link = item["link"]
+        if link in persistent_cache:
+            # Cache Hit: Use data from the persistent cache
+            results_for_current_search.append(persistent_cache[link])
+            logger.debug(f"Cache hit for: {link}")
+        else:
+            # Cache Miss: Mark for fetching
+            links_to_fetch.append(item) # Keep original item structure if needed elsewhere
+            logger.debug(f"Cache miss for: {link}")
 
-        try:
-            car_info = extract_vehicle_info_cached(link)
-            if car_info:
-                return [
-                    link,
-                    car_info.get("Make", ""),
-                    car_info.get("Model", ""),
-                    car_info.get("Year", ""),
-                    car_info.get("Trim", ""),
-                    car_info.get("Price", ""),
-                    car_info.get("Drivetrain", ""),
-                    car_info.get("Kilometres", ""),
-                    car_info.get("Status", ""),
-                    car_info.get("Body Type", ""),
-                    car_info.get("Engine", ""),
-                    car_info.get("Cylinder", ""),
-                    car_info.get("Transmission", ""),
-                    car_info.get("Exterior Colour", ""),
-                    car_info.get("Doors", ""),
-                    car_info.get("Fuel Type", ""),
-                    car_info.get("City Fuel Economy", ""),
-                    car_info.get("Hwy Fuel Economy", "")
-                ]
-            else:
-                logger.warning(f"Failed to fetch data for {link}")
-                return None
-        except Exception as e:
-            logger.error(f"Error processing {link}: {e}")
-            return None
+    logger.info(f"Found {len(persistent_cache)} items in cache. Need to fetch {len(links_to_fetch)} new links.")
 
-    results = []
-    total_links = len(data)
-    processed = 0
+    # 2. Fetch data for new links concurrently
+    if links_to_fetch:
+        processed_new = 0
+        total_to_fetch = len(links_to_fetch)
+        logger.info(f"Starting concurrent fetch for {total_to_fetch} links with {max_workers} workers...")
 
-    logger.info(f"Starting to process {total_links} links concurrently with {max_workers} workers")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_link_item = {executor.submit(extract_vehicle_info, item["link"]): item for item in links_to_fetch}
 
-    # Process data concurrently using ThreadPoolExecutor
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all processing tasks
-        future_to_item = {executor.submit(process_link, item): item for item in data}
+            for future in concurrent.futures.as_completed(future_to_link_item):
+                link_item = future_to_link_item[future]
+                link = link_item["link"]
+                try:
+                    car_info = future.result() # car_info is a dict from extract_vehicle_info
+                    if car_info:
+                        # Add the link itself to the car_info dict
+                        car_info_with_link = {"Link": link, **car_info}
 
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(future_to_item):
-            item = future_to_item[future]
-            try:
-                row = future.result()
-                if row:
-                    results.append(row)
+                        # Ensure all headers are present, fill missing with ""
+                        row_dict = {header: car_info_with_link.get(header, "") for header in CACHE_HEADERS}
 
-                processed += 1
+                        results_for_current_search.append(row_dict) # Add to current search results
+                        newly_fetched_data_rows.append(row_dict) # Add to list for appending to cache file
+                        persistent_cache[link] = row_dict # Update in-memory cache immediately
+                        logger.debug(f"Successfully fetched and processed: {link}")
+                    else:
+                        logger.warning(f"Failed to fetch data for {link}, skipping.")
 
-                # Update progress
-                if processed % 5 == 0 or processed == total_links:
-                    cls()
-                    progress = (processed / total_links) * 100
-                    print(f"Progress: {processed}/{total_links} ({progress:.1f}%)")
+                    processed_new += 1
+                    if processed_new % 5 == 0 or processed_new == total_to_fetch:
+                        cls()
+                        progress = (processed_new / total_to_fetch) * 100
+                        print(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        logger.info(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
 
-            except Exception as e:
-                url = item.get("link", "unknown")
-                logger.error(f"Error processing {url}: {e}")
+                except Exception as e:
+                    logger.error(f"Error processing future for {link}: {e}")
 
-    # Write to CSV after processing all data
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        writer.writerow(allColNames)  # Write the header
-        writer.writerows(results)
+    # 3. Append newly fetched data to the persistent cache file
+    if newly_fetched_data_rows:
+        append_to_cache(newly_fetched_data_rows)
 
-    # Avoid logging negative time if start_time wasn't set
-    if start_time:
-        elapsed_time = time.time() - start_time
-        logger.info(f"CSV processing completed in {elapsed_time:.2f} seconds")
-        print(f"Processed all in {elapsed_time:.2f}s")
+    logger.info(f"Finished processing links. Returning {len(results_for_current_search)} results for this search.")
+    # Note: The returned list contains dicts. The calling function will handle writing to the timestamped CSV.
+    return results_for_current_search
+
+
+# --- Old save_results_to_csv logic (Commented out for reference) ---
+# # def save_results_to_csv(data, payload, filename="results.csv", max_workers=10):
+# #     """
+# #     Saves fetched data by processing it concurrently with a thread pool. (OLD VERSION)
+# #     """
+# #     global start_time
+# #     allColNames = [
+# #         "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain",
+# #         "Kilometres", "Status", "Body Type", "Engine", "Cylinder",
+# #         "Transmission", "Exterior Colour", "Doors", "Fuel Type",
+# #         "City Fuel Economy", "Hwy Fuel Economy"
+# #     ]
+# #
+# #     def process_link(item):
+# #         """
+# #         Worker function to process each link. (OLD VERSION)
+# #
+# #         Args:
+# #             item (dict): Dictionary containing link information.
+# #
+# #         Returns:
+# #             list: Processed row for CSV or None if extraction fails.
+# #         """
+# #         link = item["link"]
+# #         try:
+# #             # OLD: car_info = extract_vehicle_info_cached(link)
+# #             car_info = extract_vehicle_info(link) # Use non-cached version directly now
+# #             if car_info:
+# #                 return [ # Return as list matching old structure if needed downstream
+# #                     link, car_info.get("Make", ""), car_info.get("Model", ""),
+# #                     car_info.get("Year", ""), car_info.get("Trim", ""), car_info.get("Price", ""),
+# #                     car_info.get("Drivetrain", ""), car_info.get("Kilometres", ""), car_info.get("Status", ""),
+# #                     car_info.get("Body Type", ""), car_info.get("Engine", ""), car_info.get("Cylinder", ""),
+# #                     car_info.get("Transmission", ""), car_info.get("Exterior Colour", ""), car_info.get("Doors", ""),
+# #                     car_info.get("Fuel Type", ""), car_info.get("City Fuel Economy", ""), car_info.get("Hwy Fuel Economy", "")
+# #                 ]
+# #             else:
+# #                 logger.warning(f"Failed to fetch data for {link}")
+# #                 return None
+# #         except Exception as e:
+# #             logger.error(f"Error processing {link}: {e}")
+# #             return None
+# #
+# #     results = []
+# #     total_links = len(data)
+# #     processed = 0
+# #     logger.info(f"Starting to process {total_links} links concurrently with {max_workers} workers (OLD METHOD)")
+# #
+# #     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+# #         future_to_item = {executor.submit(process_link, item): item for item in data}
+# #         for future in concurrent.futures.as_completed(future_to_item):
+# #             item = future_to_item[future]
+# #             try:
+# #                 row = future.result()
+# #                 if row:
+# #                     results.append(row)
+# #                 processed += 1
+# #                 if processed % 5 == 0 or processed == total_links:
+# #                     cls()
+# #                     progress = (processed / total_links) * 100
+# #                     print(f"Progress: {processed}/{total_links} ({progress:.1f}%)")
+# #             except Exception as e:
+# #                 url = item.get("link", "unknown")
+# #                 logger.error(f"Error processing {url}: {e}")
+# #
+# #     # Write to CSV after processing all data
+# #     with open(filename, mode="w", newline="", encoding="utf-8") as file:
+# #         writer = csv.writer(file)
+# #         writer.writerow(allColNames)  # Write the header
+# #         writer.writerows(results) # results here is list of lists
+# #
+# #     if start_time:
+# #         elapsed_time = time.time() - start_time
+# #         logger.info(f"CSV processing completed in {elapsed_time:.2f} seconds")
+# #         print(f"Processed all in {elapsed_time:.2f}s")
     print(f"Results saved to {filename}")
 
     # Apply filtering
@@ -740,13 +826,33 @@ def main():
                         os.makedirs(foldernamestr)
                         logger.info(f"Created folder: {foldernamestr}")
 
-                    save_results_to_csv(results, payload=payload, filename=filenamestr,max_workers=500)
-                    logger.info(f"Total Results: {len(results)}, saved to {filenamestr}")
-                    print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
+                    # Call the new processing function
+                    processed_results_dicts = process_links_and_update_cache(results, max_workers=500)
+                    logger.info(f"Processing complete. Got {len(processed_results_dicts)} results for this search (from cache or fetched).")
 
-                    # Open links in browser
-                    if len(results) > 0:
-                        showcarsmain(filenamestr)
+                    # Save the results *for this specific search* to the timestamped file
+                    if processed_results_dicts:
+                        try:
+                            with open(filenamestr, mode="w", newline="", encoding="utf-8") as file:
+                                # Use the headers defined globally
+                                writer = csv.DictWriter(file, fieldnames=CACHE_HEADERS)
+                                writer.writeheader()
+                                writer.writerows(processed_results_dicts)
+                            logger.info(f"Saved {len(processed_results_dicts)} results for this search to {filenamestr}")
+                            print(f"Results for this search saved to {filenamestr}")
+
+                            # Apply filtering to the timestamped file
+                            filter_csv(filenamestr, filenamestr, payload=payload) # Filter in place
+
+                            # Open links in browser using the timestamped file
+                            showcarsmain(filenamestr)
+                        except Exception as e:
+                             logger.error(f"Error writing or processing timestamped CSV {filenamestr}: {e}")
+                             print(f"Error saving or processing results file: {e}")
+                    else:
+                         logger.warning(f"No results obtained after processing links for file {filenamestr}")
+                         print("No results obtained after processing links.")
+
                 else:
                     print("No payload found. Please create or load one first.")
 

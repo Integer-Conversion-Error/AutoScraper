@@ -4,7 +4,8 @@ import time
 import logging
 from flask import Blueprint, request, jsonify, session, g, current_app
 from AutoScraperUtil import format_time_ymd_hms, showcarsmain, clean_model_name # Import the new function
-from AutoScraper import fetch_autotrader_data, save_results_to_csv
+# Import the new processing function and necessary constants from AutoScraper
+from AutoScraper import fetch_autotrader_data, process_links_and_update_cache, CACHE_HEADERS
 from firebase_config import (
     save_results,
     get_user_results,
@@ -96,21 +97,41 @@ def fetch_data_api():
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
         full_path = os.path.join(folder_path, file_name).replace("\\", "/")
 
-        save_results_to_csv(all_results_html, payload=payload, filename=full_path, max_workers=1000)
+        # Call the new processing function which handles caching and returns results
+        # Note: We don't pass the payload here anymore as filtering happens later or is part of the main fetch
+        processed_results_dicts = process_links_and_update_cache(all_results_html, max_workers=1000)
+        logging.info(f"Processing complete via API. Got {len(processed_results_dicts)} results for this search (from cache or fetched).")
 
-        # Read the CSV for Firebase
-        processed_results_for_firebase = []
-        try:
-            with open(full_path, mode='r', newline='', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                processed_results_for_firebase = [dict(row) for row in reader]
-        except FileNotFoundError:
-             logging.error(f"CSV file {full_path} not found after saving.")
-             return jsonify({"success": False, "error": "Failed to process saved results."}), 500
-        except Exception as e:
-             logging.error(f"Error reading CSV {full_path}: {e}", exc_info=True)
-             return jsonify({"success": False, "error": "Failed to read saved results."}), 500
+        # Save the results *for this specific search* to the timestamped file
+        if processed_results_dicts:
+            try:
+                with open(full_path, mode="w", newline="", encoding="utf-8") as file:
+                    # Use the headers defined in AutoScraper.py
+                    writer = csv.DictWriter(file, fieldnames=CACHE_HEADERS)
+                    writer.writeheader()
+                    writer.writerows(processed_results_dicts)
+                logging.info(f"Saved {len(processed_results_dicts)} results for this search to {full_path}")
+                # No need to read the file back, we already have processed_results_dicts
+            except Exception as e:
+                 logging.error(f"Error writing timestamped CSV {full_path}: {e}", exc_info=True)
+                 # Decide if this is fatal or if we can proceed with Firebase save
+                 return jsonify({"success": False, "error": "Failed to save results file."}), 500
+        else:
+             logging.warning(f"No results obtained after processing links for file {full_path}")
+             # Return success but indicate no results found after processing
+             # Deduct tokens anyway? Or adjust required_tokens? For now, assume charge based on estimate.
+             new_token_count = current_tokens - required_tokens
+             update_user_settings(user_id, {'search_tokens': new_token_count}) # Still deduct
+             return jsonify({
+                "success": True,
+                "file_path": None,
+                "result_count": 0,
+                "tokens_charged": required_tokens,
+                "tokens_remaining": new_token_count
+             })
 
+        # Use the directly obtained list of dicts for Firebase
+        processed_results_for_firebase = processed_results_dicts
 
         # --- Save to Firebase ---
         metadata = {
@@ -120,15 +141,16 @@ def fetch_data_api():
             'yearMax': payload.get('YearMax', ''),
             'priceMin': payload.get('PriceMin', ''),
             'priceMax': payload.get('PriceMax', ''),
-            'file_name': file_name,
-            'timestamp': format_time_ymd_hms(),
+            'file_name': file_name, # Keep the timestamped file name
+            'timestamp': format_time_ymd_hms(), # Consider using a consistent timestamp
             'estimated_listings_scanned': estimated_count,
+            'actual_results_found': len(processed_results_for_firebase), # Add actual count
             'tokens_charged': required_tokens,
             'custom_name': payload.get('custom_name') # Carry over custom name if payload had one
         }
         firebase_result = save_results(user_id, processed_results_for_firebase, metadata)
 
-        # 6. Deduct tokens
+        # 6. Deduct tokens (already calculated based on estimate)
         new_token_count = current_tokens - required_tokens
         update_result = update_user_settings(user_id, {'search_tokens': new_token_count})
         if not update_result.get('success'):
@@ -248,30 +270,32 @@ def delete_listing_from_result_api():
              logging.error("Firestore DB not initialized for delete_listing_from_result")
              return jsonify({"success": False, "error": "Database connection error"}), 500
 
-        doc_ref = db.collection('users').document(user_id).collection('results').document(result_id)
-        doc = doc_ref.get()
+        # Reference the 'listings' subcollection directly
+        listings_coll_ref = db.collection('users').document(user_id).collection('results').document(result_id).collection('listings')
 
-        if not doc.exists:
-            return jsonify({"success": False, "error": "Result document not found"}), 404
+        # Query for the specific listing document by its 'Link' field
+        query = listings_coll_ref.where('Link', '==', link_to_delete).limit(1)
+        docs = query.stream()
 
-        doc_data = doc.to_dict()
-        current_results = doc_data.get('results', [])
+        doc_to_delete = None
+        for doc in docs:
+            doc_to_delete = doc
+            break # Should only be one match
 
-        original_count = len(current_results)
-        new_results = [listing for listing in current_results if listing.get('Link') != link_to_delete]
-        new_count = len(new_results)
-
-        if new_count == original_count:
-            logging.warning(f"Listing with link '{link_to_delete}' not found in result '{result_id}' for user '{user_id}'. No changes made.")
-            return jsonify({"success": True, "message": "Listing not found, no changes needed."})
-
-        # Update the document
-        doc_ref.update({'results': new_results})
-        logging.info(f"Deleted listing with link '{link_to_delete}' from result '{result_id}' for user '{user_id}'.")
-        return jsonify({"success": True})
+        if doc_to_delete:
+            # Delete the specific listing document
+            doc_to_delete.reference.delete()
+            logging.info(f"Deleted listing document {doc_to_delete.id} (Link: {link_to_delete}) from result '{result_id}' for user '{user_id}'.")
+            # Optional: Decrement count in parent doc? For now, skip for performance.
+            # parent_doc_ref = db.collection('users').document(user_id).collection('results').document(result_id)
+            # parent_doc_ref.update({'result_count': firestore.Increment(-1)})
+            return jsonify({"success": True})
+        else:
+            logging.warning(f"Listing with link '{link_to_delete}' not found in listings subcollection for result '{result_id}', user '{user_id}'. No changes made.")
+            return jsonify({"success": True, "message": "Listing not found, no changes needed."}) # Still success, just didn't find it
 
     except Exception as e:
-        logging.error(f"Error deleting listing from result '{result_id}' for user '{user_id}': {e}", exc_info=True)
+        logging.error(f"Error deleting listing (Link: {link_to_delete}) from result '{result_id}' for user '{user_id}': {e}", exc_info=True)
         return jsonify({"success": False, "error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
