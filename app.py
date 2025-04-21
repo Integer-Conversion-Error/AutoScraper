@@ -32,6 +32,14 @@ app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 app.config['SESSION_USE_SIGNER'] = True
 
+# --- Celery Configuration ---
+# Ensure Flask knows the same Redis URL used by celery_config.py
+# Use the same logic to get from env var or default
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+app.config['CELERY_BROKER_URL'] = REDIS_URL
+app.config['CELERY_RESULT_BACKEND'] = REDIS_URL
+app.logger.info(f"Flask app configured with Celery Broker/Backend: {REDIS_URL}")
+
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)
 # You might want to configure Flask's logger more specifically:
