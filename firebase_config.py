@@ -312,6 +312,43 @@ def update_user_settings(user_id, settings_update):
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
+def deduct_search_tokens(user_id, tokens_to_deduct):
+    """
+    Atomically deduct search tokens from a user's account.
+
+    Args:
+        user_id (str): The user's ID.
+        tokens_to_deduct (float or int): The number of tokens to deduct.
+
+    Returns:
+        dict: Success status.
+    """
+    if tokens_to_deduct <= 0:
+        # No need to update if deduction amount is zero or negative
+        return {'success': True, 'message': 'No tokens deducted.'}
+
+    try:
+        db = get_firestore_db()
+        if not db:
+            return {'success': False, 'error': 'Database connection failed'}
+
+        user_ref = db.collection('users').document(user_id)
+
+        # Use firestore.Increment to atomically decrease the token count
+        # Note: We negate the value because Increment adds, so we add a negative value.
+        update_result = user_ref.update({
+            'search_tokens': firestore.Increment(-float(tokens_to_deduct)) # Ensure float for consistency
+        })
+
+        # The update method doesn't directly confirm the operation succeeded in the way
+        # 'set' or 'add' might return references, but it will raise an exception on failure.
+        # We assume success if no exception is raised.
+        return {'success': True}
+    except Exception as e:
+        # Specific error handling could be added here (e.g., user not found?)
+        print(f"Error deducting tokens for user {user_id}: {e}")
+        return {'success': False, 'error': str(e)}
+
 # --- End User Settings Functions ---
 
 

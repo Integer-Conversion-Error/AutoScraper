@@ -3,7 +3,8 @@ import csv
 import time
 import logging
 from flask import Blueprint, request, jsonify, session, g, current_app
-from AutoScraperUtil import format_time_ymd_hms, showcarsmain, clean_model_name # Import the new function
+# Import transform_strings as well
+from AutoScraperUtil import format_time_ymd_hms, showcarsmain, clean_model_name, transform_strings
 # Import the new processing function and necessary constants from AutoScraper
 from AutoScraper import fetch_autotrader_data, process_links_and_update_cache, CACHE_HEADERS
 from firebase_config import (
@@ -11,14 +12,15 @@ from firebase_config import (
     get_user_results,
     get_result,
     delete_result,
-    update_user_settings, # Needed for token deduction
+    update_user_settings, # Keep for potential other uses? Or remove if only for tokens? Check usage.
+    deduct_search_tokens, # Import the new atomic function
     get_firestore_db      # Needed for direct listing deletion
 )
 from auth_decorator import login_required # Import the updated decorator
 
 # Create the blueprint
 api_results_bp = Blueprint('api_results', __name__, url_prefix='/api')
-
+ 
 # No placeholder decorator needed anymore
 
 @api_results_bp.route('/fetch_data', methods=['POST'])
@@ -97,10 +99,17 @@ def fetch_data_api():
         file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
         full_path = os.path.join(folder_path, file_name).replace("\\", "/")
 
-        # Call the new processing function which handles caching and returns results
-        # Note: We don't pass the payload here anymore as filtering happens later or is part of the main fetch
-        processed_results_dicts = process_links_and_update_cache(all_results_html, max_workers=1000)
-        logging.info(f"Processing complete via API. Got {len(processed_results_dicts)} results for this search (from cache or fetched).")
+        # Get transformed exclusions for filtering within the processing function
+        raw_exclusions = payload.get("Exclusions", [])
+        transformed_exclusions = transform_strings(raw_exclusions) # Use imported transform_strings
+
+        # Call the processing function, passing transformed exclusions for filtering
+        processed_results_dicts = process_links_and_update_cache(
+            data=all_results_html,
+            transformed_exclusions=transformed_exclusions,
+            max_workers=1000
+        )
+        logging.info(f"Processing and filtering complete via API. Got {len(processed_results_dicts)} results for this search (from cache or fetched).") # Updated log message
 
         # Save the results *for this specific search* to the timestamped file
         if processed_results_dicts:
@@ -119,15 +128,22 @@ def fetch_data_api():
         else:
              logging.warning(f"No results obtained after processing links for file {full_path}")
              # Return success but indicate no results found after processing
-             # Deduct tokens anyway? Or adjust required_tokens? For now, assume charge based on estimate.
-             new_token_count = current_tokens - required_tokens
-             update_user_settings(user_id, {'search_tokens': new_token_count}) # Still deduct
+             # Deduct tokens based on the initial estimate, even if processing yielded no results.
+             deduct_result = deduct_search_tokens(user_id, required_tokens)
+             if not deduct_result.get('success'):
+                 # Log the error but proceed with the response, as the search itself was 'successful'
+                 # in the sense that it ran, just token deduction failed.
+                 logging.error(f"Failed to deduct tokens for user {user_id} after empty processing. Error: {deduct_result.get('error')}")
+                 # Consider if a different response is needed here? For now, return as if deducted.
+
+             # Calculate remaining tokens based on the initial count for the response
+             tokens_remaining_after_deduction = current_tokens - required_tokens
              return jsonify({
                 "success": True,
                 "file_path": None,
                 "result_count": 0,
                 "tokens_charged": required_tokens,
-                "tokens_remaining": new_token_count
+                "tokens_remaining": tokens_remaining_after_deduction
              })
 
         # Use the directly obtained list of dicts for Firebase
@@ -150,11 +166,16 @@ def fetch_data_api():
         }
         firebase_result = save_results(user_id, processed_results_for_firebase, metadata)
 
-        # 6. Deduct tokens (already calculated based on estimate)
-        new_token_count = current_tokens - required_tokens
-        update_result = update_user_settings(user_id, {'search_tokens': new_token_count})
-        if not update_result.get('success'):
-            logging.error(f"Failed to update tokens for user {user_id} after successful search. Error: {update_result.get('error')}")
+        # 6. Atomically deduct tokens (already calculated based on estimate)
+        deduct_result = deduct_search_tokens(user_id, required_tokens)
+        if not deduct_result.get('success'):
+            # Log the error, but the search itself and saving succeeded.
+            # The response will show the tokens *before* this failed deduction attempt.
+            logging.error(f"Failed to deduct tokens for user {user_id} after successful search and save. Error: {deduct_result.get('error')}")
+            # Potentially add a flag to the response? Or rely on logs for reconciliation.
+
+        # Calculate remaining tokens based on the initial count for the response
+        tokens_remaining_after_deduction = current_tokens - required_tokens
 
         # --- Prepare Response ---
         response_data = {
@@ -162,7 +183,7 @@ def fetch_data_api():
             "file_path": full_path,
             "result_count": len(processed_results_for_firebase),
             "tokens_charged": required_tokens,
-            "tokens_remaining": new_token_count
+            "tokens_remaining": tokens_remaining_after_deduction # Show calculated remaining based on initial value
         }
         if firebase_result.get('success'):
             response_data["doc_id"] = firebase_result.get('doc_id')
