@@ -254,13 +254,8 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
 
-    # Create a session object with increased connection pool size
+    # Create a session object
     session = requests.Session()
-    adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    logger.info("Requests session configured with connection pool size 100.")
-
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -476,13 +471,8 @@ def extract_vehicle_info(url):
     """
     # Manual cache dictionary removed; relying on @lru_cache on the wrapper function.
 
-    # Create a session object for this function scope with increased connection pool size
+    # Create a session object for this function scope
     session = requests.Session()
-    adapter = requests.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    # logger.info("Vehicle info session configured with connection pool size 100.") # Optional: Add logging if needed
-
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
@@ -617,8 +607,8 @@ def extract_vehicle_info_from_json(json_content):
         logger.error(f"Error extracting vehicle info: {e}")
         return {}
 
-# Add transformed_exclusions parameter, increase default max_workers
-def process_links_and_update_cache(data, transformed_exclusions, max_workers=100):
+# Add transformed_exclusions parameter
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=10):
     """
     Processes links, using and updating a persistent CSV cache.
     Fetches data for new links, filters based on exclusions, and updates the cache file.

@@ -17,8 +17,6 @@ from firebase_config import (
     get_firestore_db      # Needed for direct listing deletion
 )
 from auth_decorator import login_required # Import the updated decorator
-# Import the Celery task
-from tasks import run_scrape_task
 
 # Create the blueprint
 api_results_bp = Blueprint('api_results', __name__, url_prefix='/api')
@@ -63,24 +61,136 @@ def fetch_data_api():
                 "error": f"Insufficient tokens. This search requires {required_tokens} tokens ({estimated_count} listings found), but you only have {current_tokens}."
             }), 402 # Payment Required
 
-        # 5. If enough tokens, enqueue the background task
-        logging.info(f"User {user_id} has sufficient tokens ({current_tokens} >= {required_tokens}). Enqueuing background scrape task.")
+        # 5. If enough tokens, proceed with fetching remaining pages
+        logging.info(f"User {user_id} has sufficient tokens ({current_tokens} >= {required_tokens}). Proceeding with full scrape.")
+        if max_page > 1:
+            all_results_html = fetch_autotrader_data(
+                payload,
+                start_page=1,
+                initial_results_html=initial_results_html,
+                max_page_override=max_page
+            )
+        else:
+            all_results_html = initial_results_html
 
-        # Enqueue the task with necessary data
-        task = run_scrape_task.delay(
-            payload=payload,
-            user_id=user_id,
-            required_tokens=required_tokens,
-            initial_results_html=initial_results_html, # Pass initial results
-            max_page=max_page # Pass max page estimate
+        if not all_results_html:
+            logging.warning(f"Initial estimate was {estimated_count}, but full fetch returned no results.")
+            required_tokens = 0 # Don't charge if no results
+            return jsonify({
+                "success": True,
+                "file_path": None,
+                "result_count": 0,
+                "tokens_charged": 0,
+                "tokens_remaining": current_tokens
+            })
+
+        # --- Processing and Saving Results ---
+        make = payload.get('Make', 'Unknown')
+        model = payload.get('Model', 'Unknown')
+        model = clean_model_name(model) # Clean the model name here
+        # Ensure Results directory exists (might be better in app startup)
+        results_base_dir = "Results"
+        if not os.path.exists(results_base_dir):
+            os.makedirs(results_base_dir)
+        folder_path = os.path.join(results_base_dir, f"{make}_{model}")
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        file_name = f"{payload.get('YearMin', '')}-{payload.get('YearMax', '')}_{payload.get('PriceMin', '')}-{payload.get('PriceMax', '')}_{format_time_ymd_hms()}.csv"
+        full_path = os.path.join(folder_path, file_name).replace("\\", "/")
+
+        # Get transformed exclusions for filtering within the processing function
+        raw_exclusions = payload.get("Exclusions", [])
+        transformed_exclusions = transform_strings(raw_exclusions) # Use imported transform_strings
+
+        # Call the processing function, passing transformed exclusions for filtering
+        processed_results_dicts = process_links_and_update_cache(
+            data=all_results_html,
+            transformed_exclusions=transformed_exclusions,
+            max_workers=1000
         )
+        logging.info(f"Processing and filtering complete via API. Got {len(processed_results_dicts)} results for this search (from cache or fetched).") # Updated log message
 
-        # Return immediate success response to the client
-        return jsonify({
+        # Save the results *for this specific search* to the timestamped file
+        if processed_results_dicts:
+            try:
+                with open(full_path, mode="w", newline="", encoding="utf-8") as file:
+                    # Use the headers defined in AutoScraper.py
+                    writer = csv.DictWriter(file, fieldnames=CACHE_HEADERS)
+                    writer.writeheader()
+                    writer.writerows(processed_results_dicts)
+                logging.info(f"Saved {len(processed_results_dicts)} results for this search to {full_path}")
+                # No need to read the file back, we already have processed_results_dicts
+            except Exception as e:
+                 logging.error(f"Error writing timestamped CSV {full_path}: {e}", exc_info=True)
+                 # Decide if this is fatal or if we can proceed with Firebase save
+                 return jsonify({"success": False, "error": "Failed to save results file."}), 500
+        else:
+             logging.warning(f"No results obtained after processing links for file {full_path}")
+             # Return success but indicate no results found after processing
+             # Deduct tokens based on the initial estimate, even if processing yielded no results.
+             deduct_result = deduct_search_tokens(user_id, required_tokens)
+             if not deduct_result.get('success'):
+                 # Log the error but proceed with the response, as the search itself was 'successful'
+                 # in the sense that it ran, just token deduction failed.
+                 logging.error(f"Failed to deduct tokens for user {user_id} after empty processing. Error: {deduct_result.get('error')}")
+                 # Consider if a different response is needed here? For now, return as if deducted.
+
+             # Calculate remaining tokens based on the initial count for the response
+             tokens_remaining_after_deduction = current_tokens - required_tokens
+             return jsonify({
+                "success": True,
+                "file_path": None,
+                "result_count": 0,
+                "tokens_charged": required_tokens,
+                "tokens_remaining": tokens_remaining_after_deduction
+             })
+
+        # Use the directly obtained list of dicts for Firebase
+        processed_results_for_firebase = processed_results_dicts
+
+        # --- Save to Firebase ---
+        metadata = {
+            'make': make,
+            'model': model, # Use the cleaned model name
+            'yearMin': payload.get('YearMin', ''),
+            'yearMax': payload.get('YearMax', ''),
+            'priceMin': payload.get('PriceMin', ''),
+            'priceMax': payload.get('PriceMax', ''),
+            'file_name': file_name, # Keep the timestamped file name
+            'timestamp': format_time_ymd_hms(), # Consider using a consistent timestamp
+            'estimated_listings_scanned': estimated_count,
+            'actual_results_found': len(processed_results_for_firebase), # Add actual count
+            'tokens_charged': required_tokens,
+            'custom_name': payload.get('custom_name') # Carry over custom name if payload had one
+        }
+        firebase_result = save_results(user_id, processed_results_for_firebase, metadata)
+
+        # 6. Atomically deduct tokens (already calculated based on estimate)
+        deduct_result = deduct_search_tokens(user_id, required_tokens)
+        if not deduct_result.get('success'):
+            # Log the error, but the search itself and saving succeeded.
+            # The response will show the tokens *before* this failed deduction attempt.
+            logging.error(f"Failed to deduct tokens for user {user_id} after successful search and save. Error: {deduct_result.get('error')}")
+            # Potentially add a flag to the response? Or rely on logs for reconciliation.
+
+        # Calculate remaining tokens based on the initial count for the response
+        tokens_remaining_after_deduction = current_tokens - required_tokens
+
+        # --- Prepare Response ---
+        response_data = {
             "success": True,
-            "message": "Scraping task successfully queued.",
-            "task_id": task.id # Provide task ID for potential status checking
-        })
+            "file_path": full_path,
+            "result_count": len(processed_results_for_firebase),
+            "tokens_charged": required_tokens,
+            "tokens_remaining": tokens_remaining_after_deduction # Show calculated remaining based on initial value
+        }
+        if firebase_result.get('success'):
+            response_data["doc_id"] = firebase_result.get('doc_id')
+        else:
+             logging.error(f"Failed to save results to Firebase for user {user_id}. Error: {firebase_result.get('error')}")
+
+        return jsonify(response_data)
 
     except Exception as e:
         logging.error(f"Error in fetch_data_api: {e}", exc_info=True)
