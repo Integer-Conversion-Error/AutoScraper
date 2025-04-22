@@ -5,7 +5,9 @@ import csv
 import time
 import os
 import logging
-from functools import lru_cache
+import csv # Added for CSV cache handling
+import datetime # Added for date caching
+from functools import lru_cache # Will be removed later, but keep import for now if used elsewhere
 from GetUserSelection import get_user_responses, cleaned_input
 from AutoScraperUtil import *
 
@@ -82,8 +84,66 @@ logger = logging.getLogger("AutoScraper")
 
 # Global variables
 start_time = None
-# Cache for vehicle info to avoid duplicate requests
-vehicle_info_cache = {}
+# Cache for vehicle info to avoid duplicate requests (lru_cache will be removed)
+# vehicle_info_cache = {} # Removed, using CSV cache now
+
+# --- CSV Cache Configuration ---
+CACHE_FILE = "autoscraper_cache.csv"
+CACHE_HEADERS = [
+    "Link", "Make", "Model", "Year", "Trim", "Price", "Drivetrain",
+    "Kilometres", "Status", "Body Type", "Engine", "Cylinder",
+    "Transmission", "Exterior Colour", "Doors", "Fuel Type",
+    "City Fuel Economy", "Hwy Fuel Economy", "date_cached" # Added date column
+]
+
+def load_cache(filepath=CACHE_FILE):
+    """Loads the CSV cache file into a dictionary."""
+    cache = {}
+    try:
+        with open(filepath, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            if reader.fieldnames != CACHE_HEADERS:
+                 logger.warning(f"Cache file '{filepath}' headers mismatch expected headers. Rebuilding cache might be necessary.")
+                 # Decide if you want to return {} or try to proceed
+                 # return {}
+            for row in reader:
+                link = row.get("Link")
+                if link:
+                    cache[link] = row
+        logger.info(f"Loaded {len(cache)} items from cache file '{filepath}'.")
+    except FileNotFoundError:
+        logger.info(f"Cache file '{filepath}' not found. A new one will be created.")
+    except Exception as e:
+        logger.error(f"Error loading cache file '{filepath}': {e}")
+    return cache
+
+def append_to_cache(data_rows, filepath=CACHE_FILE, headers=CACHE_HEADERS):
+    """Appends new data rows (list of dicts) to the CSV cache file."""
+    if not data_rows:
+        return
+
+    file_exists = os.path.isfile(filepath)
+    try:
+        with open(filepath, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=headers)
+            if not file_exists or os.path.getsize(filepath) == 0:
+                writer.writeheader()
+                logger.info(f"Created or wrote headers to cache file '{filepath}'.")
+            writer.writerows(data_rows)
+        logger.info(f"Appended {len(data_rows)} new items to cache file '{filepath}'.")
+    except Exception as e:
+        logger.error(f"Error appending to cache file '{filepath}': {e}")
+
+def write_cache(cache_dict, filepath=CACHE_FILE, headers=CACHE_HEADERS):
+    """Writes the entire cache dictionary to the CSV file, overwriting existing content."""
+    try:
+        with open(filepath, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=headers)
+            writer.writeheader()
+            writer.writerows(cache_dict.values()) # Write all values from the cache dict
+        logger.info(f"Wrote {len(cache_dict)} items to cache file '{filepath}'.")
+    except Exception as e:
+        logger.error(f"Error writing cache file '{filepath}': {e}")
 
 
 def get_proxy_from_file(filename = "proxyconfig.json"):
@@ -183,7 +243,13 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
         params["IsDamaged"] = str(params.get("IsDamaged")).lower() == 'true'
 
 
-    exclusions = transform_strings(params.get("Exclusions", []))  # Cover upper/lower-case, handle missing key
+    # Get raw exclusions first
+    raw_exclusions = params.get("Exclusions", [])
+    # Transform exclusions for later use (e.g., final filtering if needed)
+    transformed_exclusions = transform_strings(raw_exclusions)
+    logger.info(f"Using raw exclusions for initial parsing: {raw_exclusions}")
+    logger.info(f"Transformed exclusions for later steps: {transformed_exclusions}")
+
     url = "https://www.autotrader.ca/Refinement/Search"
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
@@ -263,11 +329,13 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                 if not search_results_json_str:
                     # Handle cases where only AdsHtml might be present but no SearchResultsDataJson
                     if ad_results_json and page == 0: # Only parse HTML if it's page 0 and we need initial results
-                         parsed_html_page = parse_html_content(ad_results_json, exclusions)
+                         # Pass RAW exclusions to parse_html_content (filtering removed there later)
+                         parsed_html_page = parse_html_content(ad_results_json, raw_exclusions)
                          logger.warning(f"No SearchResultsDataJson for page {page}, but AdsHtml found. Estimating max_page as 1.")
                          return parsed_html_page, 1, {} # Cannot determine max_page or count accurately
                     elif ad_results_json: # For subsequent pages, just return the HTML
-                         parsed_html_page = parse_html_content(ad_results_json, exclusions)
+                         # Pass RAW exclusions to parse_html_content (filtering removed there later)
+                         parsed_html_page = parse_html_content(ad_results_json, raw_exclusions)
                          logger.warning(f"No SearchResultsDataJson for page {page}, but AdsHtml found.")
                          return parsed_html_page, 1, {} # Cannot determine max_page accurately
                     else:
@@ -278,7 +346,8 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
                 # If we have SearchResultsDataJson, parse it
                 search_results_dict = json.loads(search_results_json_str)
-                parsed_html_page = parse_html_content(ad_results_json, exclusions) # Parse HTML ads as well
+                 # Pass RAW exclusions to parse_html_content (filtering removed there later)
+                parsed_html_page = parse_html_content(ad_results_json, raw_exclusions) # Parse HTML ads as well
                 max_page_from_json = search_results_dict.get("maxPage", 1)
                 return parsed_html_page, max_page_from_json, search_results_dict
 
@@ -373,30 +442,21 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                 except Exception as e:
                     logger.error(f"Error processing page {page}: {e}")
 
-    # Remove duplicates and apply exclusions (only at the very end)
-    filtered_results = remove_duplicates_exclusions(all_results, exclusions) # Use already transformed exclusions
-    logger.info(f"Found {len(filtered_results)} unique listings after filtering.")
+    # Remove duplicates (pass transformed exclusions, though function ignores them now for filtering)
+    unique_link_results = remove_duplicates_exclusions(all_results, transformed_exclusions)
+    logger.info(f"Found {len(unique_link_results)} unique listings after duplicate removal.") # Renamed variable
 
     # Avoid logging negative time if start_time wasn't set (e.g., only second stage ran)
     if start_time:
         elapsed = time.time() - start_time
         logger.info(f"Total fetch time: {elapsed:.2f} seconds")
 
-    return filtered_results
+    # Filtering based on content will happen in process_links_and_update_cache
+    return unique_link_results
 
 
-@lru_cache(maxsize=128)
-def extract_vehicle_info_cached(url):
-    """
-    Cached version of extract_vehicle_info to avoid redundant requests.
-
-    Args:
-        url (str): The URL to fetch data from.
-
-    Returns:
-        dict: Vehicle information extracted from the URL.
-    """
-    return extract_vehicle_info(url)
+# Removed @lru_cache and the wrapper function extract_vehicle_info_cached
+# The CSV cache handles persistence now.
 
 def extract_vehicle_info(url):
     """
@@ -547,222 +607,134 @@ def extract_vehicle_info_from_json(json_content):
         logger.error(f"Error extracting vehicle info: {e}")
         return {}
 
-def save_results_to_csv(data, payload, filename="results.csv", max_workers=10):
+# Add transformed_exclusions parameter
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=10):
     """
-    Saves fetched data by processing it concurrently with a thread pool.
+    Processes links, using and updating a persistent CSV cache.
+    Fetches data for new links, filters based on exclusions, and updates the cache file.
+    Returns the data for all links relevant to the current search (cached or newly fetched).
 
     Args:
-        data (list): List of links to save.
-        payload (dict): Payload containing additional filtering criteria.
-        filename (str): Name of the CSV file.
-        max_workers (int): Maximum number of concurrent workers.
+        data (list): List of link dictionaries (e.g., [{'link': 'url1'}, {'link': 'url2'}]).
+        max_workers (int): Maximum number of concurrent workers for fetching new data.
+
+    Returns:
+        list: A list of dictionaries, where each dictionary represents a car's data
+              corresponding to the input links.
     """
-    global start_time
-    allColNames = [
-        "Link",
-        "Make",
-        "Model",
-        "Year",
-        "Trim",
-        "Price",
-        "Drivetrain",
-        "Kilometres",
-        "Status",
-        "Body Type",
-        "Engine",
-        "Cylinder",
-        "Transmission",
-        "Exterior Colour",
-        "Doors",
-        "Fuel Type",
-        "City Fuel Economy",
-        "Hwy Fuel Economy"
-    ]
+    global start_time # Keep track of overall time if needed
+    if not start_time: # Ensure start_time is set if this is the first major step
+        start_time = time.time()
 
-    def process_link(item):
-        """
-        Worker function to process each link.
+    logger.info(f"Processing {len(data)} links with exclusions. Loading cache...")
+    persistent_cache = load_cache() # Load the main cache
+    results_for_current_search = [] # Holds results (dict) for this specific run
+    links_to_fetch = [] # Links not found in cache or stale
+    # Prepare lowercase exclusions for efficient filtering
+    lower_exclusion_strings = [excl.lower() for excl in transformed_exclusions]
+    cache_hits_fresh = 0
+    cache_hits_stale = 0
+    cache_misses = 0
 
-        Args:
-            item (dict): Dictionary containing link information.
+    today_date = datetime.date.today().isoformat() # Get today's date as YYYY-MM-DD string
 
-        Returns:
-            list: Processed row for CSV or None if extraction fails.
-        """
-        link = item["link"]
+    # 1. Check cache and filter fresh hits
+    logger.info("Checking cache and filtering fresh hits...")
+    for item in data:
+        link = item.get("link")
+        if not link:
+            logger.warning("Skipping item with no link.")
+            continue
 
-        try:
-            car_info = extract_vehicle_info_cached(link)
-            if car_info:
-                return [
-                    link,
-                    car_info.get("Make", ""),
-                    car_info.get("Model", ""),
-                    car_info.get("Year", ""),
-                    car_info.get("Trim", ""),
-                    car_info.get("Price", ""),
-                    car_info.get("Drivetrain", ""),
-                    car_info.get("Kilometres", ""),
-                    car_info.get("Status", ""),
-                    car_info.get("Body Type", ""),
-                    car_info.get("Engine", ""),
-                    car_info.get("Cylinder", ""),
-                    car_info.get("Transmission", ""),
-                    car_info.get("Exterior Colour", ""),
-                    car_info.get("Doors", ""),
-                    car_info.get("Fuel Type", ""),
-                    car_info.get("City Fuel Economy", ""),
-                    car_info.get("Hwy Fuel Economy", "")
-                ]
-            else:
-                logger.warning(f"Failed to fetch data for {link}")
-                return None
-        except Exception as e:
-            logger.error(f"Error processing {link}: {e}")
-            return None
-
-    results = []
-    total_links = len(data)
-    processed = 0
-
-    logger.info(f"Starting to process {total_links} links concurrently with {max_workers} workers")
-
-    # Process data concurrently using ThreadPoolExecutor
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all processing tasks
-        future_to_item = {executor.submit(process_link, item): item for item in data}
-
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(future_to_item):
-            item = future_to_item[future]
-            try:
-                row = future.result()
-                if row:
-                    results.append(row)
-
-                processed += 1
-
-                # Update progress
-                if processed % 5 == 0 or processed == total_links:
-                    cls()
-                    progress = (processed / total_links) * 100
-                    print(f"Progress: {processed}/{total_links} ({progress:.1f}%)")
-
-            except Exception as e:
-                url = item.get("link", "unknown")
-                logger.error(f"Error processing {url}: {e}")
-
-    # Write to CSV after processing all data
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        writer.writerow(allColNames)  # Write the header
-        writer.writerows(results)
-
-    # Avoid logging negative time if start_time wasn't set
-    if start_time:
-        elapsed_time = time.time() - start_time
-        logger.info(f"CSV processing completed in {elapsed_time:.2f} seconds")
-        print(f"Processed all in {elapsed_time:.2f}s")
-    print(f"Results saved to {filename}")
-
-    # Apply filtering
-    filter_csv(filename, filename, payload=payload)
-
-def main():
-    """
-    Main function to interact with the user with improved error handling.
-    """
-    logger.info("Starting AutoScraper")
-    print("Welcome to the AutoScraper, a tool to speed up niche searches for cars on Autotrader!")
-    file_initialisation()
-
-    while True:
-        try:
-            foldernamestr, filenamestr, pld_name, jsonfilename = "", "", "", ""
-            print("\nOptions:")
-            print("1. Create a new payload")
-            print("2. Save a payload to a file")
-            print("3. Load a payload from a file")
-            print("4. Fetch AutoTrader data")
-            print("5. Exit")
-
-            choice = input("Enter your choice: ")
-            if choice == "1":
-                payload = get_user_responses()
-                logger.info("New payload created")
-                print("Payload created:", payload)
-                cls()
-            elif choice == "2":
-                if 'payload' in locals() and payload:
-                    foldernamestr = f"Queries\\{payload['Make']}_{payload['Model']}"
-                    filenamestr = f"{payload['YearMin']}-{payload['YearMax']}_{payload['PriceMin']}-{payload['PriceMax']}_{format_time_ymd_hms()}.json"
-                    pld_name = foldernamestr + "\\" + cleaned_input("Payload Name", filenamestr, str)
-                    if not os.path.exists(foldernamestr):
-                        os.makedirs(foldernamestr)
-                        logger.info(f"Created folder: {foldernamestr}")
-                    save_json_to_file(payload, pld_name)
-                    logger.info(f"Saved payload to {pld_name}")
-                    input(f"Payload saved to {pld_name}.\n\nPress enter to continue...")
-
+        cached_item = persistent_cache.get(link)
+        if cached_item:
+            # Cache Hit: Check if it's fresh (cached today)
+            if cached_item.get('date_cached') == today_date:
+                # Apply exclusion filter to fresh cache hit
+                is_excluded = any(excl_lower in str(value).lower() for value in cached_item.values() for excl_lower in lower_exclusion_strings)
+                if not is_excluded:
+                    results_for_current_search.append(cached_item)
+                    cache_hits_fresh += 1
+                    logger.debug(f"Cache hit (fresh, kept) for: {link}")
                 else:
-                    print("No payload found. Please create one first.")
-
-            elif choice == "3":
-                jsonfilename = "Queries\\" + cleaned_input("Payload Name", "Ford_Fusion\\ff1.json", str)
-                loaded_payload = read_json_file(jsonfilename)
-                if loaded_payload:
-                    payload = loaded_payload
-                    logger.info(f"Loaded payload from {jsonfilename}")
-                    cls()
-                    print("Loaded payload:", payload)
-
-            elif choice == "4":
-                if 'payload' in locals() and payload:
-                    logger.info("Starting data fetch with payload")
-                    # This main function part is for standalone execution,
-                    # The web app will call fetch_autotrader_data directly.
-                    # We might need to adjust this if running standalone is still desired.
-                    results = fetch_autotrader_data(payload) # Calls the full fetch directly
-
-                    if not results:
-                        logger.warning("No results found")
-                        print("No results found. Try adjusting your search parameters.")
-                        continue
-
-                    # Duplicates are removed inside fetch_autotrader_data now
-                    # results = remove_duplicates_exclusions(results, payload["Exclusions"])
-                    # logger.info(f"Found {len(results)} unique results after filtering exclusions")
-
-                    foldernamestr = f"Results\\{payload['Make']}_{payload['Model']}"
-                    filenamestr = f"{foldernamestr}\\{payload['YearMin']}-{payload['YearMax']}_{payload['PriceMin']}-{payload['PriceMax']}_{format_time_ymd_hms()}.csv"
-
-                    if not os.path.exists(foldernamestr):
-                        os.makedirs(foldernamestr)
-                        logger.info(f"Created folder: {foldernamestr}")
-
-                    save_results_to_csv(results, payload=payload, filename=filenamestr,max_workers=500)
-                    logger.info(f"Total Results: {len(results)}, saved to {filenamestr}")
-                    print(f"Total Results Fetched: {len(results)}\tResults saved to {filenamestr}")
-
-                    # Open links in browser
-                    if len(results) > 0:
-                        showcarsmain(filenamestr)
-                else:
-                    print("No payload found. Please create or load one first.")
-
-            elif choice == "5":
-                logger.info("Exiting AutoScraper")
-                print("Exiting AutoScraper. Goodbye!")
-                break
+                    cache_hits_fresh += 1 # Count as hit, but excluded
+                    logger.debug(f"Cache hit (fresh, excluded) for: {link}")
             else:
-                print("Invalid choice. Please try again.")
-        except KeyboardInterrupt:
-            logger.info("User interrupted execution")
-            print("\nOperation interrupted by user. Returning to menu...")
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}", exc_info=True)
-            print(f"An unexpected error occurred: {e}")
-            print("Restarting main menu...")
+                # Stale Cache Hit: Mark for re-fetching (will be filtered after fetch)
+                links_to_fetch.append(item)
+                cache_hits_stale += 1
+                logger.debug(f"Cache hit (stale, cached {cached_item.get('date_cached')}) for: {link}. Marked for refresh.")
+        else:
+            # Cache Miss: Mark for fetching
+            links_to_fetch.append(item)
+            cache_misses += 1
+            logger.debug(f"Cache miss for: {link}")
 
-if __name__ == "__main__":
-    main()
+    # Log cache statistics
+    logger.info(f"Cache Stats: {cache_hits_fresh} fresh hits, {cache_hits_stale} stale hits, {cache_misses} misses.")
+    logger.info(f"Found {len(persistent_cache)} total items currently in cache.")
+    logger.info(f"Need to fetch/refresh {len(links_to_fetch)} links (stale + misses).")
+
+    # 2. Fetch data for new links concurrently
+    if links_to_fetch:
+        processed_new = 0
+        total_to_fetch = len(links_to_fetch)
+        logger.info(f"Starting concurrent fetch for {total_to_fetch} links with {max_workers} workers...")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_link_item = {executor.submit(extract_vehicle_info, item["link"]): item for item in links_to_fetch}
+
+            for future in concurrent.futures.as_completed(future_to_link_item):
+                link_item = future_to_link_item[future]
+                link = link_item["link"]
+                try:
+                    car_info = future.result() # car_info is a dict from extract_vehicle_info
+                    if car_info:
+                        # Add the link itself and date to the car_info dict
+                        car_info_with_link = {"Link": link, **car_info, 'date_cached': today_date}
+
+                        # Ensure all headers are present, fill missing with ""
+                        row_dict = {header: car_info_with_link.get(header, "") for header in CACHE_HEADERS}
+
+                        # Apply exclusion filter *before* adding to results or cache
+                        is_excluded = any(excl_lower in str(value).lower() for value in row_dict.values() for excl_lower in lower_exclusion_strings)
+
+                        if not is_excluded:
+                            results_for_current_search.append(row_dict) # Add to current search results
+                            persistent_cache[link] = row_dict # Update in-memory cache (overwrites stale if existed)
+                            logger.debug(f"Successfully fetched/refreshed and kept: {link}")
+                        else:
+                            # If excluded, don't add to results, but DO update cache if it was stale
+                            # to prevent re-fetching an excluded item repeatedly.
+                            # However, if it was a *new* miss, don't add the excluded item to cache.
+                            if link in persistent_cache: # Only update cache if it was stale
+                                persistent_cache[link] = row_dict # Update cache with excluded item to mark as 'fetched today'
+                                logger.debug(f"Successfully fetched/refreshed but excluded: {link}. Cache updated.")
+                            else: # It was a new miss and excluded
+                                logger.debug(f"Successfully fetched new item but excluded: {link}. Not added to cache.")
+                    else:
+                        logger.warning(f"Failed to fetch data for {link}, skipping.")
+
+                    processed_new += 1
+                    if processed_new % 5 == 0 or processed_new == total_to_fetch:
+                        cls()
+                        progress = (processed_new / total_to_fetch) * 100
+                        print(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        logger.info(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+
+                except Exception as e:
+                    logger.error(f"Error processing future for {link}: {e}")
+
+    # 3. Write the potentially updated cache back to the file
+    # Cache now contains non-excluded new items, updated non-excluded stale items,
+    # and potentially updated but excluded stale items (to prevent re-fetch).
+    write_cache(persistent_cache)
+
+    # Filtering was applied as items were processed.
+    logger.info(f"Finished processing links and updated cache. Returning {len(results_for_current_search)} filtered results for this search.")
+    # Note: The returned list contains dicts. The calling function will handle writing to the timestamped CSV.
+    return results_for_current_search
+
+    # The filter_csv call at the end of the script/calling function should be removed
+    # as filtering is now done here.
+    # print(f"Results saved to {filename}") # This print and the filter_csv call below likely belong in the calling script, not here.

@@ -83,8 +83,7 @@ def parse_html_content(html_content, exclusions=[]):
         title_tag = result_item.find('span', class_='title-with-trim')
         if title_tag:
             title_text = title_tag.get_text(strip=True)
-            if any(exclusion in title_text for exclusion in exclusions):
-                excluded = True
+            # REMOVED exclusion check here - will be done later
             listing['title'] = title_text
 
         # Extract price
@@ -102,8 +101,8 @@ def parse_html_content(html_content, exclusions=[]):
         if location_tag:
             listing['location'] = location_tag.get_text(strip=True)
 
-        # Add the listing if it has a link and is not excluded
-        if 'link' in listing and not excluded:
+        # Add the listing if it has a link (exclusion check removed)
+        if 'link' in listing:
             listings.append(listing)
     
     return listings
@@ -592,14 +591,15 @@ def remove_duplicates_exclusions(arr, excl=[]):
             full_link =  "https://www.autotrader.ca" +item["link"] 
         else:
             full_link = item["link"]
-        if full_link not in seen and full_link not in excl:
+        # Only check for duplicate links (seen)
+        if full_link not in seen:
             # Add the full_link to the item dictionary before appending
             item_with_full_link = item.copy()
             item_with_full_link["link"] = full_link
             result.append(item_with_full_link)
             seen.add(full_link)
 
-    result = filter_dicts(result,excl)
+    # Content filtering is handled later by filter_csv
     return result
 
 def print_response_size(response):
@@ -635,8 +635,11 @@ def filter_dicts(data, exclusion_strings):
         list: Filtered list of dictionaries.
     """
     filtered_data = []
+    # Convert exclusion strings to lowercase once for efficiency
+    lower_exclusion_strings = [excl.lower() for excl in exclusion_strings]
     for record in data:
-        if not any(exclusion_string in str(value) for value in record.values() for exclusion_string in exclusion_strings):
+        # Check if any lowercase exclusion string is in any lowercase value string
+        if not any(excl_lower in str(value).lower() for value in record.values() for excl_lower in lower_exclusion_strings):
             filtered_data.append(record)
     return filtered_data
 
@@ -660,10 +663,13 @@ def filter_csv(input_file, output_file, payload):
             header = next(reader)  # Get the header row
             rows = list(reader)  # Get the remaining rows
 
-        # Filter rows
+        # Filter rows (Case-insensitive)
         filtered_rows = []
+        # Convert exclusion strings to lowercase once for efficiency
+        lower_filter_strings = [fs.lower() for fs in filter_strings]
         for row in rows:
-            if not any(filter_string in cell for cell in row for filter_string in filter_strings):
+            # Check if any lowercase exclusion string is in any lowercase cell value
+            if not any(fs in cell.lower() for cell in row for fs in lower_filter_strings):
                 filtered_rows.append(row)
 
         # Write the updated rows to the output CSV file
