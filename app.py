@@ -129,6 +129,7 @@ from routes.api_payloads import api_payloads_bp
 from routes.api_results import api_results_bp
 from routes.api_settings import api_settings_bp
 from routes.api_ai import api_ai_bp
+from tasks import tasks_bp # Import the tasks blueprint
 
 # Register blueprints with the app
 app.register_blueprint(views_bp)
@@ -138,6 +139,7 @@ app.register_blueprint(api_payloads_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_results_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_settings_bp) # Prefix '/api' defined in blueprint
 app.register_blueprint(api_ai_bp) # Prefix '/api' defined in blueprint
+app.register_blueprint(tasks_bp) # Register tasks blueprint (prefix '/api/tasks' defined in blueprint)
 
 app.logger.info("Blueprints registered.")
 

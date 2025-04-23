@@ -5,3 +5,5 @@ google-api-python-client
 beautifulsoup4
 firebase-admin
 tabulate
+celery==5.4.0 # Added Celery
+redis==5.0.4 # Added Redis client

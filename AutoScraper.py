@@ -1,5 +1,7 @@
 import concurrent.futures
 import requests
+from requests.adapters import HTTPAdapter # Import HTTPAdapter
+from urllib3.util.retry import Retry # Optional: for more robust retries
 import json
 import csv
 import time
@@ -157,7 +159,8 @@ def get_proxy_from_file(filename = "proxyconfig.json"):
         return "Invalid JSON format."
 
 def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=200,
-                          initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None):
+                          initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None,
+                          task_instance=None): # Added task_instance
     """
     Fetch data from AutoTrader.ca API. Can perform an initial fetch for count or fetch all pages.
 
@@ -254,8 +257,21 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
 
-    # Create a session object
+    # Create a session object with a larger connection pool
     session = requests.Session()
+    # Configure adapter with increased pool size
+    adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100)
+    # Optional: Add retries for connection errors, etc.
+    # retry_strategy = Retry(
+    #     total=3,
+    #     status_forcelist=[429, 500, 502, 503, 504],
+    #     allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+    #     backoff_factor=1
+    # )
+    # adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=retry_strategy)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -435,10 +451,13 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                     all_results.extend(page_results_html)
                     pages_completed += 1
 
-                    # Update progress
-                    cls()
-                    logger.info(f"{pages_completed} out of {max_page} total pages completed")
-                    print(f"{pages_completed} out of {max_page} total pages completed")
+                    # Update progress via Celery task if available
+                    if task_instance:
+                        task_instance.update_progress(pages_completed, max_page, step=f"Fetching page {pages_completed}/{max_page}")
+                    else: # Fallback to console logging if no task instance
+                        cls()
+                        logger.info(f"{pages_completed} out of {max_page} total pages completed")
+                        print(f"{pages_completed} out of {max_page} total pages completed")
                 except Exception as e:
                     logger.error(f"Error processing page {page}: {e}")
 
@@ -607,8 +626,8 @@ def extract_vehicle_info_from_json(json_content):
         logger.error(f"Error extracting vehicle info: {e}")
         return {}
 
-# Add transformed_exclusions parameter
-def process_links_and_update_cache(data, transformed_exclusions, max_workers=10):
+# Add transformed_exclusions and task_instance parameters
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=10, task_instance=None):
     """
     Processes links, using and updating a persistent CSV cache.
     Fetches data for new links, filters based on exclusions, and updates the cache file.
@@ -716,11 +735,14 @@ def process_links_and_update_cache(data, transformed_exclusions, max_workers=10)
                         logger.warning(f"Failed to fetch data for {link}, skipping.")
 
                     processed_new += 1
-                    if processed_new % 5 == 0 or processed_new == total_to_fetch:
+                    # Update progress via Celery task if available, periodically
+                    if task_instance and (processed_new % 5 == 0 or processed_new == total_to_fetch):
+                        task_instance.update_progress(processed_new, total_to_fetch, step=f"Processing link {processed_new}/{total_to_fetch}")
+                    elif processed_new % 5 == 0 or processed_new == total_to_fetch: # Fallback to console logging
                         cls()
                         progress = (processed_new / total_to_fetch) * 100
-                        print(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
-                        logger.info(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        print(f"Processing Link Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        logger.info(f"Processing Link Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
 
                 except Exception as e:
                     logger.error(f"Error processing future for {link}: {e}")
