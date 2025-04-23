@@ -26,19 +26,8 @@ celery_app.conf.update(
 # Get a logger for tasks
 logger = get_task_logger(__name__)
 
-# --- Initialize Firebase for the Celery Worker ---
-# This ensures the worker process can interact with Firebase
-try:
-    firebase_initialized = initialize_firebase()
-    if firebase_initialized:
-        logger.info("Firebase initialized successfully for Celery worker.")
-    else:
-        logger.error("Firebase initialization failed for Celery worker.")
-except Exception as e:
-    logger.error(f"Firebase initialization failed for Celery worker: {e}", exc_info=True)
-    firebase_initialized = False
-# --- End Firebase Initialization ---
-
+# Firebase is initialized in app.py, which should be sufficient for the worker process as well.
+# Removing the redundant initialization here.
 
 class ProgressTask(Task):
     """Custom Task class to easily update state."""
