@@ -158,7 +158,8 @@ def get_proxy_from_file(filename = "proxyconfig.json"):
     except json.JSONDecodeError:
         return "Invalid JSON format."
 
-def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=200,
+# Reduced default max_workers significantly
+def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=5,
                           initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None,
                           task_instance=None): # Added task_instance
     """
@@ -336,7 +337,9 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
             try:
                 # Use the session object for the request
+                # Use the session object for the request
                 response = session.post(url=url, json=payload, timeout=30) # Headers and proxies are now part of the session
+                time.sleep(0.25) # Add a small delay after each request
                 response.raise_for_status()
                 json_response = response.json()
                 search_results_json_str = json_response.get("SearchResultsDataJson", "")
@@ -627,7 +630,8 @@ def extract_vehicle_info_from_json(json_content):
         return {}
 
 # Add transformed_exclusions and task_instance parameters
-def process_links_and_update_cache(data, transformed_exclusions, max_workers=10, task_instance=None):
+# Reduced default max_workers significantly
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=5, task_instance=None):
     """
     Processes links, using and updating a persistent CSV cache.
     Fetches data for new links, filters based on exclusions, and updates the cache file.
@@ -708,6 +712,7 @@ def process_links_and_update_cache(data, transformed_exclusions, max_workers=10,
                 link = link_item["link"]
                 try:
                     car_info = future.result() # car_info is a dict from extract_vehicle_info
+                    time.sleep(0.1) # Add small delay after processing each link future
                     if car_info:
                         # Add the link itself and date to the car_info dict
                         car_info_with_link = {"Link": link, **car_info, 'date_cached': today_date}

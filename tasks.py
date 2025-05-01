@@ -26,8 +26,15 @@ celery_app.conf.update(
 # Get a logger for tasks
 logger = get_task_logger(__name__)
 
-# Firebase is initialized in app.py, which should be sufficient for the worker process as well.
-# Removing the redundant initialization here.
+# Initialize Firebase within the Celery worker context
+# This ensures the worker process can interact with Firebase
+try:
+    initialize_firebase()
+    logger.info("Firebase initialized successfully within Celery worker.")
+except Exception as e:
+    logger.error(f"Failed to initialize Firebase in Celery worker: {e}", exc_info=True)
+    # Depending on requirements, you might want to prevent the worker from starting
+    # or handle this failure more gracefully. For now, just log the error.
 
 class ProgressTask(Task):
     """Custom Task class to easily update state."""
@@ -37,13 +44,14 @@ class ProgressTask(Task):
             meta={'current': current, 'total': total, 'step': step}
         )
 
-@celery_app.task(bind=True, base=ProgressTask, name='tasks.scrape_and_process_task')
+# Temporarily remove base=ProgressTask to simplify
+@celery_app.task(bind=True, name='tasks.scrape_and_process_task')
 def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scrape_data):
     """
     Celery task to perform the full scrape, process results, save, and deduct tokens.
     """
     logger.info(f"[Task ID: {self.request.id}] Starting scrape for user {user_id}. Payload: {payload}")
-    self.update_progress(0, 100, "Initializing scrape...")
+    # self.update_progress(0, 100, "Initializing scrape...") # Removed as ProgressTask base was removed
 
     try:
         # --- 1. Full Data Fetch ---
@@ -53,17 +61,17 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
         max_page = initial_scrape_data.get('max_page', 1)
 
         if max_page > 1:
-            # Pass the task instance (self) to the fetch function for progress updates
+            # Pass the task instance (self) to the fetch function (progress updates disabled for now)
             all_results_html = fetch_autotrader_data(
                 payload,
                 start_page=1,
                 initial_results_html=initial_results_html,
                 max_page_override=max_page,
-                task_instance=self # Pass task instance here
+                # task_instance=self # Progress reporting temporarily disabled
             )
         else:
             all_results_html = initial_results_html
-            self.update_progress(100, 100, "Fetching complete (1 page).") # Update progress if only one page
+            # self.update_progress(100, 100, "Fetching complete (1 page).") # Progress reporting temporarily disabled
 
         if not all_results_html:
             logger.warning(f"[Task ID: {self.request.id}] Full fetch returned no results.")
@@ -83,7 +91,7 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
 
         # --- 2. Processing and Saving Results ---
         logger.info(f"[Task ID: {self.request.id}] Processing {len(all_results_html)} fetched items.")
-        self.update_progress(0, 100, "Processing results...") # Reset progress for processing step
+        # self.update_progress(0, 100, "Processing results...") # Progress reporting temporarily disabled
 
         make = payload.get('Make', 'Unknown')
         model = payload.get('Model', 'Unknown')
@@ -103,22 +111,22 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
         processed_results_dicts = process_links_and_update_cache(
             data=all_results_html,
             transformed_exclusions=transformed_exclusions,
-            max_workers=1000, # Consider making this configurable
-            task_instance=self # Pass task instance here
+            max_workers=5, # Use the reduced worker count here as well
+            # task_instance=self # Progress reporting temporarily disabled
         )
         logger.info(f"[Task ID: {self.request.id}] Processing complete. Got {len(processed_results_dicts)} results.")
-        self.update_progress(100, 100, "Processing complete.")
+        # self.update_progress(100, 100, "Processing complete.") # Progress reporting temporarily disabled
 
         # --- 3. Save to Local File ---
         if processed_results_dicts:
             logger.info(f"[Task ID: {self.request.id}] Saving {len(processed_results_dicts)} results to {full_path}")
-            self.update_progress(0, 100, "Saving local file...")
+            # self.update_progress(0, 100, "Saving local file...") # Progress reporting temporarily disabled
             try:
                 with open(full_path, mode="w", newline="", encoding="utf-8") as file:
                     writer = csv.DictWriter(file, fieldnames=CACHE_HEADERS)
                     writer.writeheader()
                     writer.writerows(processed_results_dicts)
-                self.update_progress(100, 100, "Local file saved.")
+                # self.update_progress(100, 100, "Local file saved.") # Progress reporting temporarily disabled
             except Exception as e:
                  logger.error(f"[Task ID: {self.request.id}] Error writing timestamped CSV {full_path}: {e}", exc_info=True)
                  # Don't deduct tokens if saving failed critically
@@ -131,7 +139,7 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
         doc_id = None
         if processed_results_dicts:
             logger.info(f"[Task ID: {self.request.id}] Saving results to Firebase for user {user_id}")
-            self.update_progress(0, 100, "Saving to Firebase...")
+            # self.update_progress(0, 100, "Saving to Firebase...") # Progress reporting temporarily disabled
             metadata = {
                 'make': make,
                 'model': model,
@@ -150,18 +158,18 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
             if firebase_result.get('success'):
                 doc_id = firebase_result.get('doc_id')
                 logger.info(f"[Task ID: {self.request.id}] Successfully saved results to Firebase (Doc ID: {doc_id})")
-                self.update_progress(100, 100, "Saved to Firebase.")
+                # self.update_progress(100, 100, "Saved to Firebase.") # Progress reporting temporarily disabled
             else:
                  logger.error(f"[Task ID: {self.request.id}] Failed to save results to Firebase for user {user_id}. Error: {firebase_result.get('error')}")
                  # Decide if this is fatal. For now, log error but continue to token deduction.
-                 self.update_progress(100, 100, "Firebase save failed.") # Mark progress done, but log indicates error
+                 # self.update_progress(100, 100, "Firebase save failed.") # Progress reporting temporarily disabled
         else:
             logger.info(f"[Task ID: {self.request.id}] Skipping Firebase save as there were no processed results.")
 
 
         # --- 5. Deduct Tokens ---
         logger.info(f"[Task ID: {self.request.id}] Deducting {required_tokens} tokens for user {user_id}")
-        self.update_progress(0, 100, "Finalizing...")
+        # self.update_progress(0, 100, "Finalizing...") # Progress reporting temporarily disabled
         deduct_result = deduct_search_tokens(user_id, required_tokens)
         if not deduct_result.get('success'):
             # Log the error, but the task itself succeeded in scraping/saving.
@@ -171,7 +179,7 @@ def scrape_and_process_task(self, payload, user_id, required_tokens, initial_scr
         tokens_remaining_final = deduct_result.get('tokens_remaining', 'N/A') # Get remaining tokens from the result of the deduction function
 
         logger.info(f"[Task ID: {self.request.id}] Task completed successfully.")
-        self.update_progress(100, 100, "Complete.")
+        # self.update_progress(100, 100, "Complete.") # Progress reporting temporarily disabled
 
         # --- 6. Return Final Result ---
         return {

@@ -8,3 +8,7 @@ __pycache__/GetUserSelection.cpython-310.pyc
 autoscraper.log
 /.vs
 /autoscraper_rust/target/debug
+*.jpg
+*.svg
+rendered_page.html
+listing_debug.html
