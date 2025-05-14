@@ -9,6 +9,13 @@ from typing import Optional, Dict, Any # For type hinting
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__) # Use a logger instance
+
+# Attempt to import FAILED_SCRAPE_DEBUG, default to False if not found (e.g. when run standalone)
+try:
+    from KijijiScraper import FAILED_SCRAPE_DEBUG
+except ImportError:
+    FAILED_SCRAPE_DEBUG = False # Default if KijijiScraper is not available or var is not there
 
 # Define custom exception
 class ScrapingTimeoutError(Exception):
@@ -80,7 +87,8 @@ def scrape_kijiji_single_page(partial_url: str, output_filename: Optional[str] =
     for attempt in range(max_retries + 1):
         try:
             # --- Make the request ---
-            logging.info(f"Attempting to fetch data from: {url} (Attempt {attempt + 1}/{max_retries + 1})")
+            if not FAILED_SCRAPE_DEBUG:
+                logger.info(f"Attempting to fetch data from: {url} (Attempt {attempt + 1}/{max_retries + 1})")
             response = requests.get(url, headers=headers, proxies=proxies, timeout=request_timeout)
 
             # --- Handle 403 Forbidden ---
@@ -96,21 +104,24 @@ def scrape_kijiji_single_page(partial_url: str, output_filename: Optional[str] =
 
             # --- Handle other HTTP errors ---
             response.raise_for_status() # Raises HTTPError for 4xx/5xx responses (excluding the handled 403)
-            logging.info(f"Successfully fetched data. Status code: {response.status_code}")
+            if not FAILED_SCRAPE_DEBUG:
+                logger.info(f"Successfully fetched data. Status code: {response.status_code}")
 
             # --- Process successful response ---
             try:
                 data = response.json()
-                logging.info("Successfully parsed JSON response.")
+                if not FAILED_SCRAPE_DEBUG:
+                    logger.info("Successfully parsed JSON response.")
 
                 # Only save if output_filename is provided
                 if output_filename:
                     try:
                         with open(output_filename, 'w', encoding='utf-8') as f:
                             json.dump(data, f, indent=4, ensure_ascii=False)
-                        logging.info(f"Successfully saved JSON data to {output_filename}")
+                        if not FAILED_SCRAPE_DEBUG:
+                            logger.info(f"Successfully saved JSON data to {output_filename}")
                     except IOError as e:
-                        logging.error(f"Failed to write JSON to {output_filename}: {e}")
+                        logger.error(f"Failed to write JSON to {output_filename}: {e}")
 
                 return data # Success! Return the data
 
@@ -178,7 +189,8 @@ async def scrape_kijiji_single_page_async(partial_url: str, client: httpx.AsyncC
 
     for attempt in range(max_retries + 1):
         try:
-            logging.debug(f"Attempting async fetch for {url} (Attempt {attempt + 1}/{max_retries + 1})")
+            if not FAILED_SCRAPE_DEBUG:
+                logger.debug(f"Attempting async fetch for {url} (Attempt {attempt + 1}/{max_retries + 1})")
             response = await client.get(url, headers=headers, timeout=request_timeout)
 
             if response.status_code == 403:
@@ -192,11 +204,13 @@ async def scrape_kijiji_single_page_async(partial_url: str, client: httpx.AsyncC
                     response.raise_for_status()
 
             response.raise_for_status() # Raise for other 4xx/5xx
-            logging.debug(f"Successfully fetched data (async). Status code: {response.status_code}")
+            if not FAILED_SCRAPE_DEBUG:
+                logger.debug(f"Successfully fetched data (async). Status code: {response.status_code}")
 
             try:
                 data = response.json()
-                logging.debug("Successfully parsed JSON response (async).")
+                if not FAILED_SCRAPE_DEBUG:
+                    logger.debug("Successfully parsed JSON response (async).")
 
                 if output_filename:
                     # File saving remains synchronous for simplicity within the async function
@@ -204,9 +218,10 @@ async def scrape_kijiji_single_page_async(partial_url: str, client: httpx.AsyncC
                     try:
                         with open(output_filename, 'w', encoding='utf-8') as f:
                             json.dump(data, f, indent=4, ensure_ascii=False)
-                        logging.info(f"Successfully saved JSON data to {output_filename}")
+                        if not FAILED_SCRAPE_DEBUG:
+                            logger.info(f"Successfully saved JSON data to {output_filename}")
                     except IOError as e:
-                        logging.error(f"Failed to write JSON to {output_filename}: {e}")
+                        logger.error(f"Failed to write JSON to {output_filename}: {e}")
 
                 return data # Success
 
@@ -330,31 +345,33 @@ def extract_relevant_kijiji_data(data: dict):
             km_numeric_part = match.group(1).replace(",", "") # Get captured group 1 and remove commas
             try:
                 extracted["Kilometres"] = int(km_numeric_part)
-                logging.debug(f"Parsed Kilometres: {km_str} -> {extracted['Kilometres']}")
+                if not FAILED_SCRAPE_DEBUG:
+                    logger.debug(f"Parsed Kilometres: {km_str} -> {extracted['Kilometres']}")
             except ValueError:
-                logging.warning(f"Could not convert extracted kilometres '{km_numeric_part}' to int.")
+                logger.warning(f"Could not convert extracted kilometres '{km_numeric_part}' to int.")
                 extracted["Kilometres"] = None
         else:
             logging.warning(f"Could not find numeric part in Kilometres string: '{km_str}'")
             extracted["Kilometres"] = None
     else:
-         # Fallback: Check top-level vehicleUsage if quickFacts fails (less likely needed based on example)
-         km_str_fallback = safe_get(data, ["vehicleUsage", "currentMileage"])
-         if km_str_fallback:
-             match = re.search(r"([\d,]+)", km_str_fallback)
-             if match:
-                 km_numeric_part = match.group(1).replace(",", "")
-                 try:
-                     extracted["Kilometres"] = int(km_numeric_part)
-                     logging.debug(f"Parsed Kilometres (fallback): {km_str_fallback} -> {extracted['Kilometres']}")
-                 except ValueError:
-                     logging.warning(f"Could not convert extracted fallback kilometres '{km_numeric_part}' to int.")
-                     extracted["Kilometres"] = None
-             else:
-                 logging.warning(f"Could not find numeric part in fallback Kilometres string: '{km_str_fallback}'")
-                 extracted["Kilometres"] = None
-         else:
-             extracted["Kilometres"] = None # Set to None if not found anywhere
+        # Fallback: Check top-level vehicleUsage if quickFacts fails (less likely needed based on example)
+        km_str_fallback = safe_get(data, ["vehicleUsage", "currentMileage"])
+        if km_str_fallback:
+            match = re.search(r"([\d,]+)", km_str_fallback)
+            if match:
+                km_numeric_part = match.group(1).replace(",", "")
+                try:
+                    extracted["Kilometres"] = int(km_numeric_part)
+                    if not FAILED_SCRAPE_DEBUG:
+                        logger.debug(f"Parsed Kilometres (fallback): {km_str_fallback} -> {extracted['Kilometres']}")
+                except ValueError:
+                    logger.warning(f"Could not convert extracted fallback kilometres '{km_numeric_part}' to int.")
+                    extracted["Kilometres"] = None
+            else:
+                logger.warning(f"Could not find numeric part in fallback Kilometres string: '{km_str_fallback}'")
+                extracted["Kilometres"] = None
+        else:
+            extracted["Kilometres"] = None # Set to None if not found anywhere
 
 
     # Status (Condition)

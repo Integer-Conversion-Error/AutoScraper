@@ -8,6 +8,8 @@ import re
 from urllib.parse import urlencode, urljoin, urlparse
 import time
 import os
+import glob # Added for glob pattern matching
+from datetime import datetime # Added for timestamp
 
 # Import the necessary ASYNC functions, proxy loader, and custom exceptions from KijijiSingleScrape
 from KijijiSingleScrape import (
@@ -37,8 +39,39 @@ SCROLL_DELAY = 0.1 # Delay between scrolls (seconds)
 NETWORK_IDLE_TIMEOUT = 1500 # Timeout for waiting for network idle (ms)
 STABLE_HEIGHT_CHECKS = 3 # How many times height must be stable to stop scrolling
 MONITOR_INTERVAL = 0.1 # How often to check for new listings (seconds)
+FAILED_SCRAPE_DEBUG = True # If True, suppress successful logs, only show failures/fallbacks
+JSON_DEBUG = False # If True, enable detailed JSON logging per scroll and duplicate analysis
+SAVE_HTML_DEBUG = False # If True, save HTML content on certain errors for debugging
 
 # --- Helper Functions ---
+
+def extract_srp_items_from_html(html_content):
+    """
+    Extracts SRP items from the window.INITIAL_STATE in HTML content.
+    Returns a list of items, or an empty list if extraction fails.
+    """
+    match = re.search(r'<script[^>]*>\s*window\.INITIAL_STATE\s*=\s*(\{.*?\})\s*;?\s*</script>', html_content, re.DOTALL)
+    if not match:
+        logger.warning("Could not find 'window.INITIAL_STATE' script tag in HTML content for item extraction.")
+        return []
+    json_string = match.group(1)
+    try:
+        initial_state_json = json.loads(json_string)
+        return initial_state_json.get('pages', {}).get('srp', {}).get('items', [])
+    except json.JSONDecodeError as e:
+        logger.warning(f"Failed to decode INITIAL_STATE JSON: {e}")
+        # Attempt to clean up potential trailing commas
+        cleaned_json_string = re.sub(r',\s*([}\]])', r'\1', json_string)
+        try:
+            initial_state_json = json.loads(cleaned_json_string)
+            logger.info("Successfully parsed INITIAL_STATE JSON after cleaning attempt.")
+            return initial_state_json.get('pages', {}).get('srp', {}).get('items', [])
+        except json.JSONDecodeError as e_cleaned:
+            logger.error(f"Still failed to decode INITIAL_STATE JSON after cleaning: {e_cleaned}")
+            return []
+    except Exception as e:
+        logger.error(f"Unexpected error extracting SRP items from HTML: {e}")
+        return []
 
 def construct_search_url(params):
     """
@@ -130,47 +163,102 @@ def construct_search_url(params):
 
 # --- Async Tasks ---
 
-async def scroll_task(page, stop_event):
-    """Scrolls the page until the height stabilizes or stop_event is set."""
+async def scroll_task(page, stop_event, debug_html_path, items_per_scroll_snapshot, cross_scroll_item_tracker): # Parameters will be None if JSON_DEBUG is False
+    """Scrolls the page. If JSON_DEBUG is True, saves HTML content, extracts items, and tracks them."""
     # logger.info("Starting scroll task...") # Suppressed log
     last_height = await page.evaluate("document.body.scrollHeight")
     stable_count = 0
-    attempts = 0
-    max_scroll_attempts = 150 # Limit scrolls to prevent infinite loops on tricky pages
+    scroll_attempt_number = 0
+    max_scroll_attempts = 150 # Limit scrolls
 
-    while not stop_event.is_set() and attempts < max_scroll_attempts:
-        # logger.debug(f"Scroll attempt {attempts + 1}/{max_scroll_attempts}, scrolling down...") # Suppressed debug log
+    while not stop_event.is_set() and scroll_attempt_number < max_scroll_attempts:
+        scroll_attempt_number += 1
+        # logger.debug(f"Scroll attempt {scroll_attempt_number}/{max_scroll_attempts}, scrolling down...")
         await page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
-        await asyncio.sleep(SCROLL_DELAY)
+        await asyncio.sleep(SCROLL_DELAY) # Give content time to load after scroll action
+
+        if JSON_DEBUG:
+            # --- Save HTML content and extract items (only if JSON_DEBUG is True) ---
+            try:
+                html_content = await page.content()
+                # Ensure debug_html_path is valid before joining
+                if debug_html_path:
+                    html_file_path = os.path.join(debug_html_path, f"scroll_{scroll_attempt_number}_page_content.html")
+                    with open(html_file_path, 'w', encoding='utf-8') as f:
+                        f.write(html_content)
+                    # logger.info(f"Saved HTML for scroll {scroll_attempt_number} to {html_file_path}")
+
+                current_scroll_items = extract_srp_items_from_html(html_content)
+                if current_scroll_items:
+                    if debug_html_path: # Ensure path exists before writing
+                        items_file_path = os.path.join(debug_html_path, f"scroll_{scroll_attempt_number}_items.json")
+                        with open(items_file_path, 'w', encoding='utf-8') as f:
+                            json.dump(current_scroll_items, f, indent=2)
+                        # logger.info(f"Saved {len(current_scroll_items)} items for scroll {scroll_attempt_number} to {items_file_path}")
+
+                    current_item_ids = {item['id'] for item in current_scroll_items if 'id' in item}
+
+                    # Distinct Item Check (ensure items_per_scroll_snapshot is initialized)
+                    if items_per_scroll_snapshot is not None:
+                        if items_per_scroll_snapshot: # If not the first scroll
+                            previous_item_ids = items_per_scroll_snapshot[-1]
+                            if current_item_ids == previous_item_ids:
+                                logger.info(f"Scroll {scroll_attempt_number}: Items are identical to the previous scroll (scroll {scroll_attempt_number -1}).")
+                        items_per_scroll_snapshot.append(current_item_ids)
+
+                    # Update cross_scroll_item_tracker (ensure it's initialized)
+                    if cross_scroll_item_tracker is not None:
+                        for item in current_scroll_items:
+                            item_id = item.get('id')
+                            item_link_path = item.get('url', f"/a-car/{item_id}")
+                            item_full_link = urljoin(BASE_URL, item_link_path)
+
+                            if item_id:
+                                if item_id in cross_scroll_item_tracker:
+                                    cross_scroll_item_tracker[item_id]['scroll_numbers'].add(scroll_attempt_number)
+                                else:
+                                    cross_scroll_item_tracker[item_id] = {
+                                        "link": item_full_link,
+                                        "scroll_numbers": {scroll_attempt_number}
+                                    }
+                else:
+                    # If no items extracted, still add an empty set if tracking
+                    if items_per_scroll_snapshot is not None:
+                        items_per_scroll_snapshot.append(set())
+                    logger.info(f"Scroll {scroll_attempt_number}: No items extracted from HTML.")
+
+            except Exception as e:
+                logger.error(f"Error during JSON_DEBUG HTML processing/saving for scroll {scroll_attempt_number}: {e}", exc_info=True)
+            # --- End HTML processing ---
+
         try:
             await page.wait_for_load_state('networkidle', timeout=NETWORK_IDLE_TIMEOUT)
-            # logger.debug("Network became idle after scroll.") # Suppressed debug log
+            # logger.debug("Network became idle after scroll.")
         except PlaywrightTimeoutError:
-            pass # Ignore timeout during benchmark
-            # logger.debug("Network did not become idle quickly after scroll, proceeding.") # Suppressed debug log
+            pass # logger.debug("Network did not become idle quickly after scroll, proceeding.")
         except Exception as e:
-            logger.warning(f"Error during wait_for_load_state: {e}") # Keep warnings
+            logger.warning(f"Error during wait_for_load_state: {e}")
 
         new_height = await page.evaluate("document.body.scrollHeight")
         if new_height == last_height:
             stable_count += 1
-            # logger.debug(f"Scroll height stable ({stable_count}/{STABLE_HEIGHT_CHECKS}).") # Suppressed debug log
+            # logger.debug(f"Scroll height stable ({stable_count}/{STABLE_HEIGHT_CHECKS}).")
             if stable_count >= STABLE_HEIGHT_CHECKS:
-                # logger.info("Scroll height stable. Stopping scroll task.") # Suppressed log
+                # logger.info("Scroll height stable. Stopping scroll task.")
                 stop_event.set()
                 break
         else:
             stable_count = 0
             last_height = new_height
-            # logger.info(f"Scroll height increased to: {new_height} pixels.") # Suppressed log
-        attempts += 1
-        if attempts == max_scroll_attempts:
-            logger.warning(f"Reached max scroll attempts ({max_scroll_attempts}). Stopping scroll.") # Keep warning
+            # logger.info(f"Scroll height increased to: {new_height} pixels.")
+        
+        if scroll_attempt_number == max_scroll_attempts:
+            logger.warning(f"Reached max scroll attempts ({max_scroll_attempts}). Stopping scroll.")
             stop_event.set()
-    # logger.info("Scroll task finished.") # Suppressed log
+    # logger.info("Scroll task finished.")
 
 
-async def monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker_count, srp_failed_log_path="failed_srp_links.txt"): # Added srp_failed_log_path
+async def monitor_and_queue_task(page, queue, scraped_ad_ids, all_listings_data, stop_event, worker_count, srp_failed_log_path="failed_srp_links.txt"): # Added srp_failed_log_path
     """Monitors for new listings and adds their ad_id/title to the queue. Logs SRP failures."""
     # logger.info(f"Starting monitoring task... Logging SRP failures to: {srp_failed_log_path}") # Suppressed log
     last_logged_batch = -1 # Track the last logged batch number
@@ -194,43 +282,74 @@ async def monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker
             # Iterate through locators found in this check
             for i in range(current_found_count):
                 article_locator = listing_locators.nth(i)
-                ad_id = None
+                ad_id = None # Reset ad_id for each iteration
+                title_value = None # Reset title_value for each iteration
+                if not FAILED_SCRAPE_DEBUG:
+                    logger.info(f"Monitor: Processing SRP item index {i} (0-based).")
+
                 try:
                     ad_id_div = article_locator.locator('div[data-testid="VehicleListItem"]')
-                    ad_id = await ad_id_div.get_attribute('data-test-ad-id', timeout=1000)
+                    ad_id = await ad_id_div.get_attribute('data-test-ad-id', timeout=100) # Short timeout for quick check
 
-                    if ad_id and ad_id not in scraped_ad_ids:
+                    if ad_id: # Only proceed if ad_id is found
                         title_tag = article_locator.locator('h2')
-                        title_value = await title_tag.text_content(timeout=1000) if await title_tag.count() > 0 else None
-                        if title_value:
-                            # logger.debug(f"Found new ad_id: {ad_id}, Title: {title_value}. Queuing for VIP scrape.") # Suppressed debug log
-                            scraped_ad_ids.add(ad_id)
-                            try:
-                                await queue.put((ad_id, title_value))
-                                # logger.debug(f"Queued ad_id: {ad_id}. Queue size: {queue.qsize()}") # Suppressed debug log
-                            except asyncio.QueueFull:
-                                logger.warning(f"Queue full. Waiting to add ad_id: {ad_id}") # Keep warning
-                                await queue.put((ad_id, title_value))
-                        else:
-                            logger.warning(f"Found new ad_id {ad_id} but failed to get title from SRP.") # Keep warning
-                except PlaywrightTimeoutError:
-                    # --- VERY LOUD LOG TO CONFIRM ENTRY ---
-                    # logger.critical(f"***** ENTERED PlaywrightTimeoutError block for SRP listing index {i} *****") # Suppressed critical log
-                    # --- END LOUD LOG ---
+                        title_value = await title_tag.text_content(timeout=100) if await title_tag.count() > 0 else "N/A"
 
+                        if ad_id not in scraped_ad_ids:
+                            if title_value and title_value != "N/A":
+                                if not FAILED_SCRAPE_DEBUG:
+                                    logger.info(f"Monitor: Successfully extracted for SRP index {i}: ad_id='{ad_id}', title='{title_value}'. Queuing.")
+                                scraped_ad_ids.add(ad_id)
+                                try:
+                                    await queue.put((ad_id, title_value))
+                                except asyncio.QueueFull:
+                                    logger.warning(f"Queue full. Waiting to add ad_id: {ad_id}, title: '{title_value}'") # Keep warning
+                                    await queue.put((ad_id, title_value)) # Retry putting after warning
+                            else: # This means title_value is "N/A" or was not found
+                                logger.warning(f"Monitor: For SRP index {i}, got ad_id='{ad_id}' but title is '{title_value}'. Queuing with ad_id only.")
+                                scraped_ad_ids.add(ad_id)
+                                try:
+                                    await queue.put((ad_id, title_value)) # title_value here will be "N/A"
+                                except asyncio.QueueFull:
+                                    logger.warning(f"Queue full. Waiting to add ad_id: {ad_id} (title: '{title_value}').")
+                                    await queue.put((ad_id, title_value))
+                        else:
+                            if not FAILED_SCRAPE_DEBUG:
+                                logger.info(f"Monitor: SRP index {i}, ad_id='{ad_id}' (title: '{title_value}') already scraped or queued. Skipping.")
+                    else:
+                        logger.warning(f"Monitor: Failed to get ad_id for SRP item index {i} after initial attempt.")
+
+                except PlaywrightTimeoutError:
                     current_url = page.url # Get current URL for logging
-                    logger.warning(f"SRP Timeout getting ad_id or title for potential listing index {i} at URL: {current_url}. Found count: {current_found_count}") # Keep warning
+                    logger.warning(f"Monitor: SRP Timeout for index {i}. ad_id so far: '{ad_id}'. URL: {current_url}. Found count: {current_found_count}")
+
+                    # --- Count VehicleListItems on error ---
+                    try:
+                        vehicle_list_item_locator = page.locator('div[data-testid="VehicleListItem"]')
+                        vehicle_list_item_count = await vehicle_list_item_locator.count()
+                        logger.info(f"On SRP Timeout for index {i}, found {vehicle_list_item_count} div elements with data-testid='VehicleListItem'.")
+                    except Exception as e_count_vli:
+                        logger.error(f"Error counting VehicleListItems on SRP Timeout for index {i}: {e_count_vli}")
+                    # --- End Count VehicleListItems ---
 
                     # --- Attempt to save full page content on error ---
-                    try:
-                        page_content = await page.content()
-                        timestamp = time.strftime("%Y%m%d_%H%M%S")
-                        error_filename = f"page_content_on_srp_error_{i}_{timestamp}.html"
-                        with open(error_filename, 'w', encoding='utf-8') as f_err:
-                            f_err.write(page_content)
-                        logger.warning(f"Saved full page content to {error_filename} due to SRP timeout on index {i}.")
-                    except Exception as page_content_err:
-                        logger.error(f"Failed to get or save page content on SRP timeout for index {i}: {page_content_err}")
+                    if SAVE_HTML_DEBUG:
+                        try:
+                            page_content = await page.content()
+                            timestamp = time.strftime("%Y%m%d_%H%M%S")
+                            
+                            # Ensure debug_html directory exists
+                            debug_html_dir = "debug_html"
+                            os.makedirs(debug_html_dir, exist_ok=True)
+                            
+                            base_error_filename = f"page_content_on_srp_error_{i}_{timestamp}.html"
+                            error_filepath = os.path.join(debug_html_dir, base_error_filename)
+                            
+                            with open(error_filepath, 'w', encoding='utf-8') as f_err:
+                                f_err.write(page_content)
+                            logger.warning(f"Saved full page content to {error_filepath} due to SRP timeout on index {i}.")
+                        except Exception as page_content_err:
+                            logger.error(f"Failed to get or save page content on SRP timeout for index {i}: {page_content_err}")
                     # --- End page content saving ---
 
                     # --- Attempt to log the failed element's HTML (might still fail) ---
@@ -239,7 +358,7 @@ async def monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker
                         # Attempt to get outerHTML of the specific failing element
                         raw_element_html = await article_locator.evaluate("element => element.outerHTML", timeout=1000)
                         if raw_element_html:
-                            logger.warning(f"Raw HTML for failed SRP element (index {i}):\n---\n{raw_element_html}\n---")
+                            logger.warning(f"Getting raw HTML for failed SRP element (index {i})")
                             # Write this to the SRP failed log file
                             try:
                                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -255,16 +374,48 @@ async def monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker
                         logger.warning(f"Could not get raw HTML for failed SRP element (index {i}) due to error: {element_html_err}")
                     # --- End HTML logging attempt ---
 
-                    # --- Playwright Fallback for SRP Timeout ---
-                    # Check if we managed to get the ad_id before the timeout and haven't scraped it yet
-                    if ad_id and ad_id not in scraped_ad_ids:
+                    # --- Attempt to parse raw_element_html if ad_id is still None ---
+                    parsed_from_raw_html = False
+                    if not ad_id and raw_element_html:
+                        logger.info(f"Monitor: SRP Timeout for index {i}, ad_id not found via Playwright. Attempting to parse from raw element HTML.")
+                        ad_id_match = re.search(r'data-test-ad-id="([^"]+)"', raw_element_html)
+                        title_match = re.search(r'<h2[^>]*>(.*?)<\/h2>', raw_element_html, re.DOTALL)
+
+                        if ad_id_match:
+                            extracted_ad_id_from_raw = ad_id_match.group(1)
+                            extracted_title_from_raw = title_match.group(1).strip() if title_match else "N/A (from raw HTML)"
+                            
+                            if extracted_ad_id_from_raw not in scraped_ad_ids:
+                                logger.info(f"Monitor: Successfully extracted from raw HTML for SRP index {i}: ad_id='{extracted_ad_id_from_raw}', title='{extracted_title_from_raw}'. Queuing.")
+                                ad_id = extracted_ad_id_from_raw # Assign to ad_id for further logic
+                                title_value = extracted_title_from_raw # Assign to title_value
+                                scraped_ad_ids.add(ad_id)
+                                try:
+                                    await queue.put((ad_id, title_value))
+                                    parsed_from_raw_html = True
+                                except asyncio.QueueFull:
+                                    logger.warning(f"Queue full. Waiting to add (from raw HTML) ad_id: {ad_id}, title: '{title_value}'")
+                                    await queue.put((ad_id, title_value))
+                                    parsed_from_raw_html = True
+                            else:
+                                logger.info(f"Monitor: SRP index {i}, ad_id='{extracted_ad_id_from_raw}' (from raw HTML) already scraped or queued. Skipping.")
+                                parsed_from_raw_html = True # Still consider it handled
+                        else:
+                            logger.warning(f"Monitor: Failed to extract ad_id from raw HTML for SRP index {i}.")
+                    
+                    if parsed_from_raw_html:
+                        continue # Successfully processed from raw HTML, move to next item
+
+                    # --- Playwright Fallback for SRP Timeout (if ad_id was found before timeout or by raw HTML parse) ---
+                    if ad_id and ad_id not in scraped_ad_ids: # ad_id might have been populated by Playwright before timeout OR by raw HTML parsing
                         vip_url = urljoin(BASE_URL, f"/vip/{ad_id}/")
-                        logger.info(f"SRP Timeout for index {i}, but ad_id ({ad_id}) retrieved. Attempting Playwright fallback for {vip_url}.")
+                        logger.info(f"Monitor: SRP Timeout for index {i}, but ad_id='{ad_id}' was retrieved (possibly from raw HTML). Attempting Playwright fallback for URL: {vip_url}.")
                         try:
                             # Call the Playwright single page scraper
                             playwright_data = await scrape_kijiji_single_page_playwright(vip_url)
                             if playwright_data:
-                                logger.info(f"Successfully processed ad_id {ad_id} using Playwright fallback from SRP timeout.")
+                                if not FAILED_SCRAPE_DEBUG:
+                                    logger.info(f"Monitor: Playwright SRP fallback for ad_id='{ad_id}' (URL: {vip_url}) SUCCEEDED. Data extracted.")
                                 # Add necessary fields similar to the primary method
                                 playwright_data['ad_id'] = ad_id
                                 playwright_data['url'] = vip_url
@@ -272,28 +423,56 @@ async def monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker
                                 all_listings_data.append(playwright_data)
                                 scraped_ad_ids.add(ad_id) # Mark as scraped to avoid re-processing
                                 # Print progress update
-                                print(f"\rProcessed: {len(all_listings_data)} listings (SRP Playwright Fallback)", end='')
+                                if not FAILED_SCRAPE_DEBUG:
+                                    print(f"\rProcessed: {len(all_listings_data)} listings (SRP Playwright Fallback)", end='')
                             else:
-                                logger.warning(f"Playwright fallback from SRP timeout for ad_id {ad_id} completed but extracted no data.")
-                                # Optionally log this failure to a specific file if needed
-                                # try:
-                                #     with open("failed_srp_fallback_links.txt", 'a', encoding='utf-8') as f_srp_fail:
-                                #         f_srp_fail.write(f"{vip_url}\n")
-                                # except Exception as log_err:
-                                #     logger.error(f"Failed to write SRP fallback failure log for {vip_url}: {log_err}")
+                                logger.warning(f"Monitor: Playwright SRP fallback for ad_id='{ad_id}' (URL: {vip_url}) completed but extracted NO data.")
                         except (PlaywrightTimeoutErrorAlias, PlaywrightNavigationErrorAlias) as pw_scrape_err:
-                            logger.error(f"Playwright fallback from SRP timeout failed for ad_id {ad_id} ({vip_url}) with specific error: {pw_scrape_err}")
+                            logger.error(f"Monitor: Playwright SRP fallback for ad_id='{ad_id}' (URL: {vip_url}) FAILED with specific error: {pw_scrape_err}")
                         except Exception as pw_fallback_err:
-                            logger.error(f"Playwright fallback from SRP timeout failed for ad_id {ad_id} ({vip_url}) with general error: {pw_fallback_err}", exc_info=True) # Keep traceback for unexpected errors
+                            logger.error(f"Monitor: Playwright SRP fallback for ad_id='{ad_id}' (URL: {vip_url}) FAILED with general error: {pw_fallback_err}", exc_info=True)
                     else:
-                        # Log why fallback wasn't attempted (reason already logged if HTML failed)
+                        # Log why fallback wasn't attempted
                         reason = ""
-                        if not ad_id:
-                            reason = "ad_id was not retrieved"
-                            logger.warning(f"SRP Timeout for index {i} and {reason}. Cannot attempt Playwright fallback. URL: {current_url}")
-                        elif ad_id in scraped_ad_ids:
-                            reason = f"ad_id {ad_id} was retrieved but already scraped"
+                        if not ad_id: # This means ad_id was not found by Playwright locators NOR by raw HTML parsing
+                            reason = "ad_id was not retrieved by any method"
+                            logger.warning(f"SRP Timeout for index {i} and {reason}. Skipping this item. URL: {current_url}")
+                            continue # Skip to the next item
+                        elif ad_id in scraped_ad_ids: # This means ad_id was found (either by Playwright or raw HTML) but already processed
+                            reason = f"ad_id {ad_id} was retrieved but already scraped/queued"
                             logger.warning(f"SRP Timeout for index {i}, {reason}. Skipping Playwright fallback. URL: {current_url}")
+                            # No continue here, might still save SearchResultList HTML if SAVE_HTML_DEBUG is true
+
+                        # <<< START NEW CODE TO SAVE SearchResultList HTML >>>
+                        if SAVE_HTML_DEBUG:
+                            try:
+                                debug_html_dir = "debug_html"
+                                os.makedirs(debug_html_dir, exist_ok=True) # Ensure dir exists
+
+                                # Check if a resultlist file for this index already exists
+                                existing_files_pattern = f"resultlist_{i}_*.html"
+                                existing_files = glob.glob(os.path.join(debug_html_dir, existing_files_pattern))
+
+                                if existing_files:
+                                    logger.info(f"SearchResultList HTML for index {i} already exists (e.g., {existing_files[0]}). Skipping save.")
+                                else:
+                                    logger.info(f"Attempting to save SearchResultList HTML for SRP Timeout index {i} as fallback was not attempted and no existing file found.")
+                                    search_result_list_locator = page.locator('div[data-testid="SearchResultList"]')
+                                    if await search_result_list_locator.count() > 0:
+                                        search_result_list_html = await search_result_list_locator.first.evaluate("element => element.outerHTML")
+                                        
+                                        timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+                                        filename = f"resultlist_{i}_{timestamp_str}.html"
+                                        filepath = os.path.join(debug_html_dir, filename)
+                                        
+                                        with open(filepath, 'w', encoding='utf-8') as f_debug:
+                                            f_debug.write(search_result_list_html)
+                                        logger.info(f"Saved SearchResultList HTML to {filepath} for SRP Timeout index {i}.")
+                                    else:
+                                        logger.warning(f"Could not find div[data-testid=\"SearchResultList\"] to save for SRP Timeout index {i}.")
+                            except Exception as e_debug_save:
+                                logger.error(f"Error saving SearchResultList HTML for SRP Timeout index {i}: {e_debug_save}", exc_info=True)
+                        # <<< END NEW CODE TO SAVE SearchResultList HTML >>>
 
                         # If HTML wasn't logged above (because the try block failed), log container now
                         if not raw_element_html:
@@ -360,14 +539,19 @@ async def worker_task(client: httpx.AsyncClient, queue: asyncio.Queue, all_listi
             queue.task_done()
             break
 
-        ad_id, _ = item # We only need the ad_id now
-        # logger.debug(f"Worker {worker_name} processing ad_id: {ad_id}") # Suppressed debug log
+        ad_id, title_from_srp = item # Now we also get the title from SRP for logging
+        if not FAILED_SCRAPE_DEBUG:
+            logger.info(f"Worker {worker_name}: Dequeued ad_id='{ad_id}', title_from_srp='{title_from_srp}'. Starting VIP processing.")
 
         try:
+            if not FAILED_SCRAPE_DEBUG:
+                logger.info(f"Worker {worker_name}: Attempting Kijiji API scrape for ad_id='{ad_id}'.")
             # Call the ASYNC single page scraper directly
             raw_json_data = await scrape_kijiji_single_page_async(ad_id, client)
 
             if raw_json_data:
+                if not FAILED_SCRAPE_DEBUG:
+                    logger.info(f"Worker {worker_name}: Successfully fetched API data for ad_id='{ad_id}'. Attempting extraction.")
                 # Extraction is still synchronous, but fast enough not to block significantly
                 extracted_data = extract_relevant_kijiji_data(raw_json_data)
 
@@ -376,20 +560,21 @@ async def worker_task(client: httpx.AsyncClient, queue: asyncio.Queue, all_listi
                     extracted_data['ad_id'] = ad_id
                     extracted_data['url'] = vip_url
                     extracted_data['source'] = 'kijiji_autos'
-
+                    if not FAILED_SCRAPE_DEBUG:
+                        logger.info(f"Worker {worker_name}: Successfully extracted data for ad_id='{ad_id}'. Title: '{extracted_data.get('title', 'N/A')}'. Adding to results.")
                     all_listings_data.append(extracted_data)
                     # Print progress update (keep this for concise feedback)
-                    print(f"\rProcessed: {len(all_listings_data)} listings", end='')
-                    # logger.info(f"Worker {worker_name} successfully processed API for ad_id: {ad_id}. Total results: {len(all_listings_data)}") # Suppressed log
+                    if not FAILED_SCRAPE_DEBUG:
+                        print(f"\rProcessed: {len(all_listings_data)} listings", end='')
                 else:
-                    logger.warning(f"Worker {worker_name} extracted empty data from API response for ad_id: {ad_id}") # Keep warning
-            else: # Logging handled within scrape_kijiji_single_page_async
-                logger.warning(f"Worker {worker_name} failed to fetch API data for ad_id: {ad_id}") # Keep warning
+                    logger.warning(f"Worker {worker_name}: API data fetched for ad_id='{ad_id}', but extraction yielded no data.")
+            else: # Logging handled within scrape_kijiji_single_page_async for specific failures
+                logger.warning(f"Worker {worker_name}: Failed to fetch API data for ad_id='{ad_id}' (scrape_kijiji_single_page_async returned None/empty).")
 
         except (ScrapingTimeoutError, ScrapingConnectionError) as e: # Catch specific errors from KijijiSingleScrape
             error_type = "TIMEOUT" if isinstance(e, ScrapingTimeoutError) else "CONNECTION_ERROR"
             vip_url = urljoin(BASE_URL, f"/vip/{ad_id}/") # Construct URL for logging
-            logger.warning(f"Worker {worker_name} API {error_type} processing ad_id {ad_id} after retries. Saving link to {failed_log_path}. Error: {e}") # Keep warning
+            logger.warning(f"Worker {worker_name}: Kijiji API {error_type} for ad_id='{ad_id}'. Error: {e}. Saving link to {failed_log_path}.")
             try:
                 # Use standard file I/O for simplicity
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -403,31 +588,33 @@ async def worker_task(client: httpx.AsyncClient, queue: asyncio.Queue, all_listi
                 logger.error(f"Worker {worker_name} failed to write verbose API failure log ({error_type}) for {vip_url} to {absolute_log_path}: {log_err}") # Keep error
 
             # --- Fallback to Playwright Scraper ---
-            # logger.info(f"Worker {worker_name} attempting Playwright fallback for ad_id {ad_id} ({vip_url}).") # Suppressed log
+            logger.info(f"Worker {worker_name}: Kijiji API failed for ad_id='{ad_id}'. Attempting Playwright fallback for URL: {vip_url}.")
             try:
                 playwright_data = await scrape_kijiji_single_page_playwright(vip_url)
                 if playwright_data: # Check if data was successfully extracted
-                    # logger.info(f"Worker {worker_name} successfully processed ad_id {ad_id} using Playwright fallback.") # Suppressed log
+                    if not FAILED_SCRAPE_DEBUG:
+                        logger.info(f"Worker {worker_name}: Playwright fallback for ad_id='{ad_id}' (URL: {vip_url}) SUCCEEDED. Data extracted.")
                     # Add necessary fields similar to the primary method
                     playwright_data['ad_id'] = ad_id
                     playwright_data['url'] = vip_url
-                    playwright_data['source'] = 'kijiji_autos_playwright' # Indicate source
+                    playwright_data['source'] = 'kijiji_autos_playwright_api_fallback' # More specific source
                     all_listings_data.append(playwright_data)
                     # Print progress update
-                    print(f"\rProcessed: {len(all_listings_data)} listings (Playwright Fallback)", end='')
+                    if not FAILED_SCRAPE_DEBUG:
+                        print(f"\rProcessed: {len(all_listings_data)} listings (Playwright API Fallback)", end='')
                 else:
-                    logger.warning(f"Worker {worker_name} Playwright fallback for ad_id {ad_id} completed but extracted no data.") # Keep warning
+                    logger.warning(f"Worker {worker_name}: Playwright fallback for ad_id='{ad_id}' (URL: {vip_url}) completed but extracted NO data.")
             except (PlaywrightTimeoutErrorAlias, PlaywrightNavigationErrorAlias) as pw_scrape_err:
-                logger.error(f"Worker {worker_name} Playwright fallback failed for ad_id {ad_id} ({vip_url}) with specific error: {pw_scrape_err}") # Keep error
+                logger.error(f"Worker {worker_name}: Playwright fallback for ad_id='{ad_id}' (URL: {vip_url}) FAILED with specific error: {pw_scrape_err}")
             except Exception as pw_fallback_err:
-                logger.error(f"Worker {worker_name} Playwright fallback failed for ad_id {ad_id} ({vip_url}) with general error: {pw_fallback_err}", exc_info=True) # Keep error
+                logger.error(f"Worker {worker_name}: Playwright fallback for ad_id='{ad_id}' (URL: {vip_url}) FAILED with general error: {pw_fallback_err}", exc_info=True)
             # --- End Fallback ---
             # Do not re-raise, allow worker to continue with next item
 
         except Exception as e:
             # Catch any other unexpected errors during the primary async call or extraction
             vip_url = urljoin(BASE_URL, f"/vip/{ad_id}/") # Construct URL for logging
-            logger.error(f"Worker {worker_name} encountered a non-timeout error processing ad_id {ad_id} ({vip_url}): {e}", exc_info=True) # Keep error
+            logger.error(f"Worker {worker_name}: UNEXPECTED error processing ad_id='{ad_id}' (URL: {vip_url}): {e}", exc_info=True)
             # Do not re-raise, allow worker to continue
         finally:
             queue.task_done()
@@ -445,6 +632,25 @@ async def scrape_kijiji_autos_async(search_params, worker_count, max_pages=1): #
         # logger.warning("Pagination (max_pages > 1) is not supported in this async version.") # Suppressed
         max_pages = 1
 
+    debug_html_path = None
+    items_per_scroll_snapshot = None
+    cross_scroll_item_tracker = None
+
+    if JSON_DEBUG:
+        # --- Timestamped Debug Directory (only if JSON_DEBUG is True) ---
+        current_run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        debug_html_base_path = "debug_html"
+        os.makedirs(debug_html_base_path, exist_ok=True)
+        debug_html_path = os.path.join(debug_html_base_path, current_run_timestamp)
+        os.makedirs(debug_html_path, exist_ok=True)
+        logger.info(f"JSON_DEBUG enabled: Debug HTML and item data will be saved in: {debug_html_path}")
+        # --- End Timestamped Debug Directory ---
+
+        # --- Data structures for new scroll analysis (only if JSON_DEBUG is True) ---
+        items_per_scroll_snapshot = []
+        cross_scroll_item_tracker = {}
+        # ---
+
     all_listings_data = []
     scraped_ad_ids = set()
     search_url = construct_search_url(search_params)
@@ -461,17 +667,20 @@ async def scrape_kijiji_autos_async(search_params, worker_count, max_pages=1): #
     httpx_proxy_url = None
     if isinstance(proxy_config_dict, dict):
         httpx_proxy_url = proxy_config_dict.get('https') # Or 'http' if needed
-        # Corrected indentation for the following block
         if httpx_proxy_url:
-            logger.info(f"Using httpx proxy: {httpx_proxy_url}") # Keep info log
+            if not FAILED_SCRAPE_DEBUG:
+                logger.info(f"Using httpx proxy: {httpx_proxy_url}")
         else:
-            logger.info("HTTPS proxy URL not found in config dict for httpx.") # Keep info log
+            if not FAILED_SCRAPE_DEBUG:
+                logger.info("HTTPS proxy URL not found in config dict for httpx.")
     else:
-        logger.info("Proxy config file not found or invalid format, httpx will run without proxy.") # Keep info log
+        if not FAILED_SCRAPE_DEBUG:
+            logger.info("Proxy config file not found or invalid format, httpx will run without proxy.")
     # --- End Proxy Configuration ---
 
     # --- Log the actual proxy being passed to httpx ---
-    logger.info(f"Attempting to initialize httpx.AsyncClient with proxy setting: {httpx_proxy_url}") # Keep info log
+    if not FAILED_SCRAPE_DEBUG:
+        logger.info(f"Attempting to initialize httpx.AsyncClient with proxy setting: {httpx_proxy_url}")
     # ---
 
     # --- Setup Playwright ---
@@ -543,14 +752,16 @@ async def scrape_kijiji_autos_async(search_params, worker_count, max_pages=1): #
                 stop_event = asyncio.Event()
 
                 # --- Start Tasks ---
-                scroll_future = asyncio.create_task(scroll_task(page, stop_event))
+                # Pass new structures to scroll_task
+                scroll_future = asyncio.create_task(scroll_task(page, stop_event, debug_html_path, items_per_scroll_snapshot, cross_scroll_item_tracker))
+
                 # Define log filenames based on search params
                 make_model_suffix = f"{search_params.get('make', 'unknown')}_{search_params.get('model', 'unknown')}"
                 failed_log_filename = f"failed_api_links_{make_model_suffix}.txt"
                 srp_failed_log_filename = f"failed_srp_links_{make_model_suffix}.txt"
 
                 # Pass worker_count and SRP log path to the monitor task
-                monitor_future = asyncio.create_task(monitor_and_queue_task(page, queue, scraped_ad_ids, stop_event, worker_count, srp_failed_log_filename))
+                monitor_future = asyncio.create_task(monitor_and_queue_task(page, queue, scraped_ad_ids, all_listings_data, stop_event, worker_count, srp_failed_log_filename))
 
                 # Worker tasks now need the shared httpx client and the API failure log path
                 worker_futures = []
@@ -579,7 +790,6 @@ async def scrape_kijiji_autos_async(search_params, worker_count, max_pages=1): #
         except Exception as e:
             logger.error(f"An error occurred during Playwright operation: {e}", exc_info=True) # Keep error
         finally:
-            # Ensure browser is closed if it was launched and an error occurred before normal closure
             if browser and browser.is_connected():
                 logger.warning("Closing browser in finally block due to earlier error.") # Keep warning
                 try:
@@ -587,16 +797,56 @@ async def scrape_kijiji_autos_async(search_params, worker_count, max_pages=1): #
                 except Exception as close_err:
                     logger.error(f"Error closing browser in finally block: {close_err}") # Keep error
 
-    logger.info(f"Finished scraping. Total listings found: {len(all_listings_data)}") # Keep final summary log
+    if JSON_DEBUG and cross_scroll_item_tracker is not None and debug_html_path is not None:
+        # --- Process cross_scroll_item_tracker for duplicates (only if JSON_DEBUG is True) ---
+        duplicate_items_report = []
+        for item_id, data in cross_scroll_item_tracker.items():
+            if len(data['scroll_numbers']) >= 2:
+                duplicate_items_report.append({
+                    "id": item_id,
+                    "link": data['link'],
+                    "seen_in_scrolls": sorted(list(data['scroll_numbers']))
+                })
+
+        if duplicate_items_report:
+            logger.info("\n--- Duplicate Items Found Across Scrolls (JSON_DEBUG) ---")
+            # Pretty print to console
+            print(json.dumps(duplicate_items_report, indent=2))
+            # Save to JSON file
+            duplicates_file_path = os.path.join(debug_html_path, "duplicate_items_summary.json")
+            try:
+                with open(duplicates_file_path, 'w', encoding='utf-8') as f:
+                    json.dump(duplicate_items_report, f, indent=2, ensure_ascii=False)
+                logger.info(f"Duplicate items summary saved to {duplicates_file_path}")
+            except Exception as e:
+                logger.error(f"Failed to save duplicate items summary: {e}")
+        else:
+            logger.info("No duplicate items found across multiple scrolls (JSON_DEBUG).")
+        # --- End Duplicate Processing ---
+    elif JSON_DEBUG:
+        logger.info("JSON_DEBUG is True, but cross_scroll_item_tracker or debug_html_path was not properly initialized. Skipping duplicate report.")
+
+
+    if not FAILED_SCRAPE_DEBUG:
+        logger.info(f"Finished scraping. Total listings found: {len(all_listings_data)}")
+    elif len(all_listings_data) == 0 : # Still log if FAILED_SCRAPE_DEBUG is true but found 0, as that's a notable outcome
+        logger.info(f"Finished scraping. Total listings found: {len(all_listings_data)}")
     return all_listings_data
 
  # --- Main Execution Block ---
 async def main():
     """Main async entry point for benchmarking worker counts."""
-    # Set logging level - Use INFO to see the new progress logs
-    logging.getLogger().setLevel(logging.INFO)
-    # Suppress noisy Playwright logs if desired
-    logging.getLogger("playwright").setLevel(logging.WARNING) # Quieten Playwright logs
+    # Set overall logging level
+    logging.getLogger().setLevel(logging.INFO) # Keep this for general script info
+
+    # Adjust httpx logging level based on FAILED_SCRAPE_DEBUG
+    if FAILED_SCRAPE_DEBUG:
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        # Also suppress playwright info logs if in debug mode for failures
+        logging.getLogger("playwright").setLevel(logging.WARNING)
+    else:
+        logging.getLogger("httpx").setLevel(logging.INFO) # Or logging.DEBUG for more verbosity
+        logging.getLogger("playwright").setLevel(logging.INFO) # Show Playwright info if not debugging failures
 
     benchmark_results = [] # List to store results
 
