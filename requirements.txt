@@ -9,3 +9,4 @@ celery==5.4.0 # Added Celery
 redis==5.0.4 # Added Redis client
 waitress # Added Waitress WSGI Server (Windows compatible)
 httpx # Added for asynchronous HTTP requests
+lxml # Added HTML/XML parser for BeautifulSoup

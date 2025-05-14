@@ -10,6 +10,15 @@ from typing import Optional, Dict, Any # For type hinting
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Define custom exception
+class ScrapingTimeoutError(Exception):
+    """Custom exception for scraping timeouts after retries."""
+    pass
+
+class ScrapingConnectionError(Exception):
+    """Custom exception for scraping connection errors after retries."""
+    pass
+
 # --- Proxy Loading ---
 def get_proxy_from_file(filename="proxyconfig.json"):
     """Loads proxy configuration from a JSON file."""
@@ -162,8 +171,8 @@ async def scrape_kijiji_single_page_async(partial_url: str, client: httpx.AsyncC
         'Sec-Fetch-Site': 'same-origin',
     }
 
-    max_retries = 3
-    initial_retry_delay = 1.0
+    max_retries = 5 # Increased retries
+    initial_retry_delay = 2.0 # Increased initial delay
     request_timeout = 15.0 # httpx uses float for timeout
     response = None
 
@@ -205,19 +214,37 @@ async def scrape_kijiji_single_page_async(partial_url: str, client: httpx.AsyncC
                 logging.error(f"Failed to decode JSON (async) from response for {url}. Content: {response.text[:200]}...")
                 return None
 
-        except httpx.RequestError as e: # Catch httpx specific request errors
+        except httpx.TimeoutException as e: # Catch TimeoutException specifically FIRST
+            status_code = response.status_code if response is not None else "N/A"
+            logging.warning(f"Timeout occurred (async) for {url} on attempt {attempt + 1} (Status: {status_code}): {e}")
+            if attempt >= max_retries:
+                logging.error(f"Timeout definitively occurred (async) for {url} after {max_retries + 1} attempts.")
+                # Raise custom exception instead of returning None for timeout
+                raise ScrapingTimeoutError(f"Timeout fetching {url} after {max_retries + 1} attempts") from e
+            # Wait before retry specifically for timeout
+            retry_delay = initial_retry_delay * (2 ** attempt)
+            logging.info(f"Waiting {retry_delay:.2f} seconds before next async request attempt due to timeout...")
+            await asyncio.sleep(retry_delay)
+            # Continue to next attempt in the loop after sleep
+            continue
+
+        except httpx.RequestError as e: # Catch other httpx request errors (ConnectionError, etc.)
             status_code = response.status_code if response is not None else "N/A"
             logging.error(f"Request failed (async) for {url} on attempt {attempt + 1} (Status: {status_code}): {e}")
             if attempt >= max_retries:
-                logging.error(f"Request failed definitively (async) for {url} after {max_retries + 1} attempts.")
-                return None
+                logging.error(f"Request failed definitively (async) for {url} after {max_retries + 1} attempts due to: {e}")
+                # Raise specific connection error if retries exhausted for RequestError
+                raise ScrapingConnectionError(f"Connection error fetching {url} after {max_retries + 1} attempts: {e}") from e
             if response is None or response.status_code != 403:
                  retry_delay = initial_retry_delay * (2 ** attempt)
-                 logging.info(f"Waiting {retry_delay:.2f} seconds before next async request attempt...")
+                 logging.info(f"Waiting {retry_delay:.2f} seconds before next async request attempt due to connection error...")
                  await asyncio.sleep(retry_delay)
+                 # Continue to next attempt in the loop after sleep
+                 continue
 
-        except Exception as e: # Catch other unexpected errors
+        except Exception as e: # Catch other unexpected errors (e.g., during response.json())
             logging.error(f"An unexpected error occurred during async attempt {attempt + 1} for {url}: {e}", exc_info=True)
+            # Return None for other unexpected errors, don't retry these usually
             return None
 
     logging.error(f"Async scraping failed for {url} after exhausting retries or encountering unexpected error.")
