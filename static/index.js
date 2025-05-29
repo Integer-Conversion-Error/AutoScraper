@@ -2135,11 +2135,14 @@ function fetchUserSettings(updateDisplay = false) {
 }
 
 function updateTokenDisplay(tokens) {
+    console.log("Initial updateTokenDisplay call - tokens:", tokens, "| type:", typeof tokens); // <-- ADD THIS LINE FOR DEBUGGING
     const tokenValueEl = document.getElementById('tokenValue');
     if (tokenValueEl) {
         tokenValueEl.textContent = tokens;
     }
-    currentUserSettings.search_tokens = tokens; // Keep local cache updated
+    // Store the numeric part of tokens, defaulting to 0 if not a number
+    const numericTokens = parseFloat(tokens);
+    currentUserSettings.search_tokens = isNaN(numericTokens) ? 0 : numericTokens;
 }
 
 function openUserSettingsModal() {

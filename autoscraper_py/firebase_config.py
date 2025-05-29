@@ -343,11 +343,30 @@ def deduct_search_tokens(user_id, tokens_to_deduct):
         # The update method doesn't directly confirm the operation succeeded in the way
         # 'set' or 'add' might return references, but it will raise an exception on failure.
         # We assume success if no exception is raised.
-        return {'success': True}
+
+        # After successful deduction, fetch the updated user document to get the new token count
+        updated_user_doc = user_ref.get()
+        if updated_user_doc.exists:
+            updated_settings = updated_user_doc.to_dict()
+            tokens_after_deduction = updated_settings.get('search_tokens', 0) # Default to 0 if somehow missing
+            return {'success': True, 'tokens_remaining': tokens_after_deduction}
+        else:
+            # This case should ideally not happen if deduction was successful on an existing user
+            logger.error(f"User document not found for {user_id} after token deduction.")
+            return {'success': False, 'error': 'User not found after deduction.', 'tokens_remaining': 0}
+
     except Exception as e:
         # Specific error handling could be added here (e.g., user not found?)
         print(f"Error deducting tokens for user {user_id}: {e}")
-        return {'success': False, 'error': str(e)}
+        # Attempt to fetch current tokens even on error, to provide some value if possible
+        current_tokens_on_error = 0
+        try:
+            user_doc_on_error = db.collection('users').document(user_id).get()
+            if user_doc_on_error.exists:
+                current_tokens_on_error = user_doc_on_error.to_dict().get('search_tokens', 0)
+        except Exception as fetch_err:
+            print(f"Could not fetch tokens during error handling for user {user_id}: {fetch_err}")
+        return {'success': False, 'error': str(e), 'tokens_remaining': current_tokens_on_error}
 
 # --- End User Settings Functions ---
 

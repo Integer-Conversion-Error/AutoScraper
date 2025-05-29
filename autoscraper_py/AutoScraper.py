@@ -159,9 +159,10 @@ def get_proxy_from_file(filename = "proxyconfig.json"):
         return "Invalid JSON format."
 
 # Reduced default max_workers significantly
-def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=5,
+def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=1000,
                           initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None,
                           task_instance=None): # Added task_instance
+    call_specific_start_time = time.time() # For timing this specific call
     """
     Fetch data from AutoTrader.ca API. Can perform an initial fetch for count or fetch all pages.
 
@@ -407,6 +408,10 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
 
         logger.info(f"Initial fetch complete. Estimated listings: {estimated_count}, Max pages: {max_page}")
+        
+        current_call_duration = time.time() - call_specific_start_time
+        logger.info(f"fetch_autotrader_data (initial_fetch_only=True) call took: {current_call_duration:.2f} seconds")
+        
         return {
             'estimated_count': estimated_count,
             'initial_results_html': page_0_results_html, # Parsed HTML results from page 0
@@ -469,9 +474,12 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     logger.info(f"Found {len(unique_link_results)} unique listings after duplicate removal.") # Renamed variable
 
     # Avoid logging negative time if start_time wasn't set (e.g., only second stage ran)
-    if start_time:
+    if start_time: # This refers to the global start_time for the whole operation
         elapsed = time.time() - start_time
-        logger.info(f"Total fetch time: {elapsed:.2f} seconds")
+        logger.info(f"Total fetch time for operation: {elapsed:.2f} seconds")
+
+    current_call_duration = time.time() - call_specific_start_time
+    logger.info(f"fetch_autotrader_data (full fetch part) call took: {current_call_duration:.2f} seconds")
 
     # Filtering based on content will happen in process_links_and_update_cache
     return unique_link_results
@@ -631,7 +639,7 @@ def extract_vehicle_info_from_json(json_content):
 
 # Add transformed_exclusions and task_instance parameters
 # Reduced default max_workers significantly
-def process_links_and_update_cache(data, transformed_exclusions, max_workers=5, task_instance=None):
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=1000, task_instance=None):
     """
     Processes links, using and updating a persistent CSV cache.
     Fetches data for new links, filters based on exclusions, and updates the cache file.
@@ -712,7 +720,6 @@ def process_links_and_update_cache(data, transformed_exclusions, max_workers=5, 
                 link = link_item["link"]
                 try:
                     car_info = future.result() # car_info is a dict from extract_vehicle_info
-                    time.sleep(0.1) # Add small delay after processing each link future
                     if car_info:
                         # Add the link itself and date to the car_info dict
                         car_info_with_link = {"Link": link, **car_info, 'date_cached': today_date}

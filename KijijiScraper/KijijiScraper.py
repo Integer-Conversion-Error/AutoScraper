@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # --- Constants ---
 BASE_URL = "https://www.kijijiautos.ca/"
 PAGE_TIMEOUT = 120000 # 120 seconds (Increased timeout)
-WORKER_COUNT = 20 # Default worker count is no longer used directly in main
+WORKER_COUNT = 1000 # Default worker count is no longer used directly in main
 QUEUE_MAX_SIZE = 100 # Max items in the processing queue
 SCROLL_DELAY = 0.1 # Delay between scrolls (seconds)
 NETWORK_IDLE_TIMEOUT = 1500 # Timeout for waiting for network idle (ms)
