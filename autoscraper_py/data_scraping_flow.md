@@ -117,8 +117,9 @@ graph TD
 This Mermaid use-case diagram outlines the primary actors and their interactions with the AutoScraper system.
 
 ```mermaid
-left to right direction
-actor "Registered User" as User
+usecaseDiagram
+    left to right direction
+    actor "Registered User" as User
 actor "System Administrator" as Admin
 actor "Celery Worker" as CeleryWorker
 actor "External Services" as ExtAPI
