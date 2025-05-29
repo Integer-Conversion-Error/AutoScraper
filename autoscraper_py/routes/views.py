@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, session, current_app, send_from_directory, jsonify
-from auth_decorator import login_required # Import the updated decorator
+from ..auth_decorator import login_required # Import the updated decorator
 import os # Keep os import
 
 # Create the blueprint

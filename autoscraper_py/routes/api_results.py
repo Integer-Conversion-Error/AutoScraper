@@ -4,11 +4,11 @@ import time
 import logging
 from flask import Blueprint, request, jsonify, session, g, current_app
 # Import transform_strings as well
-from AutoScraperUtil import format_time_ymd_hms, showcarsmain, clean_model_name, transform_strings
+from ..AutoScraperUtil import format_time_ymd_hms, showcarsmain, clean_model_name, transform_strings
 # Import the new processing function and necessary constants from AutoScraper
-from AutoScraper import fetch_autotrader_data # Keep fetch_autotrader_data for initial fetch
+from ..AutoScraper import fetch_autotrader_data # Keep fetch_autotrader_data for initial fetch
 # Remove process_links_and_update_cache import as it's now called within the task
-from firebase_config import (
+from ..firebase_config import (
     get_user_results,     # Add back for /list_results
     get_result,           # Add back for /get_result
     delete_result,        # Add back for /delete_result
@@ -16,8 +16,8 @@ from firebase_config import (
     # Remove deduct_search_tokens as it's called within the task
     get_firestore_db      # Keep if needed for direct listing deletion or other routes in this file
 )
-from auth_decorator import login_required # Import the updated decorator
-from tasks import scrape_and_process_task # Import the Celery task
+from ..auth_decorator import login_required # Import the updated decorator
+from ..tasks import scrape_and_process_task # Import the Celery task
 
 # Create the blueprint
 api_results_bp = Blueprint('api_results', __name__, url_prefix='/api')

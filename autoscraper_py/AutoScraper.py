@@ -10,8 +10,8 @@ import logging
 import csv # Added for CSV cache handling
 import datetime # Added for date caching
 from functools import lru_cache # Will be removed later, but keep import for now if used elsewhere
-from GetUserSelection import get_user_responses, cleaned_input
-from AutoScraperUtil import *
+from .GetUserSelection import get_user_responses, cleaned_input
+from .AutoScraperUtil import *
 
 # Configure logging
 logging.basicConfig(

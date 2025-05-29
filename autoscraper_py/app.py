@@ -12,7 +12,7 @@ from functools import wraps # Keep wraps if needed by login_required here
 from flask import Flask, session, redirect, url_for, g, current_app, jsonify # Keep necessary Flask imports
 
 # Import Firebase config functions needed for initialization and potentially direct use
-from firebase_config import (
+from .firebase_config import (
     initialize_firebase,
     get_firestore_db,
     get_user_settings # Needed by the decorator logic
@@ -20,10 +20,10 @@ from firebase_config import (
 )
 
 # Decorator is imported directly by blueprints now
-# from auth_decorator import login_required
+# from .auth_decorator import login_required
 
 # --- App Initialization ---
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__, static_folder='../static', template_folder='../templates')
 app.secret_key = secrets.token_hex(32)
 
 # --- Configuration ---
@@ -122,14 +122,14 @@ if not EXCHANGE_RATE_API_KEY:
 
 # --- Import and Register Blueprints ---
 # Import blueprint objects AFTER app and login_required are defined
-from routes.views import views_bp
-from routes.auth import auth_bp
-from routes.api_data import api_data_bp
-from routes.api_payloads import api_payloads_bp
-from routes.api_results import api_results_bp
-from routes.api_settings import api_settings_bp
-from routes.api_ai import api_ai_bp
-from tasks import tasks_bp # Import the tasks blueprint
+from .routes.views import views_bp
+from .routes.auth import auth_bp
+from .routes.api_data import api_data_bp
+from .routes.api_payloads import api_payloads_bp
+from .routes.api_results import api_results_bp
+from .routes.api_settings import api_settings_bp
+from .routes.api_ai import api_ai_bp
+from .tasks import tasks_bp # Import the tasks blueprint
 
 # Register blueprints with the app
 app.register_blueprint(views_bp)

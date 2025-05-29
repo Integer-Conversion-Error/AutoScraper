@@ -1,7 +1,7 @@
 import logging
 from flask import Blueprint, request, jsonify, session, g
-from firebase_config import get_user_settings, update_user_settings
-from auth_decorator import login_required # Import the updated decorator
+from ..firebase_config import get_user_settings, update_user_settings
+from ..auth_decorator import login_required # Import the updated decorator
 
 # Create the blueprint
 api_settings_bp = Blueprint('api_settings', __name__, url_prefix='/api')

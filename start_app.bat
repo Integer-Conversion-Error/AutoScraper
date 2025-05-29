@@ -1,6 +1,6 @@
 @echo off
 echo Starting Celery Worker...
-start "Celery Worker" cmd /c python -m celery -A tasks:celery_app worker --loglevel=info -P solo
+start "Celery Worker" cmd /c "python -m celery -A autoscraper_py.tasks:celery_app worker --loglevel=info -P solo"
 
 echo Starting Flask App with Waitress...
-start "Flask App" cmd /c "python -m waitress --host=127.0.0.1 --port=5000 wsgi:app & pause"
+start "Flask App" cmd /c "python -m waitress --host=127.0.0.1 --port=5000 autoscraper_py.wsgi:app & pause"

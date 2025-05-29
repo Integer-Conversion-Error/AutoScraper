@@ -3,11 +3,11 @@ import json
 import time
 import requests
 from flask import Blueprint, request, jsonify, session, g, current_app
-from firebase_config import get_user_settings
+from ..firebase_config import get_user_settings
 from googleapiclient.discovery import build # Import Google Search library
 from googleapiclient.errors import HttpError # Import HttpError for search retries
-from auth_decorator import login_required # Import the updated decorator
-from AutoScraperUtil import clean_model_name # Import the cleaning function
+from ..auth_decorator import login_required # Import the updated decorator
+from ..AutoScraperUtil import clean_model_name # Import the cleaning function
 
 # Create the blueprint
 api_ai_bp = Blueprint('api_ai', __name__, url_prefix='/api')

@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from AutoScraperUtil import *
+from .AutoScraperUtil import *
 
 def get_keywords_from_user(kw_type = "exclude"):
     """

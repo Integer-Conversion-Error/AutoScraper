@@ -5,9 +5,9 @@ from celery import Celery, Task
 from celery.utils.log import get_task_logger
 
 # Import necessary functions from other modules
-from AutoScraper import fetch_autotrader_data, process_links_and_update_cache, CACHE_HEADERS
-from AutoScraperUtil import format_time_ymd_hms, clean_model_name, transform_strings
-from firebase_config import initialize_firebase, save_results, deduct_search_tokens, get_firestore_db # Add initialize_firebase
+from .AutoScraper import fetch_autotrader_data, process_links_and_update_cache, CACHE_HEADERS
+from .AutoScraperUtil import format_time_ymd_hms, clean_model_name, transform_strings
+from .firebase_config import initialize_firebase, save_results, deduct_search_tokens, get_firestore_db # Add initialize_firebase
 
 # Configure Celery
 # Replace 'redis://localhost:6379/0' with your actual Redis broker URL if different
