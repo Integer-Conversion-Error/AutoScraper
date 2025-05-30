@@ -56,7 +56,6 @@ def favicon():
 
 # Add route for index.js (assuming it's part of the main app view)
 @views_bp.route('/static/index.js')
-@login_required # Apply actual decorator
 def serve_main_js():
     """Serves the main index.js file for the application."""
     # No need for extra imports here
