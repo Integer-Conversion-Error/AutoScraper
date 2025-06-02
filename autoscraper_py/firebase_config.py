@@ -272,8 +272,9 @@ def get_user_settings(user_id):
         if user_doc.exists:
             user_data = user_doc.to_dict()
             # Return existing settings, applying defaults if fields are missing
+            search_tokens = user_data.get('search_tokens', 0)
             settings = {
-                'search_tokens': user_data.get('search_tokens', 0),
+                'search_tokens': round(float(search_tokens), 1), # Round to one decimal place
                 'can_use_ai': user_data.get('can_use_ai', False),
                 'isPayingUser': user_data.get('isPayingUser', False) # Add isPayingUser field
             }
@@ -281,11 +282,13 @@ def get_user_settings(user_id):
         else:
             # User document doesn't exist, return defaults including isPayingUser
             print(f"User document {user_id} not found, returning default settings.")
-            return {'search_tokens': 0, 'can_use_ai': False, 'isPayingUser': False}
+            # Ensure default is also float for consistency if it were non-zero, though 0.0 is fine.
+            return {'search_tokens': 0.0, 'can_use_ai': False, 'isPayingUser': False}
     except Exception as e:
         print(f"Error retrieving user settings for {user_id}: {e}")
         # Return defaults on error, including isPayingUser
-        return {'search_tokens': 0, 'can_use_ai': False, 'isPayingUser': False}
+        # Ensure default is also float for consistency.
+        return {'search_tokens': 0.0, 'can_use_ai': False, 'isPayingUser': False}
 
 def update_user_settings(user_id, settings_update):
     """
@@ -349,10 +352,13 @@ def deduct_search_tokens(user_id, tokens_to_deduct):
         if updated_user_doc.exists:
             updated_settings = updated_user_doc.to_dict()
             tokens_after_deduction = updated_settings.get('search_tokens', 0) # Default to 0 if somehow missing
-            return {'success': True, 'tokens_remaining': tokens_after_deduction}
+            # Round the remaining tokens to one decimal place
+            rounded_tokens_remaining = round(float(tokens_after_deduction), 1)
+            return {'success': True, 'tokens_remaining': rounded_tokens_remaining}
         else:
             # This case should ideally not happen if deduction was successful on an existing user
-            logger.error(f"User document not found for {user_id} after token deduction.")
+            # logger.error(f"User document not found for {user_id} after token deduction.") # logger is not defined here
+            print(f"User document not found for {user_id} after token deduction.")
             return {'success': False, 'error': 'User not found after deduction.', 'tokens_remaining': 0}
 
     except Exception as e:
@@ -366,7 +372,9 @@ def deduct_search_tokens(user_id, tokens_to_deduct):
                 current_tokens_on_error = user_doc_on_error.to_dict().get('search_tokens', 0)
         except Exception as fetch_err:
             print(f"Could not fetch tokens during error handling for user {user_id}: {fetch_err}")
-        return {'success': False, 'error': str(e), 'tokens_remaining': current_tokens_on_error}
+        # Round the remaining tokens in the error case as well
+        rounded_tokens_on_error = round(float(current_tokens_on_error), 1)
+        return {'success': False, 'error': str(e), 'tokens_remaining': rounded_tokens_on_error}
 
 # --- End User Settings Functions ---
 
