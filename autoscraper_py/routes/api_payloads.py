@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify, session
-from firebase_config import (
+from ..firebase_config import (
     save_payload,
     get_user_payloads,
     get_payload,
     update_payload,
     delete_payload
 )
-from AutoScraperUtil import read_json_file, clean_model_name # For legacy file loading & model cleaning
-from auth_decorator import login_required # Import the updated decorator
+from ..AutoScraperUtil import read_json_file, clean_model_name # For legacy file loading & model cleaning
+from ..auth_decorator import login_required # Import the updated decorator
 
 # Create the blueprint
 api_payloads_bp = Blueprint('api_payloads', __name__, url_prefix='/api')

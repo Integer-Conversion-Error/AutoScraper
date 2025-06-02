@@ -3,7 +3,7 @@ from functools import wraps
 import time
 import logging # Import logging
 from flask import current_app # Import current_app if needed for logging or config
-from firebase_config import verify_id_token, get_user, get_user_settings # Import get_user_settings
+from .firebase_config import verify_id_token, get_user, get_user_settings # Import get_user_settings
 
 def login_required(f):
     """

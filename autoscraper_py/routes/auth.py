@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash
-from firebase_config import verify_id_token # Import necessary Firebase functions
+from ..firebase_config import verify_id_token # Import necessary Firebase functions
 
 # Create the blueprint
 auth_bp = Blueprint('auth', __name__)

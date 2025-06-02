@@ -1,10 +1,13 @@
 
 // Current payload and results file path
+// --- Global Variables ---
 let currentPayload = null;
 let resultsFilePath = null;
 let exclusions = [];
 let currentResultId = null;
 let currentUserSettings = { search_tokens: 0, can_use_ai: false }; // Store current settings
+let currentFetchTaskId = null; // To store the ID of the running fetch task
+let taskCheckInterval = null; // To store the interval timer for checking task status
 
 // Firebase configuration
 const firebaseConfig = {
@@ -454,6 +457,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         showLoading('Creating payload...');
+        console.log("Creating payload:", payload); // Log payload
 
         fetchWithAuth('/api/create_payload', {
             method: 'POST',
@@ -500,29 +504,36 @@ document.addEventListener('DOMContentLoaded', function () {
         saveRenameBtn.addEventListener('click', handleSaveRename);
     }
 
-    // Fetch data button
+    // --- Fetch Data Button Handler (Modified for Async Task) ---
     const fetchDataBtn = document.getElementById('fetchDataBtn');
     if (fetchDataBtn) {
         fetchDataBtn.addEventListener('click', function () {
             console.log("Fetch data button clicked");
+
+            // Prevent multiple clicks if a task is already running
+            if (currentFetchTaskId) {
+                showNotification('A fetch operation is already in progress.', 'warning');
+                return;
+            }
 
             if (!currentPayload) {
                 showNotification('No payload to use. Please create a payload first.', 'warning');
                 return;
             }
 
-            // Log the payload to help with debugging
             console.log("Current payload for fetching data:", JSON.stringify(currentPayload, null, 2));
 
-            // Check for required fields in the payload
             if (!currentPayload.Make) {
                 showNotification('Payload must include a Make. Please create a valid payload.', 'warning');
                 return;
             }
 
-            showLoading('Fetching data from AutoTrader (checking tokens)...');
+            // Show initial message, hide previous results/errors
+            document.getElementById('resultsInfo').innerHTML = '<p>Initiating search...</p>';
+            showNotification('Initiating search, checking tokens...', 'info');
+            fetchDataBtn.disabled = true; // Disable button during initiation
 
-            // Create a copy of the payload and ensure all required properties are present
+            // Sanitize payload (same as before)
             const sanitizedPayload = {
                 Make: currentPayload.Make || "",
                 Model: currentPayload.Model || "",
@@ -539,84 +550,73 @@ document.addEventListener('DOMContentLoaded', function () {
                 WithPhotos: currentPayload.WithPhotos !== undefined ? currentPayload.WithPhotos : true,
                 Exclusions: Array.isArray(currentPayload.Exclusions) ? currentPayload.Exclusions : [],
                 Inclusion: currentPayload.Inclusion || "",
-                // Add the missing fields from currentPayload
-                Trim: currentPayload.Trim || null, // Ensure Trim is included if present
-                Color: currentPayload.Color || null, // Ensure Color is included if present
+                Trim: currentPayload.Trim || null,
+                Color: currentPayload.Color || null,
                 Drivetrain: currentPayload.Drivetrain || null,
                 Transmission: currentPayload.Transmission || null,
                 BodyType: currentPayload.BodyType || null,
-                NumberOfDoors: currentPayload.NumberOfDoors !== undefined ? currentPayload.NumberOfDoors : null, // Keep null if undefined
-                SeatingCapacity: currentPayload.SeatingCapacity !== undefined ? currentPayload.SeatingCapacity : null, // Keep null if undefined
-                IsDamaged: currentPayload.IsDamaged !== undefined ? currentPayload.IsDamaged : false, // Default to false if undefined
+                NumberOfDoors: currentPayload.NumberOfDoors !== undefined ? currentPayload.NumberOfDoors : null,
+                SeatingCapacity: currentPayload.SeatingCapacity !== undefined ? currentPayload.SeatingCapacity : null,
+                IsDamaged: currentPayload.IsDamaged !== undefined ? currentPayload.IsDamaged : false,
             };
+            console.log("Sending payload for fetch_data:", sanitizedPayload); // Log sanitized payload
 
-            // Use fetch directly to handle non-200 responses gracefully
+            // Call the modified API endpoint
             fetch('/api/fetch_data', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add Authorization header if needed (fetchWithAuth logic can be adapted)
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ payload: sanitizedPayload }),
             })
-                .then(async response => {
-                    const data = await response.json(); // Attempt to parse JSON regardless of status
-                    console.log("Fetch data response:", response.status, data);
+            .then(async response => {
+                const data = await response.json();
+                console.log("Fetch data initiation response:", response.status, data);
 
-                    if (response.ok && data.success) {
-                        resultsFilePath = data.file_path;
-                        currentResultId = data.doc_id || null;
+                if (response.ok && data.success && data.task_id) {
+                    // Task started successfully
+                    currentFetchTaskId = data.task_id;
+                    showNotification('Search started. Monitoring progress...', 'info');
 
-                        // Update results info including token info
-                        document.getElementById('resultsInfo').innerHTML = `
-                                <div class="alert alert-success">
-                                    <p><strong><i class="bi bi-check-circle"></i> Found:</strong> ${data.result_count} listings</p>
-                                    <p><strong><i class="bi bi-file-earmark-text"></i> Saved to:</strong> ${data.file_path || 'Firebase Only'}</p>
-                                    <p><strong><i class="bi bi-coin"></i> Tokens Charged:</strong> ${data.tokens_charged}</p>
-                                    <p><strong><i class="bi bi-wallet2"></i> Tokens Remaining:</strong> ${data.tokens_remaining}</p>
-                                </div>
-                            `;
-                        updateTokenDisplay(data.tokens_remaining); // Update navbar display
+                    // Reset and show progress bar
+                    const progressContainer = document.getElementById('fetchProgressContainer');
+                    const progressBar = document.getElementById('fetchProgressBar');
+                    const progressStatus = document.getElementById('fetchProgressStatus');
 
-                        // Enable buttons
-                        document.getElementById('openLinksBtn').disabled = !data.file_path; // Disable if no local file
-                        document.getElementById('downloadCsvBtn').disabled = !data.file_path; // Disable if no local file
+                    progressStatus.textContent = 'Task started... Waiting for progress...';
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = '0%';
+                    progressBar.setAttribute('aria-valuenow', '0');
+                    progressContainer.style.display = 'block';
 
-                        showNotification(`Found ${data.result_count} listings. Cost: ${data.tokens_charged} tokens.`, 'success');
+                    // Clear any previous interval and start polling
+                    if (taskCheckInterval) clearInterval(taskCheckInterval);
+                    taskCheckInterval = setInterval(checkTaskStatus, 2000); // Check every 2 seconds
 
-                        // Refresh the results list once after fetch completes
-                        setTimeout(() => {
-                            refreshResultsList();
-                        }, 2000);
+                    // Keep button disabled while task runs
+                    fetchDataBtn.disabled = true;
 
-                    } else {
-                        // Handle specific errors like insufficient tokens (402)
-                        let errorMessage = data.error || `HTTP error! Status: ${response.status}`;
-                        if (response.status === 402) { // Insufficient Tokens
-                            errorMessage = `Insufficient Tokens: ${data.error || 'Not enough tokens for this search.'}`;
-                            // Optionally, prompt user to add tokens or open settings
-                            // showNotification(errorMessage + ' Manage tokens in Settings.', 'warning');
-                        }
-
-                        document.getElementById('resultsInfo').innerHTML = `
-                                <div class="alert alert-danger">
-                                    <p><i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}</p>
-                                </div>
-                            `;
-                        showNotification('Failed to fetch data: ' + errorMessage, 'danger');
+                } else {
+                    // Handle errors like insufficient tokens (402) or other issues
+                    let errorMessage = data.error || `HTTP error! Status: ${response.status}`;
+                    if (response.status === 402) {
+                        errorMessage = `Insufficient Tokens: ${data.error || 'Not enough tokens for this search.'}`;
                     }
-                    hideLoading();
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
                     document.getElementById('resultsInfo').innerHTML = `
-                            <div class="alert alert-danger">
-                                <p><i class="bi bi-exclamation-triangle"></i> Network or server error during fetch.</p>
-                            </div>
-                        `;
-                    showNotification('Failed to fetch data. Network or server error.', 'danger');
-                    hideLoading();
-                });
+                        <div class="alert alert-danger">
+                            <p><i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}</p>
+                        </div>`;
+                    showNotification('Failed to start search: ' + errorMessage, 'danger');
+                    fetchDataBtn.disabled = false; // Re-enable button on failure to start
+                }
+            })
+            .catch(error => {
+                console.error('Error initiating fetch data task:', error);
+                document.getElementById('resultsInfo').innerHTML = `
+                    <div class="alert alert-danger">
+                        <p><i class="bi bi-exclamation-triangle"></i> Network or server error during initiation.</p>
+                    </div>`;
+                showNotification('Failed to start search. Network or server error.', 'danger');
+                fetchDataBtn.disabled = false; // Re-enable button on network error
+            });
         });
     } else {
         console.error("Fetch data button not found");
@@ -664,6 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Now save the payload
         showLoading('Saving payload...');
+        console.log("Saving payload:", currentPayload); // Log payload
 
         fetchWithAuth('/api/save_payload', {
             method: 'POST',
@@ -741,6 +742,71 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial fetch of user settings to display token count
     fetchUserSettings(true); // Pass true to update display initially
+
+    // Clear Filters button
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function () {
+            const form = document.getElementById('searchForm');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], input[type="password"], textarea');
+            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+            const selects = form.querySelectorAll('select');
+
+            inputs.forEach(input => {
+                // Preserve default address and proximity
+                if (input.id === 'address') {
+                    input.value = 'Kanata, ON';
+                } else if (input.id === 'proximity') {
+                    input.value = '-1';
+                } else {
+                    input.value = '';
+                }
+            });
+
+            checkboxes.forEach(checkbox => {
+                // Default checked states
+                if (checkbox.id === 'isNew' || checkbox.id === 'isUsed' || checkbox.id === 'withPhotos') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+
+            selects.forEach(select => {
+                if (select.id === 'makeSelect') {
+                    select.value = ''; // Reset make to "Select Make"
+                    // Trigger change to reset dependent dropdowns
+                    select.dispatchEvent(new Event('change'));
+                } else if (select.id === 'modelSelect') {
+                    select.innerHTML = '<option value="">Select Model (Choose Make First)</option>';
+                    select.value = '';
+                } else if (select.id === 'trimSelect') {
+                    select.innerHTML = '<option value="">Any Trim (Select Model First)</option>';
+                    select.value = '';
+                } else if (select.id === 'colorSelect') {
+                    select.innerHTML = '<option value="">Any Color (Select Trim/Model First)</option>';
+                    select.value = '';
+                } else if (select.id === 'drivetrainSelect' || select.id === 'transmissionSelect') {
+                    select.value = ''; // Reset to "Any"
+                } else {
+                    select.selectedIndex = 0; // For other selects, reset to the first option
+                }
+            });
+
+            // Clear exclusions
+            exclusions = [];
+            updateExclusionsList();
+
+            // Reset currentPayload if it exists
+            currentPayload = null;
+            if (document.getElementById('currentPayload')) {
+                updatePayloadDisplay(); // Clear the display
+            }
+
+
+            showNotification('All filters cleared', 'info');
+        });
+    }
 
 });
 
@@ -915,20 +981,24 @@ document.getElementById('makeSelect').addEventListener('change', function () {
     showLoading('Loading models...');
     console.log(`Loading models for make: ${make}`);
 
-    fetchWithAuth(`/api/models/${make}`)
-        .then(data => {
-            console.log("Models loaded:", data);
-            const models = Object.keys(data); // e.g., ["IS (387)", "RX (123)"]
+            fetchWithAuth(`/api/models/${make}`)
+                .then(data => {
+                    console.log("Models loaded:", data);
+                    const models = Object.keys(data); // e.g., ["IS (387)", "RX (123)"]
 
-            models.forEach(modelWithCount => { // modelWithCount is like "IS (387)"
-                const option = document.createElement('option');
-                option.value = cleanModelNameJS(modelWithCount); // Set value to cleaned name, e.g., "IS"
-                option.textContent = `${modelWithCount} (${data[modelWithCount]})`; // Display text: "IS (387) (10)"
-                modelSelect.appendChild(option);
-            });
+                    models.forEach(modelWithCount => { // modelWithCount is like "IS (387)"
+                        // Check if modelWithCount contains "status", case-insensitive
+                        if (modelWithCount.toLowerCase().includes('status')) {
+                            return; // Skip this iteration if "status" is found
+                        }
+                        const option = document.createElement('option');
+                        option.value = cleanModelNameJS(modelWithCount); // Set value to cleaned name, e.g., "IS"
+                        option.textContent = `${modelWithCount} (${data[modelWithCount]})`; // Display text: "IS (387) (10)"
+                        modelSelect.appendChild(option);
+                    });
 
-            hideLoading();
-        })
+                    hideLoading();
+                })
         .catch(error => {
             console.error('Error loading models:', error);
             showNotification('Failed to load models. Please try again.', 'danger');
@@ -2079,6 +2149,7 @@ function setupLoadPayloadButton() {
 
                 if (data.success) {
                     currentPayload = data.payload;
+                    console.log("Loaded payload:", currentPayload); // Log loaded payload
 
                     // Call the display function only if element exists
                     if (document.getElementById('currentPayload')) {
@@ -2137,11 +2208,14 @@ function fetchUserSettings(updateDisplay = false) {
 }
 
 function updateTokenDisplay(tokens) {
+    console.log("Initial updateTokenDisplay call - tokens:", tokens, "| type:", typeof tokens); // <-- ADD THIS LINE FOR DEBUGGING
     const tokenValueEl = document.getElementById('tokenValue');
     if (tokenValueEl) {
         tokenValueEl.textContent = tokens;
     }
-    currentUserSettings.search_tokens = tokens; // Keep local cache updated
+    // Store the numeric part of tokens, defaulting to 0 if not a number
+    const numericTokens = parseFloat(tokens);
+    currentUserSettings.search_tokens = isNaN(numericTokens) ? 0 : numericTokens;
 }
 
 function openUserSettingsModal() {
@@ -2304,3 +2378,125 @@ function handleAnalyzeClick(event) {
     }
 }
 // --- End AI Analysis Functions ---
+
+
+// --- Task Status Checking Function ---
+function checkTaskStatus() {
+    if (!currentFetchTaskId) {
+        console.log("No active task ID to check.");
+        if (taskCheckInterval) clearInterval(taskCheckInterval);
+        taskCheckInterval = null;
+        return;
+    }
+
+    console.log(`Checking status for task: ${currentFetchTaskId}`);
+    fetch(`/api/tasks/status/${currentFetchTaskId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Task status response:", data);
+            const progressContainer = document.getElementById('fetchProgressContainer');
+            const progressBar = document.getElementById('fetchProgressBar');
+            const progressStatus = document.getElementById('fetchProgressStatus');
+            const fetchDataBtn = document.getElementById('fetchDataBtn'); // Get button to re-enable
+
+            switch (data.state) {
+                case 'PENDING':
+                    progressStatus.textContent = 'Task is pending...';
+                    break;
+                case 'STARTED':
+                    progressStatus.textContent = 'Task started... Waiting for progress...';
+                    break;
+                case 'PROGRESS':
+                    const progress = data.progress || 0;
+                    const total = data.total || 100;
+                    const step = data.step || 'Processing...';
+                    const percentage = total > 0 ? Math.round((progress / total) * 100) : 0;
+
+                    progressStatus.textContent = `${step} (${percentage}%)`;
+                    progressBar.style.width = `${percentage}%`;
+                    progressBar.textContent = `${percentage}%`;
+                    progressBar.setAttribute('aria-valuenow', percentage);
+                    break;
+                case 'SUCCESS':
+                    clearInterval(taskCheckInterval);
+                    taskCheckInterval = null;
+                    currentFetchTaskId = null;
+                    progressContainer.style.display = 'none'; // Hide progress bar
+                    fetchDataBtn.disabled = false; // Re-enable button
+
+                    const result = data.result; // The dictionary returned by the Celery task
+                    if (result && result.status === 'Complete') {
+                        resultsFilePath = result.file_path;
+                        currentResultId = result.doc_id || null;
+
+                        // Update results info
+                        document.getElementById('resultsInfo').innerHTML = `
+                            <div class="alert alert-success">
+                                <p><strong><i class="bi bi-check-circle"></i> Found:</strong> ${result.result_count} listings</p>
+                                <p><strong><i class="bi bi-file-earmark-text"></i> Saved to:</strong> ${result.file_path || 'Firebase Only'}</p>
+                                <p><strong><i class="bi bi-coin"></i> Tokens Charged:</strong> ${result.tokens_charged}</p>
+                                <p><strong><i class="bi bi-wallet2"></i> Tokens Remaining:</strong> ${result.tokens_remaining}</p>
+                            </div>`;
+                        updateTokenDisplay(result.tokens_remaining); // Update navbar display
+
+                        // Enable/disable buttons
+                        document.getElementById('openLinksBtn').disabled = !result.file_path;
+                        document.getElementById('downloadCsvBtn').disabled = !result.file_path;
+
+                        showNotification(`Search complete! Found ${result.result_count} listings. Cost: ${result.tokens_charged} tokens.`, 'success');
+
+                        // Refresh the results list
+                        setTimeout(() => {
+                            refreshResultsList();
+                        }, 1000); // Short delay after success
+                    } else {
+                        // Handle cases where task succeeded but returned unexpected data
+                        document.getElementById('resultsInfo').innerHTML = `
+                            <div class="alert alert-warning">
+                                <p><i class="bi bi-question-circle"></i> Task completed but returned unexpected data.</p>
+                            </div>`;
+                        showNotification('Task finished with unexpected result.', 'warning');
+                    }
+                    break;
+                case 'FAILURE':
+                    clearInterval(taskCheckInterval);
+                    taskCheckInterval = null;
+                    currentFetchTaskId = null;
+                    progressContainer.style.display = 'none'; // Hide progress bar
+                    fetchDataBtn.disabled = false; // Re-enable button
+
+                    const errorMsg = data.error || 'Unknown error occurred during task execution.';
+                    document.getElementById('resultsInfo').innerHTML = `
+                        <div class="alert alert-danger">
+                            <p><i class="bi bi-exclamation-triangle"></i> Search Failed: ${errorMsg}</p>
+                        </div>`;
+                    showNotification(`Search failed: ${errorMsg}`, 'danger');
+                    break;
+                case 'RETRY':
+                    progressStatus.textContent = 'Task is retrying...';
+                    break;
+                default:
+                    progressStatus.textContent = `Task state: ${data.state}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error checking task status:', error);
+            showNotification('Error checking search status. Stopping monitor.', 'danger');
+            clearInterval(taskCheckInterval);
+            taskCheckInterval = null;
+            currentFetchTaskId = null;
+            document.getElementById('fetchProgressContainer').style.display = 'none'; // Hide progress bar
+            document.getElementById('fetchDataBtn').disabled = false; // Re-enable button
+            // Optionally show error in results area
+             document.getElementById('resultsInfo').innerHTML = `
+                <div class="alert alert-danger">
+                    <p><i class="bi bi-exclamation-triangle"></i> Error checking task status: ${error.message}</p>
+                </div>`;
+        });
+}
+// --- End Task Status Checking ---

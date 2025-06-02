@@ -1,0 +1,5 @@
+<ul data-testid="quickFact"><li><div><span>Used</span><span>Condition</span></div></li><li><div></div><div><span>95,771&nbsp;km</span><span>Kilometres</span></div></li><li><div></div><div><span>Automatic</span><span>Transmission</span></div></li><li><div></div><div><span>330i xDrive</span><span>Trim</span></div></li><li><div></div><div><span>All-wheel drive (AWD)</span><span>Drivetrain</span></div></li><li><div></div><div><span>Gas</span><span>Fuel type</span></div></li></ul>
+
+Description: section: data-testid = ListingDescriptionSection  
+
+Features: <div data-sectionkey="features">...</div>

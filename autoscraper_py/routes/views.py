@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, session, current_app, send_from_directory, jsonify
-from auth_decorator import login_required # Import the updated decorator
+from ..auth_decorator import login_required # Import the updated decorator
 import os # Keep os import
 
 # Create the blueprint
@@ -56,7 +56,6 @@ def favicon():
 
 # Add route for index.js (assuming it's part of the main app view)
 @views_bp.route('/static/index.js')
-@login_required # Apply actual decorator
 def serve_main_js():
     """Serves the main index.js file for the application."""
     # No need for extra imports here

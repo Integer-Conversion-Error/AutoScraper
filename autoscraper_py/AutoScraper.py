@@ -1,5 +1,7 @@
 import concurrent.futures
 import requests
+from requests.adapters import HTTPAdapter # Import HTTPAdapter
+from urllib3.util.retry import Retry # Optional: for more robust retries
 import json
 import csv
 import time
@@ -8,8 +10,8 @@ import logging
 import csv # Added for CSV cache handling
 import datetime # Added for date caching
 from functools import lru_cache # Will be removed later, but keep import for now if used elsewhere
-from GetUserSelection import get_user_responses, cleaned_input
-from AutoScraperUtil import *
+
+from .AutoScraperUtil import *
 
 # Configure logging
 logging.basicConfig(
@@ -156,8 +158,11 @@ def get_proxy_from_file(filename = "proxyconfig.json"):
     except json.JSONDecodeError:
         return "Invalid JSON format."
 
-def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=200,
-                          initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None):
+# Reduced default max_workers significantly
+def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_workers=1000,
+                          initial_fetch_only=False, start_page=1, initial_results_html=None, max_page_override=None,
+                          task_instance=None): # Added task_instance
+    call_specific_start_time = time.time() # For timing this specific call
     """
     Fetch data from AutoTrader.ca API. Can perform an initial fetch for count or fetch all pages.
 
@@ -254,8 +259,22 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     proxy = get_proxy_from_file()
     logger.info(f"Search parameters: {params}")
 
-    # Create a session object
+    # Create a session object with a larger connection pool
     session = requests.Session()
+    # Configure adapter with increased pool size, matching max_workers for potentially higher throughput
+    # The max_workers parameter defaults to 1000 in this function.
+    adapter = HTTPAdapter(pool_connections=max_workers, pool_maxsize=max_workers)
+    # Optional: Add retries for connection errors, etc.
+    # retry_strategy = Retry(
+    #     total=3,
+    #     status_forcelist=[429, 500, 502, 503, 504],
+    #     allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+    #     backoff_factor=1
+    # )
+    # adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=retry_strategy)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
@@ -320,7 +339,9 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
             try:
                 # Use the session object for the request
+                # Use the session object for the request
                 response = session.post(url=url, json=payload, timeout=30) # Headers and proxies are now part of the session
+                time.sleep(0.25) # Add a small delay after each request
                 response.raise_for_status()
                 json_response = response.json()
                 search_results_json_str = json_response.get("SearchResultsDataJson", "")
@@ -388,6 +409,10 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
 
         logger.info(f"Initial fetch complete. Estimated listings: {estimated_count}, Max pages: {max_page}")
+        
+        current_call_duration = time.time() - call_specific_start_time
+        logger.info(f"fetch_autotrader_data (initial_fetch_only=True) call took: {current_call_duration:.2f} seconds")
+        
         return {
             'estimated_count': estimated_count,
             'initial_results_html': page_0_results_html, # Parsed HTML results from page 0
@@ -435,10 +460,13 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
                     all_results.extend(page_results_html)
                     pages_completed += 1
 
-                    # Update progress
-                    cls()
-                    logger.info(f"{pages_completed} out of {max_page} total pages completed")
-                    print(f"{pages_completed} out of {max_page} total pages completed")
+                    # Update progress via Celery task if available
+                    if task_instance:
+                        task_instance.update_progress(pages_completed, max_page, step=f"Fetching page {pages_completed}/{max_page}")
+                    else: # Fallback to console logging if no task instance
+                        cls()
+                        logger.info(f"{pages_completed} out of {max_page} total pages completed")
+                        print(f"{pages_completed} out of {max_page} total pages completed")
                 except Exception as e:
                     logger.error(f"Error processing page {page}: {e}")
 
@@ -447,9 +475,12 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
     logger.info(f"Found {len(unique_link_results)} unique listings after duplicate removal.") # Renamed variable
 
     # Avoid logging negative time if start_time wasn't set (e.g., only second stage ran)
-    if start_time:
+    if start_time: # This refers to the global start_time for the whole operation
         elapsed = time.time() - start_time
-        logger.info(f"Total fetch time: {elapsed:.2f} seconds")
+        logger.info(f"Total fetch time for operation: {elapsed:.2f} seconds")
+
+    current_call_duration = time.time() - call_specific_start_time
+    logger.info(f"fetch_autotrader_data (full fetch part) call took: {current_call_duration:.2f} seconds")
 
     # Filtering based on content will happen in process_links_and_update_cache
     return unique_link_results
@@ -607,8 +638,9 @@ def extract_vehicle_info_from_json(json_content):
         logger.error(f"Error extracting vehicle info: {e}")
         return {}
 
-# Add transformed_exclusions parameter
-def process_links_and_update_cache(data, transformed_exclusions, max_workers=10):
+# Add transformed_exclusions and task_instance parameters
+# Reduced default max_workers significantly
+def process_links_and_update_cache(data, transformed_exclusions, max_workers=1000, task_instance=None):
     """
     Processes links, using and updating a persistent CSV cache.
     Fetches data for new links, filters based on exclusions, and updates the cache file.
@@ -716,11 +748,14 @@ def process_links_and_update_cache(data, transformed_exclusions, max_workers=10)
                         logger.warning(f"Failed to fetch data for {link}, skipping.")
 
                     processed_new += 1
-                    if processed_new % 5 == 0 or processed_new == total_to_fetch:
+                    # Update progress via Celery task if available, periodically
+                    if task_instance and (processed_new % 5 == 0 or processed_new == total_to_fetch):
+                        task_instance.update_progress(processed_new, total_to_fetch, step=f"Processing link {processed_new}/{total_to_fetch}")
+                    elif processed_new % 5 == 0 or processed_new == total_to_fetch: # Fallback to console logging
                         cls()
                         progress = (processed_new / total_to_fetch) * 100
-                        print(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
-                        logger.info(f"Fetching Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        print(f"Processing Link Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
+                        logger.info(f"Processing Link Progress: {processed_new}/{total_to_fetch} ({progress:.1f}%)")
 
                 except Exception as e:
                     logger.error(f"Error processing future for {link}: {e}")

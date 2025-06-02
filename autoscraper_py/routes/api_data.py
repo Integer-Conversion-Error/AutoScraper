@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify, session
 from urllib.parse import unquote
-from AutoScraperUtil import (
+from ..AutoScraperUtil import (
     get_all_makes,
     get_models_for_make,
     get_trims_for_model,
     get_colors,
     clean_model_name # Import the new function
 )
-from auth_decorator import login_required # Import the updated decorator
+from ..auth_decorator import login_required # Import the updated decorator
 
 # Create the blueprint
 api_data_bp = Blueprint('api_data', __name__, url_prefix='/api') # Add prefix for API routes
