@@ -261,8 +261,9 @@ def fetch_autotrader_data(params, max_retries=5, initial_retry_delay=0.5, max_wo
 
     # Create a session object with a larger connection pool
     session = requests.Session()
-    # Configure adapter with increased pool size
-    adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100)
+    # Configure adapter with increased pool size, matching max_workers for potentially higher throughput
+    # The max_workers parameter defaults to 1000 in this function.
+    adapter = HTTPAdapter(pool_connections=max_workers, pool_maxsize=max_workers)
     # Optional: Add retries for connection errors, etc.
     # retry_strategy = Retry(
     #     total=3,

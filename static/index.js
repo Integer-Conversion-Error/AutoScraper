@@ -457,6 +457,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         showLoading('Creating payload...');
+        console.log("Creating payload:", payload); // Log payload
 
         fetchWithAuth('/api/create_payload', {
             method: 'POST',
@@ -558,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 SeatingCapacity: currentPayload.SeatingCapacity !== undefined ? currentPayload.SeatingCapacity : null,
                 IsDamaged: currentPayload.IsDamaged !== undefined ? currentPayload.IsDamaged : false,
             };
+            console.log("Sending payload for fetch_data:", sanitizedPayload); // Log sanitized payload
 
             // Call the modified API endpoint
             fetch('/api/fetch_data', {
@@ -662,6 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Now save the payload
         showLoading('Saving payload...');
+        console.log("Saving payload:", currentPayload); // Log payload
 
         fetchWithAuth('/api/save_payload', {
             method: 'POST',
@@ -739,6 +742,71 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial fetch of user settings to display token count
     fetchUserSettings(true); // Pass true to update display initially
+
+    // Clear Filters button
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function () {
+            const form = document.getElementById('searchForm');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], input[type="password"], textarea');
+            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+            const selects = form.querySelectorAll('select');
+
+            inputs.forEach(input => {
+                // Preserve default address and proximity
+                if (input.id === 'address') {
+                    input.value = 'Kanata, ON';
+                } else if (input.id === 'proximity') {
+                    input.value = '-1';
+                } else {
+                    input.value = '';
+                }
+            });
+
+            checkboxes.forEach(checkbox => {
+                // Default checked states
+                if (checkbox.id === 'isNew' || checkbox.id === 'isUsed' || checkbox.id === 'withPhotos') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+
+            selects.forEach(select => {
+                if (select.id === 'makeSelect') {
+                    select.value = ''; // Reset make to "Select Make"
+                    // Trigger change to reset dependent dropdowns
+                    select.dispatchEvent(new Event('change'));
+                } else if (select.id === 'modelSelect') {
+                    select.innerHTML = '<option value="">Select Model (Choose Make First)</option>';
+                    select.value = '';
+                } else if (select.id === 'trimSelect') {
+                    select.innerHTML = '<option value="">Any Trim (Select Model First)</option>';
+                    select.value = '';
+                } else if (select.id === 'colorSelect') {
+                    select.innerHTML = '<option value="">Any Color (Select Trim/Model First)</option>';
+                    select.value = '';
+                } else if (select.id === 'drivetrainSelect' || select.id === 'transmissionSelect') {
+                    select.value = ''; // Reset to "Any"
+                } else {
+                    select.selectedIndex = 0; // For other selects, reset to the first option
+                }
+            });
+
+            // Clear exclusions
+            exclusions = [];
+            updateExclusionsList();
+
+            // Reset currentPayload if it exists
+            currentPayload = null;
+            if (document.getElementById('currentPayload')) {
+                updatePayloadDisplay(); // Clear the display
+            }
+
+
+            showNotification('All filters cleared', 'info');
+        });
+    }
 
 });
 
@@ -913,20 +981,24 @@ document.getElementById('makeSelect').addEventListener('change', function () {
     showLoading('Loading models...');
     console.log(`Loading models for make: ${make}`);
 
-    fetchWithAuth(`/api/models/${make}`)
-        .then(data => {
-            console.log("Models loaded:", data);
-            const models = Object.keys(data); // e.g., ["IS (387)", "RX (123)"]
+            fetchWithAuth(`/api/models/${make}`)
+                .then(data => {
+                    console.log("Models loaded:", data);
+                    const models = Object.keys(data); // e.g., ["IS (387)", "RX (123)"]
 
-            models.forEach(modelWithCount => { // modelWithCount is like "IS (387)"
-                const option = document.createElement('option');
-                option.value = cleanModelNameJS(modelWithCount); // Set value to cleaned name, e.g., "IS"
-                option.textContent = `${modelWithCount} (${data[modelWithCount]})`; // Display text: "IS (387) (10)"
-                modelSelect.appendChild(option);
-            });
+                    models.forEach(modelWithCount => { // modelWithCount is like "IS (387)"
+                        // Check if modelWithCount contains "status", case-insensitive
+                        if (modelWithCount.toLowerCase().includes('status')) {
+                            return; // Skip this iteration if "status" is found
+                        }
+                        const option = document.createElement('option');
+                        option.value = cleanModelNameJS(modelWithCount); // Set value to cleaned name, e.g., "IS"
+                        option.textContent = `${modelWithCount} (${data[modelWithCount]})`; // Display text: "IS (387) (10)"
+                        modelSelect.appendChild(option);
+                    });
 
-            hideLoading();
-        })
+                    hideLoading();
+                })
         .catch(error => {
             console.error('Error loading models:', error);
             showNotification('Failed to load models. Please try again.', 'danger');
@@ -2077,6 +2149,7 @@ function setupLoadPayloadButton() {
 
                 if (data.success) {
                     currentPayload = data.payload;
+                    console.log("Loaded payload:", currentPayload); // Log loaded payload
 
                     // Call the display function only if element exists
                     if (document.getElementById('currentPayload')) {
