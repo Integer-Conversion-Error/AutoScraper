@@ -1727,6 +1727,7 @@ function displayResults(result) {
                                     data-trim="${vehicle.Trim || ''}"
                                     data-price="${vehicle.Price || ''}"
                                     data-km="${vehicle.Kilometres || ''}"
+                                    data-link="${vehicle.Link || ''}"
                                     title="Analyze Reliability with AI">
                                 <i class="bi bi-robot"></i> Analyze
                             </button>
@@ -1848,6 +1849,7 @@ function updateTableWithSortedData(vehicles) {
                                     data-trim="${vehicle.Trim || ''}"
                                     data-price="${vehicle.Price || ''}"
                                     data-km="${vehicle.Kilometres || ''}"
+                                    data-link="${vehicle.Link || ''}"
                                     title="Analyze Reliability with AI">
                                 <i class="bi bi-robot"></i> Analyze
                             </button>
@@ -2315,8 +2317,9 @@ function handleAnalyzeClick(event) {
             Model: button.dataset.model || '',
             Year: button.dataset.year || '',
             Trim: button.dataset.trim || '',
-            Price: button.dataset.price || '', // Add Price
-            Kilometres: button.dataset.km || '' // Add Kilometres
+            Price: button.dataset.price || '',
+            Kilometres: button.dataset.km || '',
+            Link: button.dataset.link || '' // Add Link
         };
 
         // Basic validation

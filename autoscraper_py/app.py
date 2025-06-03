@@ -88,7 +88,7 @@ if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         # Attach the model to the app context for blueprints
-        app.gemini_model = genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21') # Or your chosen model
+        app.gemini_model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20') # Or your chosen model
         app.logger.info("Gemini AI Model configured and attached to app.")
     except Exception as e:
         app.logger.error(f"Failed to configure Gemini AI Model: {e}", exc_info=True)

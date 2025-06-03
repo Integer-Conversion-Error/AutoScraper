@@ -589,3 +589,93 @@ def delete_result(user_id, result_id):
         return {'success': False, 'error': str(e)}
 
 # --- End Firestore Results Functions ---
+
+
+# --- AI Analysis Cache Functions ---
+
+def _make_link_firestore_safe(link_string):
+    """Converts a URL string into a Firestore-safe document ID."""
+    if not link_string:
+        return None
+    # Replace common problematic characters for Firestore document IDs
+    # Firestore IDs cannot contain '/', '.', '..', or be '__.*__'.
+    # We'll replace '/', ':', '?', '&', '#', '.' with '_'
+    # and ensure it doesn't start/end with '.' or contain '..'
+    safe_link = link_string.replace('/', '_').replace(':', '_').replace('?', '_') \
+                           .replace('&', '_').replace('#', '_').replace('.', '_')
+    # Basic check for leading/trailing problematic chars (though our replacements handle most)
+    if safe_link.startswith('_'):
+        safe_link = 'link' + safe_link
+    if safe_link.endswith('_'):
+        safe_link = safe_link + 'end'
+    # Ensure it's not excessively long (Firestore ID limit is 1500 bytes)
+    return safe_link[:1400] # Truncate if very long, allowing some buffer
+
+def get_ai_analysis(user_id, listing_link_original):
+    """
+    Retrieves a stored AI analysis for a specific listing link.
+
+    Args:
+        user_id (str): The user's ID.
+        listing_link_original (str): The original URL of the listing.
+
+    Returns:
+        dict: The stored analysis data (including 'analysis_text', 'created_at') 
+              or None if not found.
+    """
+    db = get_firestore_db()
+    if not db or not listing_link_original:
+        return None
+    
+    safe_listing_link = _make_link_firestore_safe(listing_link_original)
+    if not safe_listing_link:
+        return None
+
+    try:
+        analysis_ref = db.collection('users').document(user_id) \
+                         .collection('ai_analyses').document(safe_listing_link)
+        analysis_doc = analysis_ref.get()
+
+        if analysis_doc.exists:
+            return analysis_doc.to_dict()
+        return None
+    except Exception as e:
+        print(f"Error retrieving AI analysis for user {user_id}, link {listing_link_original}: {e}")
+        return None
+
+def save_ai_analysis(user_id, listing_link_original, analysis_text):
+    """
+    Saves a new AI analysis result to Firestore.
+
+    Args:
+        user_id (str): The user's ID.
+        listing_link_original (str): The original URL of the listing.
+        analysis_text (str): The AI-generated analysis text.
+
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+    db = get_firestore_db()
+    if not db or not listing_link_original:
+        return False
+
+    safe_listing_link = _make_link_firestore_safe(listing_link_original)
+    if not safe_listing_link:
+        return False
+        
+    try:
+        analysis_ref = db.collection('users').document(user_id) \
+                         .collection('ai_analyses').document(safe_listing_link)
+        
+        analysis_data = {
+            'analysis_text': analysis_text,
+            'original_link': listing_link_original,
+            'created_at': firestore.SERVER_TIMESTAMP
+        }
+        analysis_ref.set(analysis_data)
+        return True
+    except Exception as e:
+        print(f"Error saving AI analysis for user {user_id}, link {listing_link_original}: {e}")
+        return False
+
+# --- End AI Analysis Cache Functions ---
